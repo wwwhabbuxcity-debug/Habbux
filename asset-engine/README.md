@@ -1,18 +1,16 @@
-# Asset Engine
+# Habbux Asset Engine
 
-Módulos preparados por responsabilidade; não há conversores nem compiler
-implementados. Nenhum asset externo foi adicionado.
+Este diretório registra o pipeline futuro; ainda não há conversores, compiler,
+schemas intermediários ou assets importados. As etapas permanecem conceitos no
+documento central até surgir uma implementação que justifique módulos reais.
 
 ```text
 SWF / Nitro → Importer → Normalizer → Validator → Atlas Builder → HBX Compiler → HBX
 ```
 
-SWF/Nitro são **INPUT**. HBX é **OUTPUT NATIVO**. Importação acontece offline;
-o Client não interpreta SWF/Nitro em runtime.
-
-Os módulos só recebem runtime/dependências quando um incremento demonstrar
-necessidade. Contratos da representação intermediária serão versionados antes do
-primeiro importer. Não duplicar schemas em cada etapa.
+SWF/Nitro são entradas offline e HBX é o formato nativo de saída planejado; o
+Client não interpreta os formatos de entrada em runtime. Contratos intermediários
+serão versionados antes do primeiro importer. Não duplicar schemas por etapa.
 
 Referências: [pipeline](../docs/architecture/ASSET-PIPELINE.md),
 [especificação HBX](../docs/hbx/HBX-SPEC-v1.md),

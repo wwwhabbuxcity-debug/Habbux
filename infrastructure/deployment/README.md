@@ -13,10 +13,9 @@ Rollback: inspecionar o destino anterior em `.deploy/releases/`, criar um
 symlink temporário e usar `mv -Tf` para trocar `.deploy/current`. Não apontar para
 caminhos externos ou fontes.
 
-Vhost específico: `infrastructure/nginx/tyvo.online.conf`. O arquivo HTTP de
-bootstrap é apenas para primeira emissão ACME. Instalação é manual: salvar cópia
-do vhost Tyvo antes de substituir, testar `nginx -t`, então recarregar. Não
-alterar outros vhosts nem configuração global. Avisar antes de toda publicação.
+Vhost específico: `infrastructure/nginx/tyvo.online.conf`. Instalação é manual:
+salvar cópia do vhost Tyvo antes de substituir, testar `nginx -t`, então recarregar.
+Não alterar outros vhosts nem configuração global. Avisar antes de toda publicação.
 
 Certificado: Certbot webroot `.deploy/acme`, domínio `tyvo.online`, timer do
 sistema. Hook `renew-tyvo-certificate.sh` valida e recarrega Nginx somente após

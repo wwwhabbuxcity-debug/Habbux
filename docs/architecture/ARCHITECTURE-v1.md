@@ -1,6 +1,6 @@
 # Arquitetura Habbux v1
 
-Status: **EARLY ARCHITECTURE / BOOTSTRAP**. Este documento registra limites e
+Status: **EARLY DEVELOPMENT / FOUNDATION**. Este documento registra limites e
 direções aprovadas; não afirma que os sistemas de jogo já existem.
 
 ## Objetivo e restrições
@@ -18,13 +18,17 @@ Uma dependência ou abstração precisa resolver uma necessidade identificada.
 | `apps/emulator` | Processo Java 25 autoritativo; rede Netty e futuros domínios | Bootstrap executável; sem gameplay |
 | `apps/client` | Uma aplicação TypeScript/PixiJS para desktop, tablet e mobile | Bootstrap de renderização e build |
 | `apps/web` | Site e futuro acesso às APIs públicas | Projeto mínimo |
-| `services/api` | Contratos e futuras necessidades HTTP da Web | Documentação; sem runtime obrigatório |
 | `packages/protocol` | Fonte única do Habbux Protocol | Contrato inicial, sem conexão de jogo implementada |
-| `packages/schemas` | Contratos compartilhados e versionados | Limite preparado |
-| `packages/shared` | Utilidades independentes de ambiente, quando justificadas | Sem transferência de estado autoritativo |
-| `asset-engine` | Importação offline e produção de HBX | Módulos documentados; conversores não implementados |
+| Contratos HTTP futuros | Necessidades públicas da Web | Sem serviço ou pacote até haver contratos e consumidores reais |
+| Código compartilhado futuro | Utilidades puras com mais de um consumidor | Sem pacote vazio |
+| `asset-engine` | Importação offline e produção de HBX | Pipeline conceitual documentado; sem conversores implementados |
 | `database` | Evolução versionada da persistência PostgreSQL | Infraestrutura inicial; sem schema do hotel |
 | `infrastructure` | Desenvolvimento, publicação e operação | Configuração isolada do projeto |
+
+Contratos HTTP serão autenticados, versionados, validados e limitados; antes do
+primeiro endpoint, definir erros, timeouts, idempotência quando necessária e
+métricas. Alterações de saldo ou inventário continuam sob operações transacionais
+do domínio, nunca em rotas Web que contornem o Emulator.
 
 ## Fluxo futuro de uma ação
 
@@ -42,9 +46,10 @@ flowchart LR
 ```
 
 O diagrama descreve uma arquitetura futura. Não pressupõe vários serviços em
-execução: o Emulator é um monólito modular. A API somente ganha runtime separado
-se operação ou carga justificarem a separação. A Web não compartilha objetos,
-memória, tabelas internas por conveniência ou referências mutáveis do Emulator.
+execução: o Emulator é um monólito modular. HTTP começa como adaptador no processo;
+runtime separado só será criado se operação ou carga justificarem a separação.
+A Web não compartilha objetos, memória, tabelas internas por conveniência ou
+referências mutáveis do Emulator.
 
 ## Direção das dependências
 

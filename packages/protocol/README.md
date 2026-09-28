@@ -9,6 +9,6 @@ Quando o codec for implementado, um gerador pequeno lerá este registro e os
 schemas de payload, emitirá tipos/IDs/codecs para ambas as linguagens e fixtures
 binárias de referência. CI verificará geração determinística e diferenças de
 arquivos gerados. Até lá o registro é documentação validável, não um protocolo
-operacional. Não duplicar IDs em `packages/shared`.
+operacional. Não duplicar o catálogo fora deste diretório.
 
 Validar: `npm run protocol:validate`; regressões: `npm run protocol:test`.

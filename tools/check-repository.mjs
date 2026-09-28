@@ -3,7 +3,7 @@ import { readFileSync, statSync } from 'node:fs';
 
 // Inspect versionable files only. Local secrets/builds must remain ignored.
 const files = [...new Set(execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' }).split('\0').filter(Boolean))];
-const prohibited = /(^|\/)(node_modules|target|dist|build|secrets|credentials|\.deploy)(\/|$)|\.(?:pem|key|p12|pfx|jar|class|log)$/;
+const prohibited = /(^|\/)(node_modules|target|dist|build|\.deploy|\.ssh)(\/|$)|(^|\/)[^/]*(?:secret|credential)[^/]*(?:\/|$)|(^|\/)(?:id_(?:rsa|dsa|ecdsa|ed25519))$|\.(?:pem|key|p8|p12|pfx|keystore|jks|jar|class|log)$/;
 const secretPatterns = [
   /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/,
   /gh[pousr]_[A-Za-z0-9]{36,}/,
@@ -11,11 +11,12 @@ const secretPatterns = [
   /AKIA[0-9A-Z]{16}/,
   /xox[baprs]-[0-9A-Za-z-]{20,}/,
   /https?:\/\/[^\s/:]+:[^\s/@]+@/,
+  /(?:password|passwd|secret|api[_-]?key|access[_-]?token|client[_-]?secret)\s*(?:=\s*|:\s+)["']?(?!local-development-only\b|\$|<|TBD\b|CHANGE_ME\b)[^\s"'`,;}]{12,}/i,
 ];
 let problems = 0;
 for (const file of files) {
   const name = file.split('/').at(-1);
-  const envFile = (name === '.env' || name.startsWith('.env.')) && name !== '.env.example';
+  const envFile = (name === '.env' || name.startsWith('.env.') || name.endsWith('.env')) && name !== '.env.example';
   if (prohibited.test(file) || envFile || file === 'registro.md') {
     console.error(`Forbidden repository file: ${file}`);
     problems++;

@@ -6,7 +6,8 @@ Decisões físicas dependem de protótipos, fixtures e medições antes da adoç
 
 HBX é o formato nativo futuro. SWF e Nitro são entradas offline; o Client não
 precisa interpretar esses formatos em runtime. A fonte normativa desta proposta
-é este documento; `asset-engine/hbx-spec` aponta para ele.
+é este documento. O pipeline conceitual em `asset-engine/` não mantém uma cópia
+ou submódulo para esta especificação.
 
 ## Identidade e envelope
 

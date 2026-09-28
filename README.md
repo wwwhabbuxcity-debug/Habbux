@@ -1,13 +1,13 @@
 # Habbux
 
-**Project status: EARLY ARCHITECTURE / BOOTSTRAP**
+**Project status: EARLY DEVELOPMENT / FOUNDATION**
 
-Habbux is under active development. Plataforma multiplayer própria, em fase de
-fundação. Não é fork de Polaris, Arcturus, Morningstar, Nitro ou Octane. Não há
+Habbux é uma plataforma multiplayer independente em fase de fundação. Não é fork
+de Polaris, Arcturus, Morningstar, Nitro ou Octane. Não há
 hotel jogável, protocolo operacional, conversor de assets ou engine de quartos
 neste commit. Nenhum código ou asset desses projetos foi incorporado.
 
-Princípios: **Performance, Stability, Low latency, Scalability, Maintainability**.
+Princípios: **desempenho, estabilidade, baixa latência, escala e manutenção**.
 Medir antes de otimizar; não prometer capacidade sem ensaio reproduzível.
 
 ## Visão da arquitetura
@@ -31,12 +31,10 @@ adicionados por conveniência.
 | `apps/client` | Bootstrap TypeScript/PixiJS e limites do client |
 | `apps/web` | Página mínima do projeto, sem produto definitivo |
 | `packages/protocol` | Registro único de IDs, framing e limites |
-| `packages/schemas`, `packages/shared` | Limites para contratos e código puro compartilhado |
-| `services/api` | Fronteira documentada, sem runtime obrigatório |
-| `asset-engine` | Etapas documentadas de importação e geração HBX |
+| `asset-engine` | Pipeline conceitual de importação e geração HBX, sem ferramentas implementadas |
 | `database` | Migrations SQL com Flyway opcional, sem tabelas de gameplay |
 | `infrastructure` | Compose local opcional, vhost, deploy estático e observabilidade |
-| `tests`, `benchmarks` | Testes existentes e planos explícitos para os futuros |
+| `tests`, `benchmarks` | Testes existentes; integração, e2e e carga descritos sem diretórios vazios |
 | `tools` | Validação de contrato e higiene do repositório |
 | `docs` | Arquitetura, protocolo, HBX, performance, segurança e ADRs |
 

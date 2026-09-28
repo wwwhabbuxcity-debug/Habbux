@@ -12,15 +12,19 @@ SWF / Nitro → Importer → Normalizer → Validator → Atlas Builder → HBX 
 | `importer-swf` | SWF autorizado | Extração offline para representação intermediária; não executar scripts |
 | `importer-nitro` | Arquivo Nitro autorizado | Extração offline para a mesma representação intermediária |
 | `normalizer` | Extração de qualquer importer | Coordenadas, nomes, direções, tempo e referências canônicos |
-| `validator` | Representação normalizada | Diagnósticos reproduzíveis e rejeição de dados inválidos |
-| `atlas-builder` | Texturas validadas | Atlases, retângulos, padding e referências estáveis |
-| `compiler` | Modelo validado + atlases | Pacote HBX versionado e verificável |
+| `validator` | Representação normalizada | Rejeição de dados inválidos; diagnósticos com código, campo e origem |
+| `atlas-builder` | Texturas validadas | Atlases, regiões, padding, trim e pivots dentro dos limites dos dispositivos |
+| `compiler` | Modelo validado + atlases | Pacote HBX versionado, verificável e publicado somente após validação completa |
 | `hbx-spec` | Contrato HBX | Referência à especificação; não outra definição concorrente |
+
+Essas etapas são limites conceituais, não diretórios ou executáveis existentes.
+Criar um módulo apenas quando houver código com responsabilidade própria.
 
 Os contratos da representação intermediária e o formato físico HBX ainda são
 **TBD**. Antes de implementar importadores, versionar um schema pequeno, fixtures
-sintéticas autorizadas e critérios de compatibilidade. A especificação canônica
-fica em [HBX-SPEC-v1](../hbx/HBX-SPEC-v1.md).
+sintéticas autorizadas (válidas e inválidas) e critérios de compatibilidade. Os
+importers e o Client não corrigem dados inválidos silenciosamente. A especificação
+canônica fica em [HBX-SPEC-v1](../hbx/HBX-SPEC-v1.md).
 
 ## Reprodutibilidade
 

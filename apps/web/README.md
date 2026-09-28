@@ -20,7 +20,7 @@ sessões, analytics, chamadas de rede, fontes remotas ou estado de jogo. A pági
 leva a `/client/`; em desenvolvimento local os dois apps usam servidores Vite
 separados, e esse link pressupõe a publicação integrada pelo nginx.
 
-Futuras necessidades Web/API passam por contratos em `services/api` e
-`packages/schemas`. Web nunca importará estado interno do Emulator nem acessará
-o banco diretamente. Rotas, componentes e integrações só serão criados quando
+Futuras necessidades Web/API usarão contratos versionados quando houver um
+endpoint real. A Web nunca importará estado interno do Emulator nem acessará o
+banco diretamente. Rotas, componentes e integrações só serão criados quando
 existir funcionalidade aprovada. O layout atual é provisório, não a UI definitiva.

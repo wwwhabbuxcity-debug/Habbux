@@ -1,15 +1,23 @@
 # Segredos; somente exemplos deliberadamente falsos podem entrar no Git.
 .env
 .env.*
+*.env
 !.env.example
 *.pem
 *.key
 *.p12
 *.pfx
-credentials
-credentials.*
-secrets
-secrets.*
+*.p8
+*.keystore
+*.jks
+*.secret
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+.ssh/
+*credential*
+*secret*
 # Dependências e saídas de build.
 node_modules/
 dist/
@@ -28,6 +36,7 @@ logs/
 *.bak
 __pycache__/
 .tmp/
+tmp/
 .cache/
 # Operação deste servidor; não pertencem ao código distribuído.
 .deploy/

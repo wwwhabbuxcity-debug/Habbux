@@ -1,9 +1,11 @@
 # Persistência e migrations
 
 PostgreSQL é a fonte de verdade; nenhuma tabela de gameplay existe nesta etapa.
-O schema será próprio. `migrations/` recebe SQL versionado `V0001__descricao.sql`;
-`seeds/` recebe somente dados sintéticos explícitos; `schema/` receberá snapshots
-para revisão, nunca uma segunda fonte manual de migrations.
+O schema será próprio. `migrations/` recebe SQL versionado `V0001__descricao.sql`
+e permanece versionado vazio para a montagem local do Flyway.
+Seeds sintéticas e snapshots de schema só ganharão diretórios quando houver
+conteúdo real. Snapshots servem para revisão, nunca como segunda fonte manual de
+migrations.
 
 Flyway é ferramenta de desenvolvimento/deploy, não dependência do emulador.
 Ele mantém histórico/checksums e serializa migrations. Não editar migrations
@@ -17,9 +19,9 @@ docker compose --env-file .env -f infrastructure/docker/compose.yaml --profile d
 docker compose --env-file .env -f infrastructure/docker/compose.yaml --profile data --profile tools run --rm migrations migrate
 ```
 
-O diretório vazio é intencional: não criar tabela fictícia para obter um teste
-verde. Antes da primeira migration, adicionar teste de integração em banco
-isolado e verificar criação do zero e upgrade de uma versão anterior. DDL é
+O diretório `migrations/` vazio é intencional: não criar tabela fictícia para
+obter um teste verde. Antes da primeira migration, adicionar teste de integração
+em banco isolado e verificar criação do zero e upgrade de uma versão anterior. DDL é
 transacional no PostgreSQL quando suportado; operações como `CREATE INDEX
 CONCURRENTLY` exigem estratégia explícita fora de transação. Deploy futuro usa
 credencial exclusiva de migration, backup/restauração testados e mudanças
