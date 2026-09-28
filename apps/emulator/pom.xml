@@ -21,6 +21,18 @@
       <artifactId>netty-handler</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
@@ -33,6 +45,16 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -61,6 +83,8 @@
                   <excludes>
                     <!-- The executable manifest is rebuilt below; dependency manifests are not merged. -->
                     <exclude>META-INF/MANIFEST.MF</exclude>
+                    <!-- This executable is not an OSGi bundle; the duplicate metadata is unused at runtime. -->
+                    <exclude>META-INF/versions/11/OSGI-INF/MANIFEST.MF</exclude>
                     <exclude>META-INF/*.SF</exclude>
                     <exclude>META-INF/*.RSA</exclude>
                     <exclude>META-INF/*.DSA</exclude>

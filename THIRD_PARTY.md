@@ -11,13 +11,17 @@ ainda será definida pela titular: este documento não concede uma licença púb
 | SLF4J | API de logging | MIT | https://www.slf4j.org/ |
 | Logback | Logs estruturados JSON | EPL-2.0 OR LGPL-2.1-only | https://logback.qos.ch/ |
 | JUnit | Testes Java | EPL-2.0 | https://junit.org/ |
+| HikariCP | Pool limitado de conexões PostgreSQL | Apache-2.0 | https://github.com/brettwooldridge/HikariCP |
+| PostgreSQL JDBC | Driver JDBC do PostgreSQL | BSD-2-Clause | https://jdbc.postgresql.org/ |
+| Bouncy Castle | Argon2id para armazenamento de senha | Bouncy Castle License | https://www.bouncycastle.org/ |
+| Flyway Community | Migrations SQL versionadas | Apache-2.0 | https://github.com/flyway/flyway |
 | Maven e wrapper | Build Java reproduzível | Apache-2.0 | https://maven.apache.org/ |
 | TypeScript | Typecheck | Apache-2.0 | https://www.typescriptlang.org/ |
 | PixiJS | Renderer client | MIT | https://pixijs.com/ |
 | Vite | Build/dev client e web | MIT | https://vite.dev/ |
-| PostgreSQL (imagem opcional) | Persistência local futura | PostgreSQL License | https://www.postgresql.org/ |
+| PostgreSQL (imagem opcional) | Persistência local de desenvolvimento | PostgreSQL License | https://www.postgresql.org/ |
 | Redis 8 (imagem opcional) | Cache efêmero futuro | AGPLv3 / RSALv2 / SSPLv1, alternativas upstream | https://redis.io/legal/licenses/ |
-| Flyway Community (imagem opcional) | Migrations locais futuras | Apache-2.0; verificar distribuição/edição | https://github.com/flyway/flyway |
+| Flyway Community (imagem opcional) | Migrations locais em Compose | Apache-2.0; verificar distribuição/edição | https://github.com/flyway/flyway |
 | GitHub Actions oficiais | CI | MIT | https://github.com/actions |
 
 Versões exatas estão no POM, package.json/package-lock, Compose e pins dos

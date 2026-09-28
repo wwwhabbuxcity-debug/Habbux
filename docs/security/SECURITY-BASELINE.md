@@ -10,8 +10,9 @@ posição permitida, identidade ou permissão. Validar frame e tamanho antes de
 alocação, depois campos, contexto, autenticação e autorização. Limitar fragmentação,
 compressão, strings, listas, profundidade e complexidade das operações.
 
-Handshake de protocolo não autentica usuário. Autenticação futura precisa de
-credenciais protegidas, expiração, revogação e tratamento de tentativas repetidas.
+Handshake de protocolo não autentica usuário. O schema armazena somente hash
+Argon2id da senha, sem tokens ou sessões persistentes. O protocolo de login,
+revogação e política de tentativas ainda serão implementados antes de uso real.
 Autorização ocorre por ação e recurso, inclusive mensagens válidas vindas de
 usuário autenticado. Não colocar tokens em URL ou em logs.
 
@@ -54,6 +55,13 @@ Ações administrativas registram ator, alvo, ação, resultado e correlação.
 Economia registra operação idempotente e alteração durável de saldo/posse na mesma
 unidade de consistência. Restringir acesso aos registros e definir retenção antes
 de operar dados reais. Não registrar credenciais nem chat por padrão.
+
+Argon2id usa `m=19456 KiB,t=2,p=1`, salt aleatório de 16 bytes e saída de 32 bytes.
+O cadastro limita a senha a 128 pontos de código/512 bytes UTF-8 e exige mínimo de
+12 caracteres. Hash, verificação e JDBC ficam em executor de Auth com 2 threads e
+fila limitada a 8; nunca no EventLoop. Hashes PHC com custo fora dos limites são
+rejeitados antes de executar o algoritmo. O fluxo de login integrado ainda está
+pendente.
 
 ## Supply chain, assets e extensões
 

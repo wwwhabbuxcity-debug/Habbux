@@ -1,6 +1,6 @@
 # Habbux
 
-**Project status: EARLY DEVELOPMENT / CORE NETWORKING v1**
+**Project status: EARLY DEVELOPMENT / NETWORK + PERSISTENCE FOUNDATION**
 
 Habbux é uma plataforma multiplayer independente em fase inicial. Não é fork de
 Polaris, Arcturus, Morningstar, Nitro ou Octane. O Core de transporte já abre
@@ -14,12 +14,13 @@ Medir antes de otimizar; não prometer capacidade sem ensaio reproduzível.
 ## Visão da arquitetura
 
 Java 25 + Netty formam a base do futuro servidor autoritativo orientado a eventos.
-RAM mantém estado ativo; PostgreSQL será a fonte de persistência e Redis será
+RAM mantém estado ativo; PostgreSQL é a fonte de persistência e Redis será
 opcional para dados efêmeros com limites/expiração. O client usa TypeScript e
 PixiJS em uma única codebase adaptativa para desktop, tablet e mobile.
 
 O protocolo binário próprio possui registro canônico versionado e Core v1 de
-rede. O pipeline futuro importa SWF/Nitro e gera HBX nativo; o client não
+rede. A base Auth/User contém schema, JDBC, hashing e executor limitado, ainda sem
+fluxo de login integrado. O pipeline futuro importa SWF/Nitro e gera HBX nativo; o client não
 interpretará esses formatos de importação. Web e futura API dependem de contratos,
 sem acesso ao estado interno do emulador. Não há microserviços adicionais nem
 frameworks de servidor adicionados por conveniência.
@@ -28,12 +29,12 @@ frameworks de servidor adicionados por conveniência.
 
 | Caminho | Responsabilidade |
 | --- | --- |
-| `apps/emulator` | Processo Java 25, listener WebSocket Netty, sessão anônima e testes |
+| `apps/emulator` | Processo Java 25, listener WebSocket Netty, persistência/Auth foundation e testes |
 | `apps/client` | Bootstrap TypeScript/PixiJS, codec e painel de diagnóstico |
 | `apps/web` | Página mínima do projeto, sem produto definitivo |
 | `packages/protocol` | Registro único de IDs, framing e limites |
 | `asset-engine` | Pipeline conceitual de importação e geração HBX, sem ferramentas implementadas |
-| `database` | Migrations SQL com Flyway opcional, sem tabelas de gameplay |
+| `database` | Migration Flyway para usuários/credenciais; sem tabelas de gameplay |
 | `infrastructure` | Compose local opcional, vhost, deploy estático e observabilidade |
 | `tests`, `benchmarks` | Codec, integração, smoke limitado e baseline de codec |
 | `tools` | Validação de contrato e higiene do repositório |
@@ -66,8 +67,9 @@ npm run repository:check
 nice -n 19 env NODE_OPTIONS=--max-old-space-size=512 RAYON_NUM_THREADS=1 npm run build
 ```
 
-`clean verify` compila e executa testes de codec, handshake, timeout e 24 conexões
-WebSocket locais. Typecheck cobre client e web. Para iniciar o Emulator em
+`clean verify` compila e executa testes de codec, handshake, timeout, pool/config,
+Argon2id e executor. Integração PostgreSQL só roda com configuração para
+`habbux_phase2_test`; sem ela aparece como `SKIPPED`. Typecheck cobre client e web. Para iniciar o Emulator em
 loopback:
 
 ```sh
@@ -112,5 +114,5 @@ Segredos expostos devem ser revogados, não apenas removidos do último commit.
 
 O CI valida os componentes existentes: Java/testes de integração locais,
 client/web/typecheck, vetores de protocolo, higiene e configuração Compose. Não
-afirma gameplay nem capacidade de produção. Esta etapa termina no Core de rede;
-Auth e gameplay ficam para etapas posteriores.
+afirma gameplay nem capacidade de produção. O fluxo Auth e gameplay ainda estão
+em etapas posteriores.

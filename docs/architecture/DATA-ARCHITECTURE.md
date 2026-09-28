@@ -10,8 +10,8 @@
 
 RAM não substitui durabilidade econômica. Redis não define saldo, posse ou
 histórico oficial. Seu desaparecimento não pode destruir dados permanentes.
-O Hello World não depende de Redis nem de PostgreSQL; conexões reais só serão
-ativadas quando houver um caso de uso e validação operacional.
+A persistência inicial contém somente usuários e credenciais para Auth. Migrations
+são explícitas e não rodam no boot do Emulator.
 
 ## Acesso e hot paths
 
@@ -20,9 +20,10 @@ renderização e execução repetida de Wired não fazem round-trip ao banco. Es
 assíncronas usam fila limitada, tratamento de falha e garantia de durabilidade
 definida por tipo de dado. Métricas de atraso e rejeição tornam saturação visível.
 
-Um adaptador concentra SQL parametrizado e conversão de registros. Pool de
-conexões terá tamanho finito, timeout de aquisição, timeout de consulta e métricas;
-os valores serão medidos contra capacidade real do banco. Aumentar workers não
+O `UserRepository` concentra SQL parametrizado e conversão de registros. HikariCP
+usa por padrão mínimo 1/máximo 2 conexões, aquisição de até 1,5 s e queries com
+timeout de 5 s. A fundação expõe conexões ativas, ociosas e pendentes. Esses
+limites são baseline conservador, não capacidade medida. Aumentar workers não
 justifica aumentar automaticamente conexões. Transações devem durar o mínimo
 necessário e não conter chamadas de rede externas.
 
@@ -68,6 +69,11 @@ Mudanças de schema são versionadas em [`database`](../../database/README.md).
 Não alterar migration já aplicada. Testar em banco descartável novo e sobre a
 versão anterior; incluir efeitos de locks, volume e compatibilidade durante deploy.
 Dados e schema de outros projetos não são fontes desta base.
+
+O schema v1 mantém `users` e `user_credentials`; `BIGINT GENERATED ALWAYS AS
+IDENTITY` fornece identidade compacta. O login procura username ou email
+normalizados em colunas únicas indexadas. A fundação prepara DML mínimo para o
+runtime; migrations usam credencial separada.
 
 Mudanças destrutivas exigem backup verificado e plano de restauração. Preferir
 adicionar, migrar dados e só depois remover campos. Rollback de código nem sempre

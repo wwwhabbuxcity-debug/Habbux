@@ -20,6 +20,9 @@ proposta e não tratada como contrato.
 | [0009](0009-monorepo.md) | Monorepo por módulos de execução | Aceita |
 | [0010](0010-multiplatform-client.md) | Um client adaptativo multiplataforma | Aceita |
 | [0011](0011-maven.md) | Maven com wrapper e dependências fixas | Aceita |
+| [0012](0012-user-identity.md) | Identidade de usuário e normalização | Aceita |
+| [0013](0013-password-hashing.md) | Armazenamento de senha com Argon2id | Aceita |
+| [0014](0014-persistence-auth-execution.md) | JDBC, pool e executor de Auth limitados | Aceita |
 
 Aceito não significa implementação completa: veja os limites de cada decisão e
 os READMEs dos módulos ainda planejados.

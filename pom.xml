@@ -21,6 +21,10 @@
     <slf4j.version>2.0.20</slf4j.version>
     <logback.version>1.6.4</logback.version>
     <junit.version>6.1.3</junit.version>
+    <hikari.version>7.1.0</hikari.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <bouncycastle.version>1.86</bouncycastle.version>
+    <flyway.version>11.20.3</flyway.version>
     <habbux.nettyLeakDetection>disabled</habbux.nettyLeakDetection>
   </properties>
   <dependencyManagement>
@@ -43,6 +47,31 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.zaxxer</groupId>
+        <artifactId>HikariCP</artifactId>
+        <version>${hikari.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+        <version>${flyway.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-database-postgresql</artifactId>
+        <version>${flyway.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -115,4 +144,41 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>database-migrations</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-maven-plugin</artifactId>
+            <version>${flyway.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-database-postgresql</artifactId>
+                <version>${flyway.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <url>jdbc:postgresql://${env.POSTGRES_HOST}:${env.POSTGRES_PORT}/${env.POSTGRES_DB}</url>
+              <user>${env.POSTGRES_MIGRATION_USER}</user>
+              <password>${env.POSTGRES_MIGRATION_PASSWORD}</password>
+              <locations>
+                <location>filesystem:${maven.multiModuleProjectDirectory}/database/migrations</location>
+              </locations>
+              <cleanDisabled>true</cleanDisabled>
+              <validateMigrationNaming>true</validateMigrationNaming>
+              <validateOnMigrate>true</validateOnMigrate>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
