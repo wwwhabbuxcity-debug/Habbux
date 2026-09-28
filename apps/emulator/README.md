@@ -3,8 +3,8 @@
 Emulator Java 25 com servidor Netty WebSocket para o Core v1. O processo fica em
 execução até receber SIGTERM/SIGINT; usa loopback por padrão, PostgreSQL é
 opcional, e não conecta a Redis ou aos demais projetos deste servidor. Auth e
-Room Engine v1 com movimento autoritativo existem; chat, UI interativa e Furniture
-Engine ainda não.
+Room Engine v1 incluem movimento autoritativo, presença, broadcast, chat textual
+limitado e uma UI diagnóstica; Furniture Engine ainda não existe.
 
 Na raiz do repositório, com JDK 25 e Node 22/npm 10:
 
@@ -56,6 +56,9 @@ exigem proxy de borda configurado numa etapa de deploy própria.
 | `HABBUX_ROOM_MAX_EXPLORED_NODES` | 4.096 | 1–4.096 nós por busca |
 | `HABBUX_ROOM_MAX_PATH_LENGTH` | 128 | 1–4.096 passos por caminho |
 | `HABBUX_ROOM_MOVEMENT_TICK_MS` | 100 | 10–1.000 ms, scheduler compartilhado |
+| `HABBUX_ROOM_MAX_CHAT_BYTES` | 256 | 1–256 bytes UTF-8 |
+| `HABBUX_ROOM_MAX_CHAT_CODE_POINTS` | 128 | 1–128 code points |
+| `HABBUX_ROOM_CHAT_RATE_MS` | 1.000 | 1–60.000 ms entre mensagens da presença |
 
 Origem ausente é permitida para clientes nativos; uma origem enviada pelo browser
 precisa corresponder exatamente à allowlist. A configuração de produção deve
@@ -79,8 +82,10 @@ executor JDBC separado. Presença, caminho e posição ficam em memória; busca 
 4 direções em ordem norte/oeste/leste/sul e rejeita destino bloqueado, ocupado,
 inalcançável ou acima dos limites. Um ticker único de 100 ms visita quartos com
 movimentos ativos e avança no máximo 16 ocupantes por quarto/tick, sem timer por
-jogador. Com Room Engine ativo, `HABBUX_MAX_PAYLOAD_BYTES` precisa ser pelo menos 7.308
-bytes para comportar o maior snapshot v1 possível; o default permanece 65.536.
+jogador. Chat é validado sem persistência, usa rate limit por presença e é
+broadcast pela mesma mailbox. Com Room Engine ativo, `HABBUX_MAX_PAYLOAD_BYTES`
+precisa ser pelo menos 7.438 bytes para comportar o maior snapshot v1 possível;
+o default permanece 65.536.
 
 Teste local separado de 100 conexões: depois de `mvn clean verify`, dependências
 Node instaladas e Java 25 ativo, rode `nice -n 19 npm run core:load-smoke`. O

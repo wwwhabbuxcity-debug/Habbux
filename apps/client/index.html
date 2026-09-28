@@ -48,6 +48,36 @@
             <p id="auth-status" class="auth-status" role="status" aria-live="polite">Conecte ao Core para testar autenticação.</p>
           </form>
           <p class="endpoint-note">Endpoint configurado para este build: <code id="endpoint"></code></p>
+          <section class="room-panel" aria-labelledby="room-title">
+            <div class="core-heading">
+              <div><p class="eyebrow">Diagnóstico de jogo</p><h2 id="room-title">Room Engine</h2></div>
+              <span id="room-status" class="room-status" role="status">Sem quarto</span>
+            </div>
+            <form id="room-join-form" class="room-controls">
+              <label for="room-id">Room ID</label>
+              <input id="room-id" inputmode="numeric" autocomplete="off" value="1" pattern="[1-9][0-9]{0,19}" maxlength="20" required />
+              <button id="room-join" type="submit">Entrar no quarto</button>
+              <button id="room-leave" type="button" hidden>Sair do quarto</button>
+            </form>
+            <p id="room-error" class="room-error" role="status" aria-live="polite"></p>
+            <div id="room-view" class="room-view" hidden>
+              <dl class="core-grid room-summary">
+                <div><dt>Quarto</dt><dd id="room-name">—</dd></div>
+                <div><dt>ID</dt><dd id="room-current-id">—</dd></div>
+                <div><dt>Ocupantes</dt><dd id="room-occupants-count">0</dd></div>
+                <div><dt>Grade</dt><dd id="room-grid-size">—</dd></div>
+              </dl>
+              <ul id="room-occupants" class="room-occupants" aria-label="Ocupantes"></ul>
+              <div id="room-grid" class="room-grid" role="grid" aria-label="Grade do quarto"></div>
+              <p class="room-grid-help">Clique em um tile livre para pedir um destino. O servidor calcula e transmite cada passo.</p>
+              <ol id="room-chat-log" class="room-chat-log" aria-label="Mensagens do quarto" aria-live="polite"></ol>
+              <form id="room-chat-form" class="room-chat-form">
+                <label for="room-chat-text">Mensagem</label>
+                <input id="room-chat-text" maxlength="128" autocomplete="off" />
+                <button id="room-chat-send" type="submit">Enviar</button>
+              </form>
+            </div>
+          </section>
         </section>
         <div id="viewport" aria-label="Prévia gráfica do Habbux"></div>
         <p id="renderer-status" class="status" role="status" aria-live="polite">Preparando a prévia…</p>

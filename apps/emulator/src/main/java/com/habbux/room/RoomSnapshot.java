@@ -3,7 +3,7 @@ package com.habbux.room;
 import java.util.List;
 
 /** Bounded immutable initial state sent to a newly joined client. */
-public record RoomSnapshot(RoomId roomId, int width, int height, int capacity, byte[] walkability,
+public record RoomSnapshot(RoomId roomId, String name, int width, int height, int capacity, byte[] walkability,
                            List<Occupant> occupants) {
     public RoomSnapshot {
         walkability = walkability.clone();

@@ -41,14 +41,47 @@ class RoomPayloadCodecTest {
     @Test
     void encodesSnapshotWithinLimitAndContainsOnlyStaticGridAndBoundedOccupants() {
         byte[] walkability = {1, 1, 1, 1};
-        RoomSnapshot snapshot = new RoomSnapshot(new RoomId(42), 2, 2, 3, walkability,
+        RoomSnapshot snapshot = new RoomSnapshot(new RoomId(42), "Test Room", 2, 2, 3, walkability,
                 List.of(new RoomSnapshot.Occupant(42, "alice", 0, 0)));
         var frame = RoomPayloadCodec.encode(new RoomOutbound.Snapshot(snapshot));
         assertEquals(18, frame.messageId());
-        assertArrayEquals(hex("000000000000002a0202030101010101000000000000002a00000005616c696365"), frame.payload());
+        assertArrayEquals(hex("000000000000002a00095465737420526f6f6d0202030101010101000000000000002a00000005616c696365"), frame.payload());
         walkability[0] = 0;
         assertEquals(1, snapshot.walkability()[0]);
         assertTrue(frame.payload().length < 65_536);
+    }
+
+    @Test
+    void encodesPresenceAndChatDeltasAndDecodesBoundedStrictUtf8Chat() {
+        var joined = RoomPayloadCodec.encode(new RoomOutbound.UserJoined(42, "alice", 1, 2));
+        assertEquals(22, joined.messageId());
+        assertArrayEquals(hex("000000000000002a01020005616c696365"), joined.payload());
+        var left = RoomPayloadCodec.encode(new RoomOutbound.UserLeft(42));
+        assertEquals(23, left.messageId());
+        assertArrayEquals(hex("000000000000002a"), left.payload());
+
+        byte[] inbound = chatPayload("Olá 🏠");
+        assertEquals("Olá 🏠", RoomPayloadCodec.decodeChat(inbound));
+        var chat = RoomPayloadCodec.encode(new RoomOutbound.ChatMessage(42, "Olá 🏠"));
+        assertEquals(25, chat.messageId());
+        assertArrayEquals(hex("000000000000002a00094f6cc3a120f09f8fa0"), chat.payload());
+        var request = RoomPayloadCodec.encode(new RoomOutbound.ActionFailed(
+                RoomOutbound.ActionOperation.CHAT, RoomOutbound.ActionFailure.RATE_LIMITED));
+        assertArrayEquals(hex("0203"), request.payload());
+
+        assertThrows(RoomPayloadCodec.MalformedRoomPayloadException.class,
+                () -> RoomPayloadCodec.decodeChat(hex("0000")));
+        assertThrows(RoomPayloadCodec.MalformedRoomPayloadException.class,
+                () -> RoomPayloadCodec.decodeChat(hex("0002c328")));
+        assertThrows(RoomPayloadCodec.MalformedRoomPayloadException.class,
+                () -> RoomPayloadCodec.decodeChat(chatPayload("\n")));
+        assertThrows(RoomPayloadCodec.MalformedRoomPayloadException.class,
+                () -> RoomPayloadCodec.decodeChat(chatPayload("a".repeat(129))));
+    }
+
+    private static byte[] chatPayload(String text) {
+        byte[] bytes = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        return java.nio.ByteBuffer.allocate(2 + bytes.length).putShort((short) bytes.length).put(bytes).array();
     }
 
     private static byte[] hex(String text) {

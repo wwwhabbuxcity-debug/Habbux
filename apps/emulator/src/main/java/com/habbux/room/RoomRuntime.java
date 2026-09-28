@@ -2,6 +2,7 @@ package com.habbux.room;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,7 @@ public final class RoomRuntime {
     public enum State { LOADING, ACTIVE, IDLE, UNLOADING, CLOSED }
     public enum JoinOutcome { JOINED, CANCELLED, NOT_FOUND, FULL, ALREADY_IN_ROOM, UNAVAILABLE }
     public enum MoveOutcome { MOVING, ARRIVED, NOT_IN_ROOM, INVALID_DESTINATION, UNREACHABLE, PATH_LIMIT, UNAVAILABLE }
+    public enum ChatOutcome { SENT, NOT_IN_ROOM, INVALID_MESSAGE, RATE_LIMITED, UNAVAILABLE }
 
     private static final int[] DX = {0, -1, 1, 0};
     private static final int[] DY = {-1, 0, 0, 1};
@@ -26,7 +28,11 @@ public final class RoomRuntime {
     private final int[] searchGenerationByCell;
     private final int maxExploredNodes;
     private final int maxPathLength;
+    private final int maxChatBytes;
+    private final int maxChatCodePoints;
+    private final long chatRateLimitNanos;
     private final LinkedHashMap<UUID, Presence> presences = new LinkedHashMap<>();
+    private final HashMap<Long, Presence> presenceByUserId = new HashMap<>();
     private final ArrayDeque<Presence> movingPresences = new ArrayDeque<>();
     private volatile State state = State.LOADING;
     private volatile long lastActivityNanos = System.nanoTime();
@@ -34,15 +40,20 @@ public final class RoomRuntime {
     private volatile int movingCount;
     private int searchGeneration;
 
-    RoomRuntime(RoomMetadata metadata, RoomMailbox mailbox, int maxExploredNodes, int maxPathLength) {
+    RoomRuntime(RoomMetadata metadata, RoomMailbox mailbox, int maxExploredNodes, int maxPathLength,
+                int maxChatBytes, int maxChatCodePoints, int chatRateLimitMillis) {
         this.metadata = java.util.Objects.requireNonNull(metadata, "metadata");
         this.mailbox = java.util.Objects.requireNonNull(mailbox, "mailbox");
         int cellCount = metadata.grid().width() * metadata.grid().height();
-        if (maxExploredNodes < 1 || maxPathLength < 1) {
-            throw new IllegalArgumentException("pathfinding limits must be positive");
+        if (maxExploredNodes < 1 || maxPathLength < 1 || maxChatBytes < 1
+                || maxChatCodePoints < 1 || chatRateLimitMillis < 1) {
+            throw new IllegalArgumentException("room action limits must be positive");
         }
         this.maxExploredNodes = Math.min(maxExploredNodes, cellCount);
         this.maxPathLength = Math.min(maxPathLength, cellCount);
+        this.maxChatBytes = Math.min(maxChatBytes, RoomPayloadCodec.MAX_CHAT_BYTES);
+        this.maxChatCodePoints = Math.min(maxChatCodePoints, RoomPayloadCodec.MAX_CHAT_CODE_POINTS);
+        chatRateLimitNanos = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(chatRateLimitMillis);
         occupantByCell = new Presence[cellCount];
         searchQueue = new int[cellCount];
         searchParent = new int[cellCount];
@@ -72,6 +83,11 @@ public final class RoomRuntime {
                 result.complete(JoinOutcome.ALREADY_IN_ROOM);
                 return;
             }
+            if (presenceByUserId.containsKey(userId)) {
+                client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.ALREADY_IN_ROOM));
+                result.complete(JoinOutcome.ALREADY_IN_ROOM);
+                return;
+            }
             if (presences.size() >= Math.min(metadata.capacity(), maxRoomCapacity)) {
                 client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.FULL));
                 result.complete(JoinOutcome.FULL);
@@ -90,10 +106,14 @@ public final class RoomRuntime {
             int y = cell / metadata.grid().width();
             Presence joined = new Presence(sessionId, userId, username, x, y, client);
             presences.put(sessionId, joined);
+            presenceByUserId.put(userId, joined);
             presenceCount = presences.size();
             occupantByCell[cell] = joined;
             state = State.ACTIVE;
             lastActivityNanos = System.nanoTime();
+            for (Presence recipient : presences.values()) {
+                if (recipient != joined) recipient.client.send(new RoomOutbound.UserJoined(userId, username, x, y));
+            }
             client.send(new RoomOutbound.Joined(metadata.id(), x, y));
             client.send(new RoomOutbound.Snapshot(snapshot()));
             result.complete(JoinOutcome.JOINED);
@@ -110,6 +130,7 @@ public final class RoomRuntime {
         boolean accepted = mailbox.submitCritical(() -> {
             Presence removed = presences.remove(sessionId);
             if (removed != null) {
+                presenceByUserId.remove(removed.userId, removed);
                 int cell = removed.y * metadata.grid().width() + removed.x;
                 occupantByCell[cell] = null;
                 if (removed.path != null) {
@@ -119,6 +140,9 @@ public final class RoomRuntime {
                 }
                 presenceCount = presences.size();
                 lastActivityNanos = System.nanoTime();
+                for (Presence recipient : presences.values()) {
+                    recipient.client.send(new RoomOutbound.UserLeft(removed.userId));
+                }
                 if (presences.isEmpty()) state = State.IDLE;
             }
             if (acknowledge) client.send(new RoomOutbound.Left());
@@ -165,6 +189,7 @@ public final class RoomRuntime {
                     case UNREACHABLE -> MoveOutcome.UNREACHABLE;
                     case PATH_LIMIT -> MoveOutcome.PATH_LIMIT;
                     case UNAVAILABLE -> MoveOutcome.UNAVAILABLE;
+                    case INVALID_MESSAGE, RATE_LIMITED -> throw new IllegalStateException("chat failure used for movement");
                 });
                 return;
             }
@@ -177,6 +202,41 @@ public final class RoomRuntime {
             result.complete(MoveOutcome.MOVING);
         });
         if (!accepted) result.complete(MoveOutcome.UNAVAILABLE);
+        return result;
+    }
+
+    CompletableFuture<ChatOutcome> chat(UUID sessionId, String text, RoomClient client) {
+        CompletableFuture<ChatOutcome> result = new CompletableFuture<>();
+        boolean accepted = mailbox.submit(() -> {
+            Presence presence = presences.get(sessionId);
+            if (presence == null) {
+                client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionOperation.CHAT,
+                        RoomOutbound.ActionFailure.NOT_IN_ROOM));
+                result.complete(ChatOutcome.NOT_IN_ROOM);
+                return;
+            }
+            try {
+                RoomPayloadCodec.validateChatText(text, maxChatBytes, maxChatCodePoints);
+            } catch (RoomPayloadCodec.MalformedRoomPayloadException invalid) {
+                presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionOperation.CHAT,
+                        RoomOutbound.ActionFailure.INVALID_MESSAGE));
+                result.complete(ChatOutcome.INVALID_MESSAGE);
+                return;
+            }
+            long now = System.nanoTime();
+            if (presence.lastChatNanos != 0 && now - presence.lastChatNanos < chatRateLimitNanos) {
+                presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionOperation.CHAT,
+                        RoomOutbound.ActionFailure.RATE_LIMITED));
+                result.complete(ChatOutcome.RATE_LIMITED);
+                return;
+            }
+            presence.lastChatNanos = now;
+            lastActivityNanos = now;
+            RoomOutbound.ChatMessage message = new RoomOutbound.ChatMessage(presence.userId, text);
+            for (Presence recipient : presences.values()) recipient.client.send(message);
+            result.complete(ChatOutcome.SENT);
+        });
+        if (!accepted) result.complete(ChatOutcome.UNAVAILABLE);
         return result;
     }
 
@@ -238,6 +298,7 @@ public final class RoomRuntime {
         boolean accepted = mailbox.submitCritical(() -> {
             state = State.UNLOADING;
             presences.clear();
+            presenceByUserId.clear();
             movingPresences.clear();
             movingCount = 0;
             presenceCount = 0;
@@ -345,7 +406,7 @@ public final class RoomRuntime {
             occupants.add(new RoomSnapshot.Occupant(presence.userId, presence.username, presence.x, presence.y));
         }
         RoomGridDefinition grid = metadata.grid();
-        return new RoomSnapshot(metadata.id(), grid.width(), grid.height(), metadata.capacity(),
+        return new RoomSnapshot(metadata.id(), metadata.name(), grid.width(), grid.height(), metadata.capacity(),
                 grid.walkability(), occupants);
     }
 
@@ -363,6 +424,7 @@ public final class RoomRuntime {
         private final RoomClient client;
         private int[] path;
         private int pathIndex;
+        private long lastChatNanos;
         private Presence(UUID sessionId, long userId, String username, int x, int y, RoomClient client) {
             this.sessionId = sessionId;
             this.userId = userId;

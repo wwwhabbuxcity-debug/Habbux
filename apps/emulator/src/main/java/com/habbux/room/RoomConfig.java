@@ -5,11 +5,19 @@ import java.util.Map;
 /** Conservative bounded execution defaults. Values are deliberately few and validated centrally. */
 public record RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacity,
                          int eventsPerRun, int maxRunMillis, int idleTimeoutMillis, int maxRoomCapacity,
-                         int ioQueueCapacity, int maxExploredNodes, int maxPathLength, int movementTickMillis) {
+                         int ioQueueCapacity, int maxExploredNodes, int maxPathLength, int movementTickMillis,
+                         int maxChatBytes, int maxChatCodePoints, int chatRateLimitMillis) {
+    public RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacity, int eventsPerRun,
+                      int maxRunMillis, int idleTimeoutMillis, int maxRoomCapacity, int ioQueueCapacity,
+                      int maxExploredNodes, int maxPathLength, int movementTickMillis) {
+        this(workerCount, maxActiveRooms, mailboxCapacity, eventsPerRun, maxRunMillis, idleTimeoutMillis,
+                maxRoomCapacity, ioQueueCapacity, maxExploredNodes, maxPathLength, movementTickMillis, 256, 128, 1_000);
+    }
+
     public RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacity, int eventsPerRun,
                       int maxRunMillis, int idleTimeoutMillis, int maxRoomCapacity, int ioQueueCapacity) {
         this(workerCount, maxActiveRooms, mailboxCapacity, eventsPerRun, maxRunMillis,
-                idleTimeoutMillis, maxRoomCapacity, ioQueueCapacity, 4_096, 128, 100);
+                idleTimeoutMillis, maxRoomCapacity, ioQueueCapacity, 4_096, 128, 100, 256, 128, 1_000);
     }
 
     public RoomConfig {
@@ -24,6 +32,9 @@ public record RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacit
         range(maxExploredNodes, 1, RoomGridDefinition.MAX_WIDTH * RoomGridDefinition.MAX_HEIGHT, "maxExploredNodes");
         range(maxPathLength, 1, RoomGridDefinition.MAX_WIDTH * RoomGridDefinition.MAX_HEIGHT, "maxPathLength");
         range(movementTickMillis, 10, 1_000, "movementTickMillis");
+        range(maxChatBytes, 1, RoomPayloadCodec.MAX_CHAT_BYTES, "maxChatBytes");
+        range(maxChatCodePoints, 1, RoomPayloadCodec.MAX_CHAT_CODE_POINTS, "maxChatCodePoints");
+        range(chatRateLimitMillis, 1, 60_000, "chatRateLimitMillis");
         if (mailboxCapacity < maxRoomCapacity + 10) {
             throw new IllegalArgumentException("mailboxCapacity must reserve room for every leave plus lifecycle events");
         }
@@ -43,7 +54,10 @@ public record RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacit
                 value(environment, "HABBUX_ROOM_IO_QUEUE_CAPACITY", defaults.ioQueueCapacity),
                 value(environment, "HABBUX_ROOM_MAX_EXPLORED_NODES", defaults.maxExploredNodes),
                 value(environment, "HABBUX_ROOM_MAX_PATH_LENGTH", defaults.maxPathLength),
-                value(environment, "HABBUX_ROOM_MOVEMENT_TICK_MS", defaults.movementTickMillis));
+                value(environment, "HABBUX_ROOM_MOVEMENT_TICK_MS", defaults.movementTickMillis),
+                value(environment, "HABBUX_ROOM_MAX_CHAT_BYTES", defaults.maxChatBytes),
+                value(environment, "HABBUX_ROOM_MAX_CHAT_CODE_POINTS", defaults.maxChatCodePoints),
+                value(environment, "HABBUX_ROOM_CHAT_RATE_MS", defaults.chatRateLimitMillis));
     }
 
     private static int value(Map<String, String> environment, String key, int fallback) {

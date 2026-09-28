@@ -3,11 +3,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
+const roomStateSource = await readFile(new URL('../../apps/client/src/room/room-state.ts', import.meta.url), 'utf8');
+const compiledRoomState = ts.transpileModule(roomStateSource, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
+}).outputText;
+const roomStateModuleUrl = `data:text/javascript;base64,${Buffer.from(compiledRoomState).toString('base64')}`;
 const source = await readFile(new URL('../../apps/client/src/communication/core.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
-}).outputText;
+}).outputText.replace("from '../room/room-state';", `from '${roomStateModuleUrl}';`);
 const client = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
+const roomState = await import(roomStateModuleUrl);
 const vectors = (await readFile(new URL('../../packages/protocol/golden-vectors-v1.txt', import.meta.url), 'utf8'))
   .split(/\r?\n/u).filter((line) => line && !line.startsWith('#'))
   .map((line) => line.split('|'));
@@ -266,3 +272,116 @@ test('reconnect uses bounded attempts and can be disabled', async () => {
     else delete globalThis.WebSocket;
   }
 });
+
+test('client joins a room, applies authoritative presence and movement, exchanges chat, and leaves', async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'WebSocket');
+  let socket;
+  class RecordingSocket {
+    static OPEN = 1;
+    readyState = 0;
+    binaryType = 'arraybuffer';
+    sent = [];
+    onopen = null;
+    onmessage = null;
+    onerror = null;
+    onclose = null;
+    constructor() { socket = this; }
+    send(data) { this.sent.push(data.slice(0)); }
+    close(code, reason) { this.closed = { code, reason }; this.readyState = 3; this.onclose?.({ code, reason }); }
+  }
+  Object.defineProperty(globalThis, 'WebSocket', { configurable: true, value: RecordingSocket });
+  try {
+    const connection = new client.CoreConnection('ws://localhost/ws', 0);
+    let snapshot;
+    connection.subscribe((value) => { snapshot = value; });
+    connection.connect();
+    socket.readyState = RecordingSocket.OPEN;
+    socket.onopen();
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.SERVER_HELLO, new Uint8Array(16)) });
+
+    const login = connection.login('alice', 'correct horse');
+    const identity = new Uint8Array(15);
+    const identityView = new DataView(identity.buffer);
+    identityView.setBigUint64(0, 42n, false);
+    identityView.setUint16(8, 5, false);
+    identity.set(new TextEncoder().encode('alice'), 10);
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.AUTH_SUCCESS, identity) });
+    await login;
+
+    connection.joinRoom(42n);
+    let outbound = client.decodeFrame(socket.sent.at(-1));
+    assert.equal(outbound.messageId, client.CORE_MESSAGE.ROOM_JOIN);
+    assert.equal(new DataView(outbound.payload.buffer).getBigUint64(0, false), 42n);
+    const joined = new Uint8Array(10);
+    new DataView(joined.buffer).setBigUint64(0, 42n, false);
+    joined.set([0, 0], 8);
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_JOIN_SUCCESS, joined) });
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_SNAPSHOT, roomSnapshotPayload()) });
+    assert.equal(snapshot.roomStatus, 'IN_ROOM');
+    assert.equal(snapshot.room.name, 'Test Room');
+    assert.deepEqual(snapshot.room.occupants.map(({ username }) => username), ['alice']);
+
+    connection.moveRoom(1, 0);
+    outbound = client.decodeFrame(socket.sent.at(-1));
+    assert.equal(outbound.messageId, client.CORE_MESSAGE.ROOM_MOVE);
+    assert.deepEqual([...outbound.payload], [1, 0]);
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_USER_POSITION,
+      concat(uint64(42), Uint8Array.of(1, 0, 0))) });
+    assert.deepEqual([snapshot.room.occupants[0].x, snapshot.room.occupants[0].y], [1, 0]);
+
+    const bob = concat(uint64(9), Uint8Array.of(0, 1, 0, 3), new TextEncoder().encode('bob'));
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_USER_JOIN, bob) });
+    assert.equal(snapshot.room.occupants.length, 2);
+    connection.chatRoom('Olá');
+    outbound = client.decodeFrame(socket.sent.at(-1));
+    assert.equal(outbound.messageId, client.CORE_MESSAGE.ROOM_CHAT);
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_USER_CHAT,
+      concat(uint64(9), Uint8Array.of(0, 4), new TextEncoder().encode('Olá'))) });
+    assert.deepEqual(snapshot.roomChat[0], { userId: '9', text: 'Olá', username: 'bob' });
+
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_USER_LEAVE, uint64(9)) });
+    assert.deepEqual(snapshot.room.occupants.map(({ username }) => username), ['alice']);
+    assert.throws(() => connection.chatRoom('linha\nquebrada'), /caracteres inválidos/u);
+    connection.leaveRoom();
+    assert.equal(client.decodeFrame(socket.sent.at(-1)).messageId, client.CORE_MESSAGE.ROOM_LEAVE);
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_LEAVE_SUCCESS) });
+    assert.equal(snapshot.roomStatus, 'NONE');
+    assert.equal(snapshot.room, null);
+    connection.dispose();
+  } finally {
+    if (descriptor) Object.defineProperty(globalThis, 'WebSocket', descriptor);
+    else delete globalThis.WebSocket;
+  }
+});
+
+test('room snapshot decoder rejects truncation, duplicate occupancy, and malformed UTF-8', () => {
+  assert.throws(() => roomState.decodeRoomSnapshot(new Uint8Array(4)), /truncado/u);
+  const duplicate = roomSnapshotPayload({ secondUser: true });
+  assert.throws(() => roomState.decodeRoomSnapshot(duplicate), /Ocupação/u);
+  const malformedName = roomSnapshotPayload({ invalidName: true });
+  assert.throws(() => roomState.decodeRoomSnapshot(malformedName), /Nome de quarto/u);
+  assert.throws(() => roomState.encodeRoomId('0'));
+  assert.throws(() => roomState.encodeRoomId('18446744073709551616'));
+  assert.throws(() => roomState.encodeRoomChat('x'.repeat(257)));
+});
+
+function uint64(value) {
+  const bytes = new Uint8Array(8);
+  new DataView(bytes.buffer).setBigUint64(0, BigInt(value), false);
+  return bytes;
+}
+
+function concat(...parts) {
+  const output = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+  let offset = 0;
+  for (const part of parts) { output.set(part, offset); offset += part.length; }
+  return output;
+}
+
+function roomSnapshotPayload({ secondUser = false, invalidName = false } = {}) {
+  const name = invalidName ? Uint8Array.of(0xff) : new TextEncoder().encode('Test Room');
+  const occupants = [concat(uint64(42), Uint8Array.of(0, 0, 0, 5), new TextEncoder().encode('alice'))];
+  if (secondUser) occupants.push(concat(uint64(42), Uint8Array.of(1, 0, 0, 5), new TextEncoder().encode('alice')));
+  return concat(uint64(42), Uint8Array.of(0, name.length), name,
+    Uint8Array.of(2, 2, 4, 1, 1, 1, 1, occupants.length), ...occupants);
+}

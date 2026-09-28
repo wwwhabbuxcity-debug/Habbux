@@ -55,16 +55,20 @@ Os IDs e direções abaixo são conferidos contra o registro em CI:
 | 15 | `ROOM_JOIN_FAILURE` | Servidor → Client | uint8 categoria: não existe, cheio, já está em quarto, indisponível |
 | 16 | `ROOM_LEAVE` | Client → servidor | vazio |
 | 17 | `ROOM_LEAVE_SUCCESS` | Servidor → Client | vazio |
-| 18 | `ROOM_SNAPSHOT` | Servidor → Client | room ID, width/height/capacity uint8, walkability[width×height], occupant count uint8 e ocupantes `[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]` |
+| 18 | `ROOM_SNAPSHOT` | Servidor → Client | room ID, nome (`uint16` + UTF-8 até 128 bytes), width/height/capacity uint8, walkability[width×height], occupant count uint8 e ocupantes `[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]` |
 | 19 | `ROOM_MOVE` | Client → servidor | destino uint8 x + uint8 y; o servidor calcula caminho em quatro direções |
 | 20 | `ROOM_USER_POSITION` | Servidor → Client | uint64 user ID + uint8 x/y/z; v1 usa z=0 |
-| 21 | `ROOM_ACTION_FAILURE` | Servidor → Client | operação uint8 (1 movimento) + categoria uint8: 1 fora do quarto, 2 inválido/ocupado, 3 sem rota, 4 limite, 5 indisponível |
+| 21 | `ROOM_ACTION_FAILURE` | Servidor → Client | operação uint8 (1 movimento, 2 chat) + categoria limitada por operação |
+| 22 | `ROOM_USER_JOIN` | Servidor → Client | user ID, posição uint8 x/y, username UTF-8 precedido por comprimento uint16 |
+| 23 | `ROOM_USER_LEAVE` | Servidor → Client | user ID uint64 |
+| 24 | `ROOM_CHAT` | Client → Servidor | comprimento UTF-8 uint16 (1–256 bytes) + texto |
+| 25 | `ROOM_USER_CHAT` | Servidor → Client | user ID uint64 + comprimento UTF-8 uint16 + texto validado |
 
 Username de snapshot usa comprimento `uint16` de **bytes UTF-8**, validado antes
 de decodificar/copiar. Room ID e user ID são BIGINT positivo representado por
 `uint64` big-endian. Nome de usuário autenticado é limitado a 20 bytes. O maior
-snapshot permitido ocupa 7.308 bytes: 4.096 de grade, 100 ocupantes de até 32
-bytes cada e 12 bytes fixos. Se Room Core estiver habilitado, o limite de frame
+snapshot permitido ocupa 7.438 bytes: nome de até 128 bytes, 4.096 de grade,
+100 ocupantes de até 32 bytes cada e campos fixos. Se Room Core estiver habilitado, o limite de frame
 configurado precisa comportar esse snapshot; o Core v1 continua limitado a
 65.536 bytes.
 
@@ -72,6 +76,14 @@ configurado precisa comportar esse snapshot; o Core v1 continua limitado a
 norte/oeste/leste/sul, até 4.096 nós e 128 passos por padrão. Um ticker global de
 quartos avança no máximo 16 jogadores por quarto a cada 100 ms. A configuração
 pode ajustar esses limites dentro dos intervalos do README do Emulator.
+
+`ROOM_CHAT` exige UTF-8 válido e texto não vazio, sem caracteres de controle,
+com limite configurável até 256 bytes e 128 code points. O padrão é uma mensagem
+por presença a cada 1.000 ms. `ROOM_ACTION_FAILURE` usa operação 1 para movimento
+(1 sem presença, 2 destino bloqueado/ocupado, 3 sem rota, 4 limite, 5
+indisponível) e operação 2 para chat (1 sem presença, 2 texto inválido, 3 rate
+limit, 4 indisponível). Saída, movimento e chat são ordenados pela mailbox de
+cada quarto.
 
 `SERVER_ERROR` códigos v1: `1 INVALID_STATE`, `2 HANDSHAKE_TIMEOUT`. Versão
 incompatível ou frame que não possa ser interpretado recebe apenas close `1002`.

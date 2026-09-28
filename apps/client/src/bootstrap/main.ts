@@ -23,10 +23,30 @@ const loginButton = document.querySelector<HTMLButtonElement>('#login-button');
 const registerButton = document.querySelector<HTMLButtonElement>('#register-button');
 const logoutButton = document.querySelector<HTMLButtonElement>('#logout-button');
 const authStatus = document.querySelector<HTMLElement>('#auth-status');
+const roomJoinForm = document.querySelector<HTMLFormElement>('#room-join-form');
+const roomIdInput = document.querySelector<HTMLInputElement>('#room-id');
+const roomJoinButton = document.querySelector<HTMLButtonElement>('#room-join');
+const roomLeaveButton = document.querySelector<HTMLButtonElement>('#room-leave');
+const roomStatus = document.querySelector<HTMLElement>('#room-status');
+const roomError = document.querySelector<HTMLElement>('#room-error');
+const roomView = document.querySelector<HTMLElement>('#room-view');
+const roomName = document.querySelector<HTMLElement>('#room-name');
+const roomCurrentId = document.querySelector<HTMLElement>('#room-current-id');
+const roomOccupantsCount = document.querySelector<HTMLElement>('#room-occupants-count');
+const roomGridSize = document.querySelector<HTMLElement>('#room-grid-size');
+const roomOccupants = document.querySelector<HTMLUListElement>('#room-occupants');
+const roomGrid = document.querySelector<HTMLDivElement>('#room-grid');
+const roomChatLog = document.querySelector<HTMLOListElement>('#room-chat-log');
+const roomChatForm = document.querySelector<HTMLFormElement>('#room-chat-form');
+const roomChatText = document.querySelector<HTMLInputElement>('#room-chat-text');
+const roomChatSend = document.querySelector<HTMLButtonElement>('#room-chat-send');
 
 if (!viewport || !status || !connectionState || !sessionId || !rtt || !emulatorStatus || !connectionError || !toggle || !endpoint
     || !authState || !userId || !authenticatedUsername || !authForm || !authIdentifier || !registerUsername
-    || !registerEmail || !authPassword || !loginButton || !registerButton || !logoutButton || !authStatus) {
+    || !registerEmail || !authPassword || !loginButton || !registerButton || !logoutButton || !authStatus
+    || !roomJoinForm || !roomIdInput || !roomJoinButton || !roomLeaveButton || !roomStatus || !roomError || !roomView
+    || !roomName || !roomCurrentId || !roomOccupantsCount || !roomGridSize || !roomOccupants || !roomGrid
+    || !roomChatLog || !roomChatForm || !roomChatText || !roomChatSend) {
   throw new Error('Client bootstrap: required elements were not found.');
 }
 const ui = {
@@ -49,6 +69,23 @@ const ui = {
   registerButton: registerButton!,
   logoutButton: logoutButton!,
   authStatus: authStatus!,
+  roomJoinForm: roomJoinForm!,
+  roomIdInput: roomIdInput!,
+  roomJoinButton: roomJoinButton!,
+  roomLeaveButton: roomLeaveButton!,
+  roomStatus: roomStatus!,
+  roomError: roomError!,
+  roomView: roomView!,
+  roomName: roomName!,
+  roomCurrentId: roomCurrentId!,
+  roomOccupantsCount: roomOccupantsCount!,
+  roomGridSize: roomGridSize!,
+  roomOccupants: roomOccupants!,
+  roomGrid: roomGrid!,
+  roomChatLog: roomChatLog!,
+  roomChatForm: roomChatForm!,
+  roomChatText: roomChatText!,
+  roomChatSend: roomChatSend!,
 };
 
 ui.endpoint.textContent = __HABBUX_WS_URL__;
@@ -79,6 +116,74 @@ function renderConnection(snapshot: CoreConnectionSnapshot): void {
     ? `Autenticado como ${snapshot.username ?? 'usuário'}.`
     : snapshot.authState === 'AUTHENTICATING' ? 'Verificando credenciais…'
       : snapshot.state === 'READY' ? 'Conexão pronta para autenticar.' : 'Conecte ao Core para testar autenticação.');
+  const canJoinRoom = ready && snapshot.authState === 'AUTHENTICATED' && snapshot.roomStatus === 'NONE';
+  ui.roomIdInput.disabled = !canJoinRoom;
+  ui.roomJoinButton.disabled = !canJoinRoom;
+  ui.roomLeaveButton.disabled = snapshot.roomStatus === 'LEAVING';
+  ui.roomChatText.disabled = snapshot.roomStatus !== 'IN_ROOM';
+  ui.roomChatSend.disabled = snapshot.roomStatus !== 'IN_ROOM';
+  renderRoom(snapshot);
+}
+
+function renderRoom(snapshot: CoreConnectionSnapshot): void {
+  const labels = { NONE: 'Sem quarto', JOINING: 'Entrando…', IN_ROOM: 'Dentro do quarto', LEAVING: 'Saindo…' } as const;
+  ui.roomStatus.textContent = snapshot.room ? `${labels[snapshot.roomStatus]} · ${snapshot.room.occupants.length} usuário(s)`
+    : labels[snapshot.roomStatus];
+  ui.roomError.textContent = snapshot.roomError ?? '';
+  ui.roomLeaveButton.hidden = snapshot.roomStatus === 'NONE' || snapshot.roomStatus === 'JOINING';
+  ui.roomView.hidden = snapshot.room === null;
+  if (!snapshot.room) {
+    ui.roomName.textContent = '—';
+    ui.roomCurrentId.textContent = '—';
+    ui.roomOccupantsCount.textContent = '0';
+    ui.roomGridSize.textContent = '—';
+    ui.roomOccupants.replaceChildren();
+    ui.roomGrid.replaceChildren();
+    ui.roomChatLog.replaceChildren();
+    return;
+  }
+
+  const room = snapshot.room;
+  ui.roomName.textContent = room.name;
+  ui.roomCurrentId.textContent = room.roomId;
+  ui.roomOccupantsCount.textContent = `${room.occupants.length} / ${room.capacity}`;
+  ui.roomGridSize.textContent = `${room.width} × ${room.height}`;
+  ui.roomOccupants.replaceChildren(...room.occupants.map((occupant) => {
+    const item = document.createElement('li');
+    item.textContent = `${occupant.username} · ${occupant.x},${occupant.y}`;
+    return item;
+  }));
+
+  const occupantByCell = new Map(room.occupants.map((occupant) => [occupant.y * room.width + occupant.x, occupant]));
+  ui.roomGrid.style.setProperty('--columns', `${room.width}`);
+  const tiles: HTMLButtonElement[] = [];
+  for (let y = 0; y < room.height; y++) {
+    for (let x = 0; x < room.width; x++) {
+      const cell = y * room.width + x;
+      const occupant = occupantByCell.get(cell);
+      const walkable = room.walkability[cell] === true;
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.setAttribute('role', 'gridcell');
+      tile.setAttribute('aria-label', occupant
+        ? `${occupant.username} em ${x}, ${y}`
+        : walkable ? `Tile livre em ${x}, ${y}` : `Tile bloqueado em ${x}, ${y}`);
+      tile.textContent = occupant ? occupant.username.slice(0, 1).toLocaleUpperCase('pt-BR') : '';
+      tile.disabled = !walkable || occupant !== undefined || snapshot.roomStatus !== 'IN_ROOM';
+      if (!walkable) tile.classList.add('tile-blocked');
+      if (walkable && !occupant) tile.addEventListener('click', () => {
+        try { connection.moveRoom(x, y); }
+        catch (error) { ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao pedir movimento.'; }
+      });
+      tiles.push(tile);
+    }
+  }
+  ui.roomGrid.replaceChildren(...tiles);
+  ui.roomChatLog.replaceChildren(...snapshot.roomChat.map((message) => {
+    const item = document.createElement('li');
+    item.textContent = `${message.username}: ${message.text}`;
+    return item;
+  }));
 }
 
 const unsubscribe = connection.subscribe(renderConnection);
@@ -105,6 +210,24 @@ ui.logoutButton.addEventListener('click', () => {
   void connection.logout().catch((error: unknown) => {
     ui.authStatus.textContent = error instanceof Error ? error.message : 'Falha ao sair da conta.';
   });
+});
+ui.roomJoinForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  try { connection.joinRoom(ui.roomIdInput.value); }
+  catch (error) { ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao entrar no quarto.'; }
+});
+ui.roomLeaveButton.addEventListener('click', () => {
+  try { connection.leaveRoom(); }
+  catch (error) { ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao sair do quarto.'; }
+});
+ui.roomChatForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  try {
+    connection.chatRoom(ui.roomChatText.value);
+    ui.roomChatText.value = '';
+  } catch (error) {
+    ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao enviar mensagem.';
+  }
 });
 
 let disposePreview = (): void => undefined;

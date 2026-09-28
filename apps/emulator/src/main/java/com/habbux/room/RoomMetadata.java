@@ -7,10 +7,11 @@ import java.util.Objects;
 public record RoomMetadata(RoomId id, long ownerUserId, String name, String description,
                            int capacity, RoomGridDefinition grid, Instant createdAt, Instant updatedAt) {
     public static final int MAX_CAPACITY = 100;
+    public static final int MAX_NAME_UTF8_BYTES = 128;
     public RoomMetadata {
         Objects.requireNonNull(id, "id");
         if (ownerUserId <= 0) throw new IllegalArgumentException("owner user id must be positive");
-        requireUtf8(name, 1, 128, "room name");
+        requireUtf8(name, 1, MAX_NAME_UTF8_BYTES, "room name");
         requireUtf8(description, 0, 512, "room description");
         if (capacity < 1 || capacity > MAX_CAPACITY) throw new IllegalArgumentException("capacity is outside the supported range");
         Objects.requireNonNull(grid, "grid");

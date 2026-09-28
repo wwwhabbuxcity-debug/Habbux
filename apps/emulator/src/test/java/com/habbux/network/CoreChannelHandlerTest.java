@@ -143,6 +143,19 @@ class CoreChannelHandlerTest {
                 assertEquals(0, Byte.toUnsignedInt(payload.get()));
             }
 
+            byte[] chatText = "Oi 🏠".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            byte[] chatPayload = java.nio.ByteBuffer.allocate(2 + chatText.length)
+                    .putShort((short) chatText.length).put(chatText).array();
+            channel.writeInbound(roomRequest(CoreMessage.ROOM_CHAT, chatPayload));
+            HabbuxFrame chat = awaitOutbound(channel);
+            assertEquals(CoreMessage.ROOM_USER_CHAT.id(), chat.messageId());
+            java.nio.ByteBuffer chatBody = java.nio.ByteBuffer.wrap(chat.payload());
+            assertEquals(9, chatBody.getLong());
+            int textLength = Short.toUnsignedInt(chatBody.getShort());
+            byte[] echoed = new byte[textLength];
+            chatBody.get(echoed);
+            assertEquals("Oi 🏠", new String(echoed, java.nio.charset.StandardCharsets.UTF_8));
+
             channel.writeInbound(roomRequest(CoreMessage.ROOM_LEAVE, new byte[0]));
             assertEquals(CoreMessage.ROOM_LEAVE_SUCCESS.id(), awaitOutbound(channel).messageId());
             awaitRoomState(channel, session, Session.RoomState.NONE);

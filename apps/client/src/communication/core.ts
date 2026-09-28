@@ -1,3 +1,16 @@
+import {
+  decodeRoomActionFailure,
+  decodeRoomChat,
+  decodeRoomPosition,
+  decodeRoomSnapshot,
+  decodeRoomUserJoined,
+  decodeRoomUserLeft,
+  encodeRoomChat,
+  encodeRoomId,
+  encodeRoomMove,
+  type RoomState,
+} from '../room/room-state';
+
 export const PROTOCOL_VERSION = 1;
 export const HEADER_BYTES = 8;
 export const MAX_PAYLOAD_BYTES = 65_536;
@@ -23,6 +36,10 @@ export const CORE_MESSAGE = {
   ROOM_MOVE: 19,
   ROOM_USER_POSITION: 20,
   ROOM_ACTION_FAILURE: 21,
+  ROOM_USER_JOIN: 22,
+  ROOM_USER_LEAVE: 23,
+  ROOM_CHAT: 24,
+  ROOM_USER_CHAT: 25,
 } as const;
 export const AUTH_FAILURE_CATEGORY = {
   INVALID_REQUEST: 1,
@@ -31,10 +48,16 @@ export const AUTH_FAILURE_CATEGORY = {
   UNAVAILABLE: 4,
 } as const;
 const CORE_MESSAGE_IDS = new Set<number>(Object.values(CORE_MESSAGE));
+const ROOM_SERVER_MESSAGE_IDS: ReadonlySet<number> = new Set([
+  CORE_MESSAGE.ROOM_JOIN_SUCCESS, CORE_MESSAGE.ROOM_JOIN_FAILURE, CORE_MESSAGE.ROOM_LEAVE_SUCCESS,
+  CORE_MESSAGE.ROOM_SNAPSHOT, CORE_MESSAGE.ROOM_USER_JOIN, CORE_MESSAGE.ROOM_USER_LEAVE,
+  CORE_MESSAGE.ROOM_USER_POSITION, CORE_MESSAGE.ROOM_USER_CHAT, CORE_MESSAGE.ROOM_ACTION_FAILURE,
+]);
 
 export type CoreMessageId = (typeof CORE_MESSAGE)[keyof typeof CORE_MESSAGE];
 export type CoreConnectionState = 'DISCONNECTED' | 'CONNECTING' | 'HANDSHAKING' | 'READY' | 'RECONNECTING';
 export type CoreAuthState = 'ANONYMOUS' | 'AUTHENTICATING' | 'AUTHENTICATED';
+export type CoreRoomStatus = 'NONE' | 'JOINING' | 'IN_ROOM' | 'LEAVING';
 export type CoreAuthFailureCategory = 'INVALID_REQUEST' | 'REJECTED' | 'RATE_LIMITED' | 'UNAVAILABLE';
 export type CoreAuthResult =
   | { readonly ok: true; readonly userId: string; readonly username: string }
@@ -88,6 +111,10 @@ export interface CoreConnectionSnapshot {
   readonly authState: CoreAuthState;
   readonly userId: string | null;
   readonly username: string | null;
+  readonly roomStatus: CoreRoomStatus;
+  readonly room: RoomState | null;
+  readonly roomError: string | null;
+  readonly roomChat: readonly { readonly userId: string; readonly username: string; readonly text: string }[];
 }
 
 export class CoreConnection {
@@ -96,6 +123,7 @@ export class CoreConnection {
   private snapshot: CoreConnectionSnapshot = {
     state: 'DISCONNECTED', sessionId: null, rttMs: null, error: null,
     authState: 'ANONYMOUS', userId: null, username: null,
+    roomStatus: 'NONE', room: null, roomError: null, roomChat: [],
   };
   private reconnectEnabled = true;
   private disposed = false;
@@ -107,6 +135,9 @@ export class CoreConnection {
   private sequence = 0;
   private pendingAuth: { resolve: (result: CoreAuthResult) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   private pendingLogout: { resolve: (success: boolean) => void; timer: ReturnType<typeof setTimeout> } | null = null;
+  private pendingRoomJoinId: string | null = null;
+  private pendingRoomJoinPosition: { readonly x: number; readonly y: number } | null = null;
+  private roomCommandTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private readonly url: string, private readonly maxReconnectAttempts = 8) {
     const parsed = new URL(url);
@@ -179,6 +210,48 @@ export class CoreConnection {
     });
   }
 
+  joinRoom(roomId: string | bigint): void {
+    const socket = this.readyRoomSocket();
+    if (this.snapshot.roomStatus !== 'NONE') throw new Error('Esta sessão já está entrando em um quarto.');
+    const payload = encodeRoomId(roomId);
+    this.pendingRoomJoinId = BigInt(roomId).toString();
+    this.setSnapshot({ ...this.snapshot, roomStatus: 'JOINING', roomError: null });
+    try {
+      socket.send(encodeFrame(CORE_MESSAGE.ROOM_JOIN, payload));
+      this.startRoomCommandTimeout(socket, 'JOIN');
+    } catch (error) {
+      this.clearRoomCommand();
+      this.setSnapshot({ ...this.snapshot, roomStatus: 'NONE', roomError: 'Não foi possível solicitar entrada no quarto.' });
+      throw error instanceof Error ? error : new Error('Não foi possível solicitar entrada no quarto.');
+    }
+  }
+
+  leaveRoom(): void {
+    const socket = this.readyRoomSocket();
+    if (this.snapshot.roomStatus !== 'IN_ROOM') throw new Error('Esta sessão não está em um quarto.');
+    this.setSnapshot({ ...this.snapshot, roomStatus: 'LEAVING', roomError: null });
+    try {
+      socket.send(encodeFrame(CORE_MESSAGE.ROOM_LEAVE));
+      this.startRoomCommandTimeout(socket, 'LEAVE');
+    } catch (error) {
+      this.clearRoomCommand();
+      this.setSnapshot({ ...this.snapshot, roomStatus: 'IN_ROOM', roomError: 'Não foi possível sair do quarto.' });
+      throw error instanceof Error ? error : new Error('Não foi possível sair do quarto.');
+    }
+  }
+
+  moveRoom(x: number, y: number): void {
+    const socket = this.readyRoomSocket();
+    if (this.snapshot.roomStatus !== 'IN_ROOM') throw new Error('Entre em um quarto antes de mover.');
+    socket.send(encodeFrame(CORE_MESSAGE.ROOM_MOVE, encodeRoomMove(x, y)));
+  }
+
+  chatRoom(text: string): void {
+    const socket = this.readyRoomSocket();
+    if (this.snapshot.roomStatus !== 'IN_ROOM') throw new Error('Entre em um quarto antes de conversar.');
+    socket.send(encodeFrame(CORE_MESSAGE.ROOM_CHAT, encodeRoomChat(text)));
+  }
+
   disconnect(): void {
     this.reconnectEnabled = false;
     this.clearReconnectTimer();
@@ -192,8 +265,10 @@ export class CoreConnection {
     } else {
       socket?.close();
     }
+    this.clearRoomCommand();
     this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null,
-      authState: 'ANONYMOUS', userId: null, username: null });
+      authState: 'ANONYMOUS', userId: null, username: null,
+      roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
   }
 
   setReconnectEnabled(enabled: boolean): void {
@@ -212,8 +287,10 @@ export class CoreConnection {
 
   private openSocket(reconnecting: boolean): void {
     if (this.disposed) return;
+    this.clearRoomCommand();
     this.setSnapshot({ ...this.snapshot, state: reconnecting ? 'RECONNECTING' : 'CONNECTING', sessionId: null,
-      error: null, authState: 'ANONYMOUS', userId: null, username: null });
+      error: null, authState: 'ANONYMOUS', userId: null, username: null,
+      roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
     const socket = new WebSocket(this.url);
     socket.binaryType = 'arraybuffer';
     this.socket = socket;
@@ -272,7 +349,13 @@ export class CoreConnection {
       clearTimeout(this.pendingLogout.timer);
       this.pendingLogout.resolve(true);
       this.pendingLogout = null;
-      this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS', userId: null, username: null, error: null });
+      this.clearRoomCommand();
+      this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS', userId: null, username: null, error: null,
+        roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
+      return;
+    }
+    if (ROOM_SERVER_MESSAGE_IDS.has(frame.messageId)) {
+      this.onRoomMessage(socket, frame.messageId, frame.payload);
       return;
     }
     if (frame.messageId === CORE_MESSAGE.SERVER_ERROR) {
@@ -293,16 +376,157 @@ export class CoreConnection {
     socket.close(1002, 'unexpected message');
   }
 
+  private onRoomMessage(socket: WebSocket, messageId: number, payload: Uint8Array): void {
+    try {
+      if (messageId === CORE_MESSAGE.ROOM_JOIN_SUCCESS) {
+        if (payload.byteLength !== 10 || this.snapshot.roomStatus !== 'JOINING' || this.pendingRoomJoinId === null) {
+          throw new Error('Confirmação de entrada inesperada.');
+        }
+        const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+        const roomId = view.getBigUint64(0, false).toString();
+        if (roomId !== this.pendingRoomJoinId) throw new Error('ID do quarto não corresponde ao pedido.');
+        this.pendingRoomJoinPosition = { x: view.getUint8(8), y: view.getUint8(9) };
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_JOIN_FAILURE) {
+        if (payload.byteLength !== 1 || this.snapshot.roomStatus !== 'JOINING' || this.pendingRoomJoinId === null) {
+          throw new Error('Falha de entrada inesperada.');
+        }
+        const failures = ['Quarto inexistente.', 'Quarto lotado.', 'Esta sessão já está em outro quarto.', 'Quarto temporariamente indisponível.'];
+        const message = failures[(payload[0] ?? 0) - 1];
+        if (!message) throw new Error('Categoria de falha de entrada desconhecida.');
+        this.clearRoomCommand();
+        this.setSnapshot({ ...this.snapshot, roomStatus: 'NONE', room: null, roomError: message });
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_SNAPSHOT) {
+        const room = decodeRoomSnapshot(payload);
+        const start = this.pendingRoomJoinPosition;
+        const self = room.occupants.find((occupant) => occupant.userId === this.snapshot.userId);
+        if (this.snapshot.roomStatus !== 'JOINING' || this.pendingRoomJoinId !== room.roomId || !start || !self
+            || self.x !== start.x || self.y !== start.y) {
+          throw new Error('Snapshot não corresponde à entrada confirmada.');
+        }
+        this.clearRoomCommand();
+        this.setSnapshot({ ...this.snapshot, roomStatus: 'IN_ROOM', room, roomError: null, roomChat: [] });
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_LEAVE_SUCCESS) {
+        if (payload.byteLength !== 0 || this.snapshot.roomStatus !== 'LEAVING') {
+          throw new Error('Confirmação de saída inesperada.');
+        }
+        this.clearRoomCommand();
+        this.setSnapshot({ ...this.snapshot, roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_ACTION_FAILURE) {
+        const failure = decodeRoomActionFailure(payload);
+        const messages = {
+          NOT_IN_ROOM: 'Esta sessão não está dentro de um quarto.',
+          INVALID_DESTINATION: 'Esse destino está bloqueado ou ocupado.',
+          UNREACHABLE: 'Não há caminho até esse destino.',
+          PATH_LIMIT: 'O caminho excede o limite permitido.',
+          INVALID_MESSAGE: 'A mensagem está vazia, inválida ou longa demais.',
+          RATE_LIMITED: 'Aguarde antes de enviar outra mensagem.',
+          UNAVAILABLE: 'A ação está temporariamente indisponível.',
+        } as const;
+        this.setSnapshot({ ...this.snapshot, roomError: messages[failure.category] });
+        return;
+      }
+      const room = this.snapshot.room;
+      if (!room || !['IN_ROOM', 'LEAVING'].includes(this.snapshot.roomStatus)) {
+        throw new Error('Evento de quarto recebido fora da sala.');
+      }
+      if (messageId === CORE_MESSAGE.ROOM_USER_JOIN) {
+        const occupant = decodeRoomUserJoined(payload);
+        const cell = occupant.y * room.width + occupant.x;
+        if (occupant.x >= room.width || occupant.y >= room.height || !room.walkability[cell]
+            || room.occupants.length >= room.capacity
+            || room.occupants.some((current) => current.userId === occupant.userId
+              || (current.x === occupant.x && current.y === occupant.y))) {
+          throw new Error('Ocupante recebido não cabe no estado atual do quarto.');
+        }
+        const updated = Object.freeze({ ...room, occupants: Object.freeze([...room.occupants, occupant]) });
+        this.setSnapshot({ ...this.snapshot, room: updated });
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_USER_LEAVE) {
+        const userId = decodeRoomUserLeft(payload);
+        if (!room.occupants.some((occupant) => occupant.userId === userId)) throw new Error('Saída de ocupante desconhecido.');
+        const updated = Object.freeze({ ...room, occupants: Object.freeze(room.occupants.filter((occupant) => occupant.userId !== userId)) });
+        this.setSnapshot({ ...this.snapshot, room: updated });
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_USER_POSITION) {
+        const position = decodeRoomPosition(payload);
+        const index = room.occupants.findIndex((occupant) => occupant.userId === position.userId);
+        const cell = position.y * room.width + position.x;
+        if (index < 0 || position.x >= room.width || position.y >= room.height || !room.walkability[cell]
+            || room.occupants.some((occupant, other) => other !== index
+              && occupant.x === position.x && occupant.y === position.y)) {
+          throw new Error('Posição recebida inválida para o quarto.');
+        }
+        const occupants = room.occupants.map((occupant, other) => other === index
+          ? Object.freeze({ ...occupant, x: position.x, y: position.y }) : occupant);
+        this.setSnapshot({ ...this.snapshot, room: Object.freeze({ ...room, occupants: Object.freeze(occupants) }) });
+        return;
+      }
+      if (messageId === CORE_MESSAGE.ROOM_USER_CHAT) {
+        const chat = decodeRoomChat(payload);
+        const occupant = room.occupants.find((current) => current.userId === chat.userId);
+        if (!occupant) throw new Error('Mensagem de ocupante desconhecido.');
+        const entry = Object.freeze({ ...chat, username: occupant.username });
+        this.setSnapshot({ ...this.snapshot, roomChat: Object.freeze([...this.snapshot.roomChat, entry].slice(-50)), roomError: null });
+        return;
+      }
+      throw new Error('Mensagem de quarto desconhecida.');
+    } catch (error) {
+      this.setSnapshot({ ...this.snapshot, roomError: error instanceof Error ? error.message : 'Mensagem de quarto inválida.' });
+      socket.close(1002, 'invalid room message');
+    }
+  }
+
+  private readyRoomSocket(): WebSocket {
+    const socket = this.socket;
+    if (!socket || socket.readyState !== WebSocket.OPEN || this.snapshot.state !== 'READY'
+        || this.snapshot.authState !== 'AUTHENTICATED') {
+      throw new Error('Conecte ao Core e autentique antes de usar os quartos.');
+    }
+    return socket;
+  }
+
+  private startRoomCommandTimeout(socket: WebSocket, command: 'JOIN' | 'LEAVE'): void {
+    this.clearRoomCommandTimer();
+    this.roomCommandTimer = setTimeout(() => {
+      this.roomCommandTimer = null;
+      if (socket !== this.socket) return;
+      socket.close(1001, `${command.toLowerCase()} room timeout`);
+    }, 5_000);
+  }
+
+  private clearRoomCommandTimer(): void {
+    if (this.roomCommandTimer !== null) clearTimeout(this.roomCommandTimer);
+    this.roomCommandTimer = null;
+  }
+
+  private clearRoomCommand(): void {
+    this.clearRoomCommandTimer();
+    this.pendingRoomJoinId = null;
+    this.pendingRoomJoinPosition = null;
+  }
+
   private onClose(socket: WebSocket): void {
     if (socket !== this.socket) return;
     this.socket = null;
     this.stopPings();
     this.finishPendingOperations();
+    this.clearRoomCommand();
     if (!this.disposed && this.reconnectEnabled && this.reconnectAttempts < this.maxReconnectAttempts) {
       const delay = Math.min(500 * (2 ** this.reconnectAttempts), 10_000);
       this.reconnectAttempts++;
       this.setSnapshot({ ...this.snapshot, state: 'RECONNECTING', sessionId: null,
-        authState: 'ANONYMOUS', userId: null, username: null });
+        authState: 'ANONYMOUS', userId: null, username: null,
+        roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
       this.reconnectTimer = setTimeout(() => {
         this.reconnectTimer = null;
         this.openSocket(true);
@@ -310,7 +534,8 @@ export class CoreConnection {
       return;
     }
     this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null,
-      authState: 'ANONYMOUS', userId: null, username: null });
+      authState: 'ANONYMOUS', userId: null, username: null,
+      roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
   }
 
   private sendAuthRequest(messageId: number, fields: Uint8Array[]): Promise<CoreAuthResult> {
@@ -400,6 +625,7 @@ export class CoreConnection {
   }
 
   private finishPendingOperations(): void {
+    this.clearRoomCommand();
     if (this.pendingAuth) {
       clearTimeout(this.pendingAuth.timer);
       this.pendingAuth.resolve({ ok: false, category: 'UNAVAILABLE' });

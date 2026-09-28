@@ -1,9 +1,9 @@
 # Concorrência do Room Engine v1
 
-Status: **checkpoints 1 e 2 implementados: lifecycle, diretório, scheduler,
-mailbox, presença, grade estática, entrada/saída, pathfinding e movimento**.
-Chat, estado interativo do Client e load baselines ficam para os próximos
-checkpoints.
+Status: **checkpoints 1–3 implementados: lifecycle, diretório, scheduler,
+mailbox, presença, grade estática, entrada/saída, pathfinding, movimento, chat
+limitado e UI diagnóstica do Client**. Baselines de carga e a auditoria final de
+falhas e desempenho pertencem ao checkpoint 4.
 
 ## Autoridade e ordem
 
@@ -55,12 +55,15 @@ cleanup sem checagem.
 
 ## Presença e persistência
 
-Uma conexão autenticada mantém zero ou um quarto (`NONE`, `JOINING`, `IN_ROOM`).
+Uma conexão autenticada mantém zero ou um quarto (`NONE`, `JOINING`, `IN_ROOM`,
+`LEAVING`).
 O principal é copiado para presença mínima (`session UUID`, user ID, username,
 posição e adaptador de saída). Capacidade e alocação de posição são verificadas
 no owner do quarto, então concorrência não ultrapassa o limite. Máximo de
 capacidade é 100; entrada em grid sem tile livre retorna “cheio”. Leave duplo é
-idempotente e disconnect cancela join pendente e enfileira remoção.
+idempotente e disconnect cancela join pendente e enfileira remoção. O mesmo
+user ID não pode ocupar duas presenças no mesmo quarto; sessões do mesmo usuário
+podem entrar em quartos diferentes.
 
 PostgreSQL persiste somente proprietário, nome, descrição, capacidade,
 dimensões, walkability, spawn e timestamps. Grid estática é limitada a 64×64
@@ -78,16 +81,21 @@ limitado de cada presença em movimento.
 
 Spawn busca em largura a partir do spawn configurado, ordem fixa norte/oeste/
 leste/sul, ignorando tiles bloqueados e ocupados. Se não houver tile livre,
-entrada falha sem sobrepor ocupantes. O payload de snapshot tem no máximo 7.308
-bytes: 4.096 bytes de grade, até 100 entradas com ID/posição/username ASCII de
-até 20 bytes e campos fixos. O processo com Room Engine habilitado exige
-`HABBUX_MAX_PAYLOAD_BYTES >= 7308`; o limite global do protocolo continua 65.536.
+entrada falha sem sobrepor ocupantes. O payload de snapshot tem no máximo 7.438
+bytes: nome de até 128 bytes UTF-8, 4.096 bytes de grade, até 100 entradas com
+ID/posição/username de até 20 bytes e campos fixos. O limite de frame deve
+comportar esse snapshot; o limite global do protocolo continua 65.536.
 
 Um ticker compartilhado acorda a cada 100 ms, inspeciona o diretório limitado e
 envia tick pela mailbox só aos quartos com movimento pendente. Cada tick avança
 até 16 presenças por quarto em rotação FIFO. Caminhos têm no máximo 128 passos;
 destino bloqueado/ocupado, sem caminho ou busca acima de 4.096 nós resulta em
 falha limitada. Movimento não consulta SQL.
+
+Chat limita cada mensagem a 256 bytes UTF-8 e 128 code points, rejeita vazio e
+caracteres de controle e aplica intervalo padrão de 1.000 ms por presença. O
+conteúdo fica somente em memória e é transmitido pela mailbox do quarto; o Client
+retém no máximo 50 mensagens localmente para diagnóstico.
 
 Respostas geradas pelo quarto são enfileiradas no EventLoop. Uma conexão lenta
 não segura o worker: writes não aguardam socket, e a fila Netty existente fecha
@@ -105,7 +113,9 @@ exception, 100 entradas no mesmo quarto, activation race, unload/rejoin,
 cancelamento durante ativação, disconnect, leave duplo, ausência do quarto e
 shutdown. Pathfinding/movimento cobrem rota cardinal ao redor de obstáculos,
 passos por tick, colisão, destino inválido, trecho desconectado e limites de
-busca/caminho. Chat e cenários de carga ficam para os próximos checkpoints.
+busca/caminho. Chat cobre broadcast ordenado, texto Unicode, validação, rate
+limit e integração com WebSocket; cenários de carga e a auditoria final ficam no
+checkpoint 4.
 
 Essas garantias de teste não definem capacidade sustentável. Use o relatório de
 load smoke para limites, percentis e condições da máquina observada. Furniture,

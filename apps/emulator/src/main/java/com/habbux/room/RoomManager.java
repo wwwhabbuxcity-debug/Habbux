@@ -119,8 +119,28 @@ public final class RoomManager implements AutoCloseable {
         }
         synchronized (slot.gate) { slot.lastAccessNanos = System.nanoTime(); }
         return slot.loaded.thenCompose(runtime -> runtime.move(sessionId, x, y)).thenApply(outcome -> {
-            if (outcome == RoomRuntime.MoveOutcome.UNAVAILABLE) {
+            if (outcome == RoomRuntime.MoveOutcome.NOT_IN_ROOM) {
+                client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.NOT_IN_ROOM));
+            } else if (outcome == RoomRuntime.MoveOutcome.UNAVAILABLE) {
                 client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.UNAVAILABLE));
+            }
+            return outcome;
+        });
+    }
+
+    public CompletableFuture<RoomRuntime.ChatOutcome> chat(RoomId roomId, UUID sessionId,
+                                                            String text, RoomClient client) {
+        Slot slot = active.get(roomId);
+        if (slot == null) {
+            client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionOperation.CHAT,
+                    RoomOutbound.ActionFailure.NOT_IN_ROOM));
+            return CompletableFuture.completedFuture(RoomRuntime.ChatOutcome.NOT_IN_ROOM);
+        }
+        synchronized (slot.gate) { slot.lastAccessNanos = System.nanoTime(); }
+        return slot.loaded.thenCompose(runtime -> runtime.chat(sessionId, text, client)).thenApply(outcome -> {
+            if (outcome == RoomRuntime.ChatOutcome.UNAVAILABLE) {
+                client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionOperation.CHAT,
+                        RoomOutbound.ActionFailure.UNAVAILABLE));
             }
             return outcome;
         });
@@ -164,7 +184,8 @@ public final class RoomManager implements AutoCloseable {
                     RoomRuntime runtime = new RoomRuntime(metadata, scheduler.newMailbox(config.mailboxCapacity(),
                             config.maxRoomCapacity() + 2, config.eventsPerRun(),
                             TimeUnit.MILLISECONDS.toNanos(config.maxRunMillis())),
-                            config.maxExploredNodes(), config.maxPathLength());
+                            config.maxExploredNodes(), config.maxPathLength(), config.maxChatBytes(),
+                            config.maxChatCodePoints(), config.chatRateLimitMillis());
                     slot.runtime = runtime;
                     slot.loaded.complete(runtime);
                 } catch (Throwable failure) {

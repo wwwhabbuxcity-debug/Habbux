@@ -23,16 +23,17 @@ limitadas; limites têm de ser reais e observáveis.
   capacidade de um slot por quarto. Cada quarto tem FIFO de 512 eventos por
   padrão. Um worker processa no máximo 32 eventos ou 2 ms por lote, depois cede
   a sala para trás da fila.
-- Entrada, saída, movimento e tick são eventos do mailbox. Saída é imutável e o adaptador agenda
-  encoding/write no EventLoop. Bytes Netty não
-  atravessam a fronteira do domínio.
+- Entrada, saída, movimento, tick e chat são eventos do mailbox. Presença é
+  única por user ID em cada quarto. Saída imutável agenda encoding/write no
+  EventLoop; bytes Netty não atravessam a fronteira do domínio.
 - Idle sweep é um único scheduler de controle. Reserva e retirement pertencem
   ao slot do quarto; nova demanda cancela unload ainda não confirmado. Shutdown
   fecha conexões antes de drenar as mailboxes.
-- Persistência guarda apenas metadados e grade estática. Presença, posição e
-  caminho são runtime, sem SQL no caminho quente. Movimento usa BFS cardinal
-  limitado (4.096 nós/128 passos) e ticker compartilhado de 100 ms; chat fica
-  para o próximo checkpoint.
+- Persistência guarda apenas metadados e grade estática. Presença, posição,
+  caminho e chat são runtime, sem SQL no caminho quente. Movimento usa BFS
+  cardinal limitado (4.096 nós/128 passos) e ticker compartilhado de 100 ms.
+  Chat limita texto a 256 bytes UTF-8/128 code points e aplica rate limit por
+  presença, sem persistir mensagens.
 
 ## Consequências
 
