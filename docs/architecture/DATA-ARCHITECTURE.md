@@ -20,7 +20,9 @@ renderização e execução repetida de Wired não fazem round-trip ao banco. Es
 assíncronas usam fila limitada, tratamento de falha e garantia de durabilidade
 definida por tipo de dado. Métricas de atraso e rejeição tornam saturação visível.
 
-O `UserRepository` concentra SQL parametrizado e conversão de registros. HikariCP
+O `UserRepository` concentra SQL parametrizado e conversão de registros. Login e
+cadastro são as únicas operações de escrita do Auth nesta fase; não há sessão
+persistida. HikariCP
 usa por padrão mínimo 1/máximo 2 conexões, aquisição de até 1,5 s e queries com
 timeout de 5 s. A fundação expõe conexões ativas, ociosas e pendentes. Esses
 limites são baseline conservador, não capacidade medida. Aumentar workers não

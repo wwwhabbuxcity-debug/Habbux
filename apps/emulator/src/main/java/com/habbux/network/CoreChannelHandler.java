@@ -1,10 +1,14 @@
 package com.habbux.network;
 
 import com.habbux.config.AppConfig;
+import com.habbux.auth.AuthFailure;
+import com.habbux.auth.AuthResult;
+import com.habbux.auth.AuthService;
 import com.habbux.protocol.CoreMessage;
 import com.habbux.protocol.FrameCodec;
 import com.habbux.protocol.HabbuxFrame;
 import com.habbux.protocol.ProtocolException;
+import com.habbux.protocol.AuthPayloadCodec;
 import com.habbux.protocol.ServerErrorCode;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.Session;
@@ -18,7 +22,9 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.concurrent.ScheduledFuture;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +35,24 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private final ConnectionRegistry registry;
     private final FrameCodec codec = new FrameCodec();
     private final MessageTokenBucket messageRateLimiter;
+    private final AuthService authService;
     private ScheduledFuture<?> handshakeDeadline;
+    private ScheduledFuture<?> authDeadline;
     private int messagesBeforeReady;
+    private long authWindowStartedAt;
+    private int authRequestsInWindow;
+    private static final int AUTH_REQUEST_LIMIT = 5;
+    private static final long AUTH_WINDOW_NANOS = TimeUnit.SECONDS.toNanos(60);
+    private static final long AUTH_TIMEOUT_SECONDS = 10;
 
     CoreChannelHandler(AppConfig config, ConnectionRegistry registry) {
+        this(config, registry, null);
+    }
+
+    CoreChannelHandler(AppConfig config, ConnectionRegistry registry, AuthService authService) {
         this.config = config;
         this.registry = registry;
+        this.authService = authService;
         messageRateLimiter = new MessageTokenBucket(
                 config.messageRatePerSecond(), config.messageRateBurst(), System.nanoTime());
     }
@@ -77,7 +95,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         registry.receivedFrame();
         registry.receivedBytes(webSocketFrame.content().readableBytes());
         Session session = session(ctx);
-        if (session.state() == Session.State.READY && !messageRateLimiter.tryAcquire(System.nanoTime())) {
+        if (isApplicationState(session.state()) && !messageRateLimiter.tryAcquire(System.nanoTime())) {
             registry.rateLimitDisconnect();
             LOG.atWarn().addKeyValue("event", "protocol.rate_limit")
                     .addKeyValue("sessionId", session.id()).log("Habbux Core message rate exceeded");
@@ -102,7 +120,19 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             return;
         }
         CoreMessage message = CoreMessage.fromId(frame.messageId());
-        if (session.state() != Session.State.READY && ++messagesBeforeReady > config.maxPreReadyMessages()) {
+        boolean credentialFrame = message == CoreMessage.AUTH_LOGIN || message == CoreMessage.AUTH_REGISTER;
+        if (credentialFrame) {
+            binary.content().setZero(binary.content().readerIndex(), binary.content().readableBytes());
+        }
+        if ((session.state() == Session.State.CONNECTED || session.state() == Session.State.HANDSHAKING)
+                && ++messagesBeforeReady > config.maxPreReadyMessages()) {
+            if (credentialFrame) frame.clearPayload();
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        if (message == null) {
             registry.invalidFrame();
             registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
@@ -112,6 +142,9 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             case CLIENT_HELLO -> handleHello(ctx, session, frame);
             case PING -> handlePing(ctx, session, frame);
             case CLIENT_DISCONNECT -> handleDisconnect(ctx, session, frame);
+            case AUTH_LOGIN -> handleLogin(ctx, session, frame);
+            case AUTH_REGISTER -> handleRegistration(ctx, session, frame);
+            case AUTH_LOGOUT -> handleLogout(ctx, session, frame);
             default -> {
                 registry.invalidFrame();
                 sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
@@ -136,7 +169,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
 
     private void handlePing(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
         byte[] payload = frame.payload();
-        if (session.state() != Session.State.READY || payload.length != 4) {
+        if (!isApplicationState(session.state()) || payload.length != 4) {
             registry.invalidFrame();
             registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
@@ -146,7 +179,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     }
 
     private void handleDisconnect(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
-        if (session.state() != Session.State.READY || frame.payload().length != 0) {
+        if (!isApplicationState(session.state()) || frame.payload().length != 0) {
             registry.invalidFrame();
             registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
@@ -154,6 +187,140 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         }
         ctx.writeAndFlush(new CloseWebSocketFrame(1000, "client disconnect"))
                 .addListener(ChannelFutureListener.CLOSE);
+    }
+
+    private void handleLogin(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
+        byte[] payload = frame.payload();
+        frame.clearPayload();
+        if (!beginAuthentication(ctx, session)) {
+            Arrays.fill(payload, (byte) 0);
+            return;
+        }
+        AuthPayloadCodec.Login request;
+        try {
+            request = AuthPayloadCodec.decodeLogin(payload);
+        } catch (AuthPayloadCodec.MalformedAuthPayloadException exception) {
+            session.transition(Session.State.AUTHENTICATING, Session.State.READY);
+            writeAuthFailure(ctx, AuthFailure.INVALID_REQUEST);
+            return;
+        }
+        try (request) {
+            startAuthentication(ctx, session, request.identifier(), null, request.takePassword(), false);
+        }
+    }
+
+    private void handleRegistration(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
+        byte[] payload = frame.payload();
+        frame.clearPayload();
+        if (!beginAuthentication(ctx, session)) {
+            Arrays.fill(payload, (byte) 0);
+            return;
+        }
+        AuthPayloadCodec.Registration request;
+        try {
+            request = AuthPayloadCodec.decodeRegistration(payload);
+        } catch (AuthPayloadCodec.MalformedAuthPayloadException exception) {
+            session.transition(Session.State.AUTHENTICATING, Session.State.READY);
+            writeAuthFailure(ctx, AuthFailure.INVALID_REQUEST);
+            return;
+        }
+        try (request) {
+            startAuthentication(ctx, session, request.username(), request.email(), request.takePassword(), true);
+        }
+    }
+
+    private boolean beginAuthentication(ChannelHandlerContext ctx, Session session) {
+        if (session.state() != Session.State.READY) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return false;
+        }
+        long now = System.nanoTime();
+        if (authWindowStartedAt == 0 || now - authWindowStartedAt >= AUTH_WINDOW_NANOS) {
+            authWindowStartedAt = now;
+            authRequestsInWindow = 0;
+        }
+        if (authRequestsInWindow >= AUTH_REQUEST_LIMIT) {
+            writeAuthFailure(ctx, AuthFailure.RATE_LIMITED);
+            return false;
+        }
+        authRequestsInWindow++;
+        if (!session.transition(Session.State.READY, Session.State.AUTHENTICATING)) {
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return false;
+        }
+        return true;
+    }
+
+    private void startAuthentication(ChannelHandlerContext ctx, Session session, String identifier, String email,
+                                     char[] password, boolean registration) {
+        if (authService == null) {
+            Arrays.fill(password, '\0');
+            session.transition(Session.State.AUTHENTICATING, Session.State.READY);
+            writeAuthFailure(ctx, AuthFailure.UNAVAILABLE);
+            return;
+        }
+        var operation = registration
+                ? authService.register(identifier, email, password)
+                : authService.login(identifier, password);
+        authDeadline = ctx.executor().schedule(() -> {
+            if (session.state() == Session.State.AUTHENTICATING && ctx.channel().isActive()) {
+                LOG.atWarn().addKeyValue("event", "auth.timeout").addKeyValue("sessionId", session.id())
+                        .log("Habbux authentication exceeded its deadline");
+                writeAuthFailure(ctx, AuthFailure.UNAVAILABLE);
+                ctx.close();
+            }
+        }, AUTH_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        operation.whenComplete((result, failure) -> {
+            try {
+                ctx.executor().execute(() -> completeAuthentication(ctx, session, result, failure));
+            } catch (RejectedExecutionException ignored) {
+                // The channel event loop is already shutting down; session cleanup owns final state.
+            }
+        });
+    }
+
+    private void completeAuthentication(ChannelHandlerContext ctx, Session session, AuthResult result, Throwable failure) {
+        cancelAuthDeadline();
+        if (!ctx.channel().isActive() || session.state() != Session.State.AUTHENTICATING) return;
+        if (failure != null || result == null) result = AuthResult.failure(AuthFailure.UNAVAILABLE);
+        if (!result.succeeded()) {
+            session.transition(Session.State.AUTHENTICATING, Session.State.READY);
+            writeAuthFailure(ctx, result.failure());
+            LOG.atInfo().addKeyValue("event", "auth.failure")
+                    .addKeyValue("category", result.failure().name().toLowerCase(java.util.Locale.ROOT))
+                    .addKeyValue("sessionId", session.id()).log("Habbux authentication was rejected");
+            return;
+        }
+        if (!session.authenticate(result.user())) return;
+        writeFrame(ctx, new HabbuxFrame(FrameCodec.VERSION, CoreMessage.AUTH_SUCCESS.id(), 0,
+                AuthPayloadCodec.encodeSuccess(result.user().id(), result.user().username())));
+        LOG.atInfo().addKeyValue("event", "auth.success").addKeyValue("userId", result.user().id())
+                .addKeyValue("sessionId", session.id()).log("Habbux user authenticated");
+    }
+
+    private void handleLogout(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
+        if (session.state() != Session.State.AUTHENTICATED || frame.payload().length != 0
+                || !session.transition(Session.State.AUTHENTICATED, Session.State.READY)) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        writeFrame(ctx, new HabbuxFrame(FrameCodec.VERSION, CoreMessage.AUTH_LOGOUT_SUCCESS.id(), 0, new byte[0]));
+        LOG.atInfo().addKeyValue("event", "auth.logout").addKeyValue("sessionId", session.id())
+                .log("Habbux user logged out");
+    }
+
+    private void writeAuthFailure(ChannelHandlerContext ctx, AuthFailure failure) {
+        writeFrame(ctx, new HabbuxFrame(FrameCodec.VERSION, CoreMessage.AUTH_FAILURE.id(), 0,
+                new byte[] { (byte) failure.code() }));
+    }
+
+    private static boolean isApplicationState(Session.State state) {
+        return state == Session.State.READY || state == Session.State.AUTHENTICATING
+                || state == Session.State.AUTHENTICATED;
     }
 
     private boolean writeFrame(ChannelHandlerContext ctx, HabbuxFrame frame) {
@@ -223,9 +390,17 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         }
     }
 
+    private void cancelAuthDeadline() {
+        if (authDeadline != null) {
+            authDeadline.cancel(false);
+            authDeadline = null;
+        }
+    }
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         cancelHandshakeDeadline();
+        cancelAuthDeadline();
         Session session = session(ctx);
         registry.remove(session.id());
         LOG.atInfo().addKeyValue("event", "connection.closed").addKeyValue("sessionId", session.id())

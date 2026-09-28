@@ -1,6 +1,7 @@
 package com.habbux.network;
 
 import com.habbux.config.AppConfig;
+import com.habbux.auth.AuthService;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.Session;
 import io.netty.channel.ChannelInitializer;
@@ -23,11 +24,18 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final AppConfig config;
     private final ConnectionRegistry registry;
     private final ChannelGroup childChannels;
+    private final AuthService authService;
 
     CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels) {
+        this(config, registry, childChannels, null);
+    }
+
+    CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels,
+                           AuthService authService) {
         this.config = config;
         this.registry = registry;
         this.childChannels = childChannels;
+        this.authService = authService;
     }
 
     @Override
@@ -54,7 +62,7 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
         channel.pipeline().addLast("websocket-aggregate", new WebSocketFrameAggregator(
                 CoreChannelHandler.HEADER_BYTES + config.maxPayloadBytes()));
         channel.pipeline().addLast("idle", new IdleStateHandler(config.idleTimeoutSeconds(), 0, 0, TimeUnit.SECONDS));
-        channel.pipeline().addLast("core", new CoreChannelHandler(config, registry));
+        channel.pipeline().addLast("core", new CoreChannelHandler(config, registry, authService));
         childChannels.add(channel);
     }
 }

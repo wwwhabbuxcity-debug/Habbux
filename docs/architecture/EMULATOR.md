@@ -3,7 +3,8 @@
 ## Estado atual
 
 O processo Java 25 abre um listener WebSocket Netty para o Core v1, administra
-sessões anônimas e encerra canais/event loops no shutdown. Autenticação, quartos,
+sessões anônimas ou autenticadas e encerra canais/event loops no shutdown. Login,
+cadastro e logout usam o Auth Core com PostgreSQL opcional. Quartos,
 inventário e economia não estão implementados. O projeto usa Maven Wrapper 3.9.x;
 versões efetivas de dependências e plugins ficam nos arquivos de build.
 
@@ -30,7 +31,8 @@ build por domínio. Cada implementação futura precisa de caso de uso e teste.
 
 1. Ler configuração do ambiente e validar limites antes de abrir a porta.
 2. Criar event loops boss/worker, pipeline HTTP/WebSocket e iniciar o listener.
-   O Core não depende de PostgreSQL nem Redis.
+   O listener não depende de PostgreSQL nem Redis; login/cadastro precisam do
+   PostgreSQL opcional e retornam indisponível sem ele.
 3. No shutdown, fechar a porta de entrada, fechar sessões, conferir contadores e
    desligar event loops dentro do prazo configurado.
 
@@ -41,9 +43,9 @@ default é loopback e WSS exige proxy de borda configurado separadamente.
 
 ## Execução e dependências
 
-Event loops de rede cuidam de I/O não bloqueante e trabalho curto. Processamento
-de domínio e persistência possuem executores limitados separados quando forem
-implementados. Usar Java 25 não implica uma thread virtual por evento ou quarto.
+Event loops de rede cuidam de I/O não bloqueante e trabalho curto. Auth usa
+executor limitado separado para hash e JDBC; futuros domínios persistentes devem
+seguir o mesmo limite. Usar Java 25 não implica uma thread virtual por evento ou quarto.
 O modelo precisa ser medido antes de acrescentar concorrência.
 
 Netty é a base de networking aprovada. Não adicionar Spring Boot, ORM, pool,

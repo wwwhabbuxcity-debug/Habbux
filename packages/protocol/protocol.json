@@ -24,7 +24,13 @@
     { "id": 3, "name": "PING", "direction": "client-to-server", "payloadBytes": 4, "purpose": "Envia um número de sequência uint32 para medir RTT de aplicação." },
     { "id": 4, "name": "PONG", "direction": "server-to-client", "payloadBytes": 4, "purpose": "Ecoa o uint32 recebido em PING." },
     { "id": 5, "name": "CLIENT_DISCONNECT", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Solicita encerramento normal da conexão." },
-    { "id": 6, "name": "SERVER_ERROR", "direction": "server-to-client", "payloadBytes": 2, "purpose": "Comunica um código de erro estável uint16 sem detalhes internos." }
+    { "id": 6, "name": "SERVER_ERROR", "direction": "server-to-client", "payloadBytes": 2, "purpose": "Comunica um código de erro estável uint16 sem detalhes internos." },
+    { "id": 7, "name": "AUTH_LOGIN", "direction": "client-to-server", "payloadBytes": "variable", "payloadFormat": "uint16 loginUtf8Bytes (1..254), login UTF-8, uint16 passwordUtf8Bytes (1..512), password UTF-8", "purpose": "Solicita login por username ou email e senha; dados sensíveis nunca são registrados." },
+    { "id": 8, "name": "AUTH_REGISTER", "direction": "client-to-server", "payloadBytes": "variable", "payloadFormat": "uint16 usernameUtf8Bytes (3..20), username UTF-8, uint16 emailUtf8Bytes (3..254), email UTF-8, uint16 passwordUtf8Bytes (1..512), password UTF-8", "purpose": "Solicita criação de uma conta mínima com username, email e senha." },
+    { "id": 9, "name": "AUTH_SUCCESS", "direction": "server-to-client", "payloadBytes": "variable", "payloadFormat": "uint64 userId, uint16 usernameUtf8Bytes (3..20), username UTF-8", "purpose": "Confirma identidade mínima autenticada, sem token ou credenciais." },
+    { "id": 10, "name": "AUTH_FAILURE", "direction": "server-to-client", "payloadBytes": 1, "purpose": "Retorna somente categoria segura de rejeição: 1 inválido, 2 rejeitado, 3 limitado, 4 indisponível." },
+    { "id": 11, "name": "AUTH_LOGOUT", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Encerra a associação autenticada à sessão atual." },
+    { "id": 12, "name": "AUTH_LOGOUT_SUCCESS", "direction": "server-to-client", "payloadBytes": 0, "purpose": "Confirma logout da sessão atual." }
   ],
   "serverErrors": [
     { "code": 1, "name": "INVALID_STATE" },

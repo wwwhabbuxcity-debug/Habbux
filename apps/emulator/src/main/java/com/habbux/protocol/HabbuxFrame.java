@@ -31,5 +31,8 @@ public final class HabbuxFrame {
     public int messageId() { return messageId; }
     public int flags() { return flags; }
     public byte[] payload() { return Arrays.copyOf(payload, payload.length); }
+
+    /** Zeroes a credential-bearing frame after its parser has taken a defensive copy. */
+    public void clearPayload() { Arrays.fill(payload, (byte) 0); }
     byte[] payloadForCodec() { return payload; }
 }

@@ -2,6 +2,13 @@ package com.habbux.bootstrap;
 
 import com.habbux.config.AppConfig;
 import com.habbux.network.HabbuxServer;
+import com.habbux.auth.AuthExecutor;
+import com.habbux.auth.AuthService;
+import com.habbux.persistence.DatabaseConfig;
+import com.habbux.persistence.DatabasePool;
+import com.habbux.security.Argon2idPasswordHasher;
+import com.habbux.user.UserRepository;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,15 +28,32 @@ public final class HabbuxEmulator {
     private static int run() {
         LOG.atInfo().addKeyValue("event", "emulator.starting").log("Habbux Emulator starting");
         try {
-            AppConfig config = AppConfig.from(System.getenv());
-            try (HabbuxServer server = new HabbuxServer(config)) {
-                Runtime.getRuntime().addShutdownHook(new Thread(server::close, "habbux-shutdown"));
-                server.start();
-                LOG.atInfo().addKeyValue("event", "emulator.ready")
-                        .addKeyValue("environment", config.environment())
-                        .addKeyValue("eventLoopThreads", config.eventLoopThreads())
-                        .log("Habbux Emulator ready");
-                server.await();
+            Map<String, String> environment = System.getenv();
+            AppConfig config = AppConfig.from(environment);
+            DatabaseConfig databaseConfig = environment.containsKey("POSTGRES_HOST")
+                    ? DatabaseConfig.from(environment) : null;
+            try (DatabasePool database = databaseConfig == null ? null : new DatabasePool(databaseConfig);
+                 AuthExecutor authExecutor = AuthExecutor.fromEnvironment(environment)) {
+                try {
+                    AuthService authService = new AuthService(database == null ? null : new UserRepository(database.dataSource()),
+                            authExecutor, new Argon2idPasswordHasher());
+                    if (database == null) {
+                        LOG.atWarn().addKeyValue("event", "auth.database_unconfigured")
+                                .log("Habbux auth is unavailable until PostgreSQL is configured");
+                    }
+                    try (HabbuxServer server = new HabbuxServer(config, authService, authExecutor)) {
+                        Runtime.getRuntime().addShutdownHook(new Thread(
+                                () -> shutdownServerAndLogPool(server, database), "habbux-shutdown"));
+                        server.start();
+                        LOG.atInfo().addKeyValue("event", "emulator.ready")
+                                .addKeyValue("environment", config.environment())
+                                .addKeyValue("eventLoopThreads", config.eventLoopThreads())
+                                .log("Habbux Emulator ready");
+                        server.await();
+                    }
+                } finally {
+                    logDatabasePool(database);
+                }
             }
             return 0;
         } catch (IllegalArgumentException exception) {
@@ -50,5 +74,20 @@ public final class HabbuxEmulator {
                     .log("Unable to initialize emulator bootstrap");
             return 1;
         }
+    }
+
+    private static void logDatabasePool(DatabasePool database) {
+        if (database == null) return;
+        var pool = database.snapshot();
+        LOG.atInfo().addKeyValue("event", "emulator.database_pool_stopped")
+                .addKeyValue("active", pool.active())
+                .addKeyValue("idle", pool.idle())
+                .addKeyValue("pending", pool.pending())
+                .log("Habbux PostgreSQL pool stopped");
+    }
+
+    private static void shutdownServerAndLogPool(HabbuxServer server, DatabasePool database) {
+        try { server.close(); }
+        finally { logDatabasePool(database); }
     }
 }

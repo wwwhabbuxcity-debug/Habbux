@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 
 /** Wire IDs mirror the canonical registry in packages/protocol/protocol.json. */
 public enum CoreMessage {
-    CLIENT_HELLO(1), SERVER_HELLO(2), PING(3), PONG(4), CLIENT_DISCONNECT(5), SERVER_ERROR(6);
+    CLIENT_HELLO(1), SERVER_HELLO(2), PING(3), PONG(4), CLIENT_DISCONNECT(5), SERVER_ERROR(6),
+    AUTH_LOGIN(7), AUTH_REGISTER(8), AUTH_SUCCESS(9), AUTH_FAILURE(10), AUTH_LOGOUT(11),
+    AUTH_LOGOUT_SUCCESS(12);
 
     private final int id;
     private static final Map<Integer, CoreMessage> BY_ID = Arrays.stream(values())

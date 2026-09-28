@@ -29,9 +29,24 @@
             <div><dt>Conexão</dt><dd id="connection-state">DISCONNECTED</dd></div>
             <div><dt>Sessão anônima</dt><dd id="session-id">—</dd></div>
             <div><dt>RTT de aplicação</dt><dd id="rtt">—</dd></div>
+            <div><dt>Autenticação</dt><dd id="auth-state">ANONYMOUS</dd></div>
+            <div><dt>User ID</dt><dd id="user-id">—</dd></div>
+            <div><dt>Username</dt><dd id="authenticated-username">—</dd></div>
           </dl>
           <p id="connection-error" class="connection-error" aria-live="polite"></p>
           <button id="connection-toggle" class="connect-button" type="button">Conectar ao Emulator</button>
+          <form id="auth-form" class="auth-form">
+            <label>Login (username ou email)<input id="auth-identifier" name="username" autocomplete="username" maxlength="254" required /></label>
+            <label>Username para cadastro<input id="register-username" name="new-username" autocomplete="off" maxlength="20" /></label>
+            <label>Email para cadastro<input id="register-email" name="email" type="email" autocomplete="email" maxlength="254" /></label>
+            <label>Senha<input id="auth-password" name="password" type="password" autocomplete="current-password" maxlength="512" required /></label>
+            <div class="auth-actions">
+              <button id="login-button" type="submit">Entrar</button>
+              <button id="register-button" type="button">Criar conta</button>
+              <button id="logout-button" type="button" hidden>Sair da conta</button>
+            </div>
+            <p id="auth-status" class="auth-status" role="status" aria-live="polite">Conecte ao Core para testar autenticação.</p>
+          </form>
           <p class="endpoint-note">Endpoint configurado para este build: <code id="endpoint"></code></p>
         </section>
         <div id="viewport" aria-label="Prévia gráfica do Habbux"></div>

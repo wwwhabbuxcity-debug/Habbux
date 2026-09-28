@@ -28,6 +28,12 @@ export function validateProtocol(spec) {
     [4, 'PONG', 'server-to-client', 4],
     [5, 'CLIENT_DISCONNECT', 'client-to-server', 0],
     [6, 'SERVER_ERROR', 'server-to-client', 2],
+    [7, 'AUTH_LOGIN', 'client-to-server', 'variable'],
+    [8, 'AUTH_REGISTER', 'client-to-server', 'variable'],
+    [9, 'AUTH_SUCCESS', 'server-to-client', 'variable'],
+    [10, 'AUTH_FAILURE', 'server-to-client', 1],
+    [11, 'AUTH_LOGOUT', 'client-to-server', 0],
+    [12, 'AUTH_LOGOUT_SUCCESS', 'server-to-client', 0],
   ], 'message IDs, direction, and payload sizes are the v1 contract');
   const ids = new Set();
   const names = new Set();
@@ -36,7 +42,11 @@ export function validateProtocol(spec) {
     assert.ok(!ids.has(message.id), 'duplicate message ID');
     assert.match(message.name, /^[A-Z][A-Z0-9_]*$/);
     assert.ok(!names.has(message.name), 'duplicate message name');
-    assert.ok(Number.isInteger(message.payloadBytes) && message.payloadBytes >= 0 && message.payloadBytes <= maxPayloadBytes);
+    if (message.payloadBytes === 'variable') {
+      assert.match(message.payloadFormat, /^uint(16|64)\b/u);
+    } else {
+      assert.ok(Number.isInteger(message.payloadBytes) && message.payloadBytes >= 0 && message.payloadBytes <= maxPayloadBytes);
+    }
     assert.ok(typeof message.purpose === 'string' && message.purpose.trim());
     ids.add(message.id);
     names.add(message.name);

@@ -1,7 +1,7 @@
 # Habbux Protocol v1 — Core de rede
 
-Status: **operacional para handshake anônimo, ping/pong e desconexão**. Não há
-autenticação nem mensagens de gameplay. `packages/protocol/protocol.json` é a
+Status: **operacional para handshake, ping/pong, autenticação mínima e desconexão**.
+Não há mensagens de gameplay. `packages/protocol/protocol.json` é a
 fonte única dos IDs, direções, tamanhos de payload e limites; o arquivo de vetores
 compartilhados fica em `packages/protocol/golden-vectors-v1.txt`.
 
@@ -44,6 +44,12 @@ Os IDs e direções abaixo são conferidos contra o registro em CI:
 | 4 | `PONG` | Servidor → Client | eco dos 4 bytes de sequência recebidos |
 | 5 | `CLIENT_DISCONNECT` | Client → servidor | vazio |
 | 6 | `SERVER_ERROR` | Servidor → Client | código uint16 big-endian |
+| 7 | `AUTH_LOGIN` | Client → servidor | uint16 + login UTF-8 (1–254 bytes) + uint16 + senha UTF-8 (1–512 bytes) |
+| 8 | `AUTH_REGISTER` | Client → servidor | username UTF-8, email UTF-8 e senha UTF-8, cada um precedido por uint16 de bytes; limites no registro |
+| 9 | `AUTH_SUCCESS` | Servidor → Client | uint64 positivo de user ID + uint16 + username UTF-8 (3–20 bytes) |
+| 10 | `AUTH_FAILURE` | Servidor → Client | categoria uint8: inválido, rejeitado, limitado ou indisponível |
+| 11 | `AUTH_LOGOUT` | Client → servidor | vazio |
+| 12 | `AUTH_LOGOUT_SUCCESS` | Servidor → Client | vazio |
 
 `SERVER_ERROR` códigos v1: `1 INVALID_STATE`, `2 HANDSHAKE_TIMEOUT`. Versão
 incompatível ou frame que não possa ser interpretado recebe apenas close `1002`.
@@ -52,12 +58,17 @@ O servidor não inclui detalhes internos, stack trace ou configuração na respo
 Pings de protocolo não são WebSocket Ping/Pong de controle; o Netty trata os
 frames de controle separadamente.
 
+`AUTH_FAILURE` não distingue username/email inexistente, senha incorreta ou
+cadastro duplicado. O Client envia credenciais somente por WebSocket; o payload,
+as cópias temporárias e os buffers de entrada são limpos após parsing/envio. A
+fronteira pública exige WSS na camada de proxy antes de aceitar tráfego externo.
+
 ## Handshake e sessão
 
 Após o upgrade WebSocket, a sessão anônima passa por:
 
 ```text
-CONNECTED → HANDSHAKING → READY → DISCONNECTED
+CONNECTED → HANDSHAKING → READY ⇄ AUTHENTICATING → AUTHENTICATED → READY → DISCONNECTED
 ```
 
 O servidor cria uma sessão com UUID v4 aleatório ao aceitar a conexão. Esse UUID
@@ -67,14 +78,23 @@ configurável (`HABBUX_HANDSHAKE_TIMEOUT_MS`, padrão 10 s). Só aceita
 `CLIENT_HELLO` vazio nesse estado; responde `SERVER_HELLO` com o UUID da sessão e
 conclui o handshake no estado `READY`.
 
-`PING` só é aceito em `READY`; `PONG` ecoa a sequência e o Client estima RTT com
+`PING` é aceito após handshake, inclusive enquanto a operação de autenticação
+aguarda um worker. `PONG` ecoa a sequência e o Client estima RTT com
 relógio monotônico local. O Client envia no máximo um ping a cada 15 s e fecha se
 não recebe resposta em 10 s. O timeout de inatividade do servidor é configurável
 (`HABBUX_IDLE_TIMEOUT_SECONDS`, padrão 120 s). Antes de `READY`, no máximo três
-frames são processados por conexão; em `READY`, um token bucket local permite 30
+frames são processados por conexão; após handshake, um token bucket local permite 30
 mensagens/s com burst de 60 por conexão, ajustáveis por configuração. Ao exceder o
 limite, o servidor conta o evento e fecha o canal sem processar a mensagem. O
-limite de conexões também é configurável e tem padrão 256.
+limite de conexões também é configurável e tem padrão 256. Uma sessão aceita uma
+operação de autenticação por vez; cada conexão limita a cinco operações em 60 s.
+O Auth Core usa workers fixos (padrão 2) e fila limitada (padrão 8). Login faz uma
+verificação Argon2id fictícia quando a identidade não existe, e as falhas de
+senha/identidade usam a mesma categoria pública. Um limitador local mantém no
+máximo 4.096 identidades, aplica bloqueio temporário de 60 s após cinco falhas em
+15 min e remove o estado após sucesso. Esses limites são por processo; múltiplas
+conexões autenticadas para o mesmo usuário são permitidas. Logout remove o
+principal da sessão, sem revogar outras conexões.
 
 Disconnect explícito, fechamento remoto, timeout, frame inválido, exceção e
 shutdown removem a sessão do registry. O registry é concorrente, limitado pela
@@ -92,8 +112,9 @@ produção, a terminação WSS, origem externa e publicação só devem ser conf
 junto com uma borda TLS revisada.
 
 Não se executa I/O de aplicação, banco, arquivo, sleep nem espera de Future no
-event loop. O Core não cria thread por conexão. Controles atuais limitam payload,
-conexões, handshake, inatividade, mensagens pré-handshake e taxa local por canal.
+event loop. O Core não cria thread por conexão. SQL e hashing executam somente no
+Auth Executor limitado; o EventLoop recebe apenas a conclusão. Controles atuais
+limitam payload, conexões, handshake, inatividade, mensagens pré-handshake e taxa local por canal.
 A fila de saída do canal tem high watermark de 64 KiB e uma conexão sem capacidade
 de escrita é encerrada, evitando acúmulo ilimitado de PONGs. Não há rate limit
 global por IP, autenticação, autorização ou filas de gameplay.
@@ -108,11 +129,11 @@ JVM de testes e não altera o processo de produção.
 ## Vetores e validação
 
 `golden-vectors-v1.txt` é consumido pelos testes Java e TypeScript. Os vetores
-cobrem as seis mensagens, inclusive o UUID e a sequência 42. Os testes também
+cobrem as mensagens de controle e exemplos das novas mensagens de Auth. Os testes também
 verificam round-trip, limite configurado, versões/IDs/flags inválidos, truncamento,
 length divergente e entradas aleatórias determinísticas. O teste de integração
 abre um WebSocket real, faz handshake, ping/pong, desconexão, timeout e 24 conexões
-simultâneas; `npm run core:load-smoke` executa separadamente 100 clientes locais.
+simultâneas; `npm run core:load-smoke` executa separadamente clientes locais.
 
 Esses ensaios verificam o Core funcional e cleanup no ambiente observado. Não
 representam capacidade máxima, jogadores ativos, desempenho de salas ou escala de

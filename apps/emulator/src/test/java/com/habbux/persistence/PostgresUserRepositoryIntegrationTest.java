@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Timeout;
 
 /** Opt-in integration, fail-closed to a specifically named loopback test database. */
 class PostgresUserRepositoryIntegrationTest {
-    private static final String ALLOWED_DATABASE = "habbux_phase2_test";
+    static final String ALLOWED_DATABASE = "habbux_phase2_test";
 
     @Test
     @Timeout(30)
@@ -87,7 +87,7 @@ class PostgresUserRepositoryIntegrationTest {
         }
     }
 
-    private static DatabaseConfig config(Map<String, String> env, String userKey, String passwordKey) {
+    static DatabaseConfig config(Map<String, String> env, String userKey, String passwordKey) {
         return new DatabaseConfig(
                 env.get("HABBUX_TEST_POSTGRES_HOST"),
                 parsePort(env.get("HABBUX_TEST_POSTGRES_PORT")),
@@ -111,12 +111,12 @@ class PostgresUserRepositoryIntegrationTest {
         return value;
     }
 
-    private static String migrationLocation() {
+    static String migrationLocation() {
         return "filesystem:" + java.nio.file.Path.of("..", "..", "database", "migrations")
                 .toAbsolutePath().normalize();
     }
 
-    private static void verifyExpectedDatabase(DatabasePool pool) throws SQLException {
+    static void verifyExpectedDatabase(DatabasePool pool) throws SQLException {
         try (Connection connection = pool.dataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement("SELECT current_database()")) {
             statement.setQueryTimeout(3);
@@ -128,7 +128,7 @@ class PostgresUserRepositoryIntegrationTest {
         }
     }
 
-    private static void clearOnlyDedicatedTestTables(DatabasePool pool) throws SQLException {
+    static void clearOnlyDedicatedTestTables(DatabasePool pool) throws SQLException {
         verifyExpectedDatabase(pool);
         try (Connection connection = pool.dataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -138,7 +138,7 @@ class PostgresUserRepositoryIntegrationTest {
         }
     }
 
-    private static void grantRuntimePrivileges(DatabasePool pool) throws SQLException {
+    static void grantRuntimePrivileges(DatabasePool pool) throws SQLException {
         verifyExpectedDatabase(pool);
         try (Connection connection = pool.dataSource().getConnection();
              java.sql.Statement statement = connection.createStatement()) {

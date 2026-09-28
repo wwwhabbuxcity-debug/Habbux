@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Map;
 
 /** Bounded worker pool for password hashing and blocking persistence operations. */
 public final class AuthExecutor implements AutoCloseable {
@@ -23,6 +24,11 @@ public final class AuthExecutor implements AutoCloseable {
     private final AtomicLong rejected = new AtomicLong();
 
     public AuthExecutor() { this(DEFAULT_THREADS, DEFAULT_QUEUE_LIMIT); }
+
+    public static AuthExecutor fromEnvironment(Map<String, String> variables) {
+        return new AuthExecutor(integerOr(variables, "HABBUX_AUTH_THREADS", DEFAULT_THREADS),
+                integerOr(variables, "HABBUX_AUTH_QUEUE_LIMIT", DEFAULT_QUEUE_LIMIT));
+    }
 
     public AuthExecutor(int threads, int queueLimit) {
         if (threads < 1 || threads > 8) throw new IllegalArgumentException("threads must be 1..8");
@@ -74,6 +80,13 @@ public final class AuthExecutor implements AutoCloseable {
 
     @Override
     public void close() { shutdown(DEFAULT_SHUTDOWN_TIMEOUT); }
+
+    private static int integerOr(Map<String, String> variables, String key, int fallback) {
+        String value = variables.get(key);
+        if (value == null || value.isBlank()) return fallback;
+        try { return Integer.parseInt(value.strip()); }
+        catch (NumberFormatException ignored) { throw new IllegalArgumentException(key + " must be an integer"); }
+    }
 
     public record Metrics(int active, int queued, long rejected, long completed) { }
 

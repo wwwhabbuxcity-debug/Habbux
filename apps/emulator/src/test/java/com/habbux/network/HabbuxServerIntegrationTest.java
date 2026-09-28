@@ -6,16 +6,26 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.habbux.config.AppConfig;
+import com.habbux.auth.AuthExecutor;
+import com.habbux.auth.AuthFailure;
+import com.habbux.auth.AuthService;
+import com.habbux.persistence.DatabaseConfig;
+import com.habbux.persistence.DatabasePool;
 import com.habbux.protocol.CoreMessage;
 import com.habbux.protocol.FrameCodec;
 import com.habbux.protocol.HabbuxFrame;
 import com.habbux.session.Session;
+import com.habbux.security.Argon2idPasswordHasher;
+import com.habbux.user.UserRepository;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.net.URI;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,6 +184,153 @@ class HabbuxServerIntegrationTest {
         }
     }
 
+    @Test
+    void unavailableAuthFailsSafelyAndEventLoopStillAnswersPing() throws Exception {
+        HabbuxServer server = new HabbuxServer(config(10_000, 8));
+        try (server; HttpClient client = HttpClient.newHttpClient()) {
+            server.start();
+            ClientListener listener = new ClientListener();
+            WebSocket socket = client.newWebSocketBuilder().buildAsync(uri(server.localPort()), listener).get(5, TimeUnit.SECONDS);
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.CLIENT_HELLO.id(), 0, new byte[0])), true)
+                    .get(5, TimeUnit.SECONDS);
+            HabbuxFrame hello = decode(listener.nextBinary());
+            Session session = server.registry().find(readSessionId(hello.payload()));
+            assertNotNull(session);
+
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.AUTH_LOGIN.id(), 0, loginPayload("alice", "correct horse"))), true)
+                    .get(5, TimeUnit.SECONDS);
+            HabbuxFrame failure = decode(listener.nextBinary());
+            assertEquals(CoreMessage.AUTH_FAILURE.id(), failure.messageId());
+            assertEquals(4, Byte.toUnsignedInt(failure.payload()[0]));
+            assertEquals(Session.State.READY, session.state());
+
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.PING.id(), 0, ByteBuffer.allocate(4).putInt(71).array())), true)
+                    .get(5, TimeUnit.SECONDS);
+            HabbuxFrame pong = decode(listener.nextBinary());
+            assertEquals(CoreMessage.PONG.id(), pong.messageId());
+            assertEquals(71, ByteBuffer.wrap(pong.payload()).getInt());
+            socket.sendClose(1000, "test").get(5, TimeUnit.SECONDS);
+            listener.awaitClosed();
+            awaitZero(server);
+        }
+    }
+
+    @Test
+    void malformedAuthPayloadGetsBoundedFailureAndSessionCanDisconnect() throws Exception {
+        HabbuxServer server = new HabbuxServer(config(10_000, 8));
+        try (server; HttpClient client = HttpClient.newHttpClient()) {
+            server.start();
+            ClientListener listener = new ClientListener();
+            WebSocket socket = client.newWebSocketBuilder().buildAsync(uri(server.localPort()), listener).get(5, TimeUnit.SECONDS);
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.CLIENT_HELLO.id(), 0, new byte[0])), true)
+                    .get(5, TimeUnit.SECONDS);
+            assertEquals(CoreMessage.SERVER_HELLO.id(), decode(listener.nextBinary()).messageId());
+            byte[] malformed = ByteBuffer.allocate(5).putShort((short) 1).put((byte) 'a').putShort((short) 0).array();
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.AUTH_LOGIN.id(), 0, malformed)), true)
+                    .get(5, TimeUnit.SECONDS);
+            HabbuxFrame failure = decode(listener.nextBinary());
+            assertEquals(CoreMessage.AUTH_FAILURE.id(), failure.messageId());
+            assertEquals(1, Byte.toUnsignedInt(failure.payload()[0]));
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.CLIENT_DISCONNECT.id(), 0, new byte[0])), true)
+                    .get(5, TimeUnit.SECONDS);
+            listener.awaitClosed();
+            awaitZero(server);
+        }
+    }
+
+    @Test
+    void limitsAuthenticationRequestsPerConnection() throws Exception {
+        HabbuxServer server = new HabbuxServer(config(10_000, 8));
+        try (server; HttpClient client = HttpClient.newHttpClient()) {
+            server.start();
+            ClientListener listener = new ClientListener();
+            WebSocket socket = client.newWebSocketBuilder().buildAsync(uri(server.localPort()), listener)
+                    .get(5, TimeUnit.SECONDS);
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.CLIENT_HELLO.id(), 0, new byte[0])), true)
+                    .get(5, TimeUnit.SECONDS);
+            assertEquals(CoreMessage.SERVER_HELLO.id(), decode(listener.nextBinary()).messageId());
+            for (int attempt = 0; attempt < 5; attempt++) {
+                socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.AUTH_LOGIN.id(), 0,
+                        loginPayload("user_" + attempt, "CorrectHorse"))), true).get(5, TimeUnit.SECONDS);
+                HabbuxFrame unavailable = decode(listener.nextBinary());
+                assertEquals(CoreMessage.AUTH_FAILURE.id(), unavailable.messageId());
+                assertEquals(4, Byte.toUnsignedInt(unavailable.payload()[0]));
+            }
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.AUTH_LOGIN.id(), 0,
+                    loginPayload("sixth_user", "CorrectHorse"))), true).get(5, TimeUnit.SECONDS);
+            HabbuxFrame limited = decode(listener.nextBinary());
+            assertEquals(CoreMessage.AUTH_FAILURE.id(), limited.messageId());
+            assertEquals(3, Byte.toUnsignedInt(limited.payload()[0]));
+            socket.sendClose(1000, "test").get(5, TimeUnit.SECONDS);
+            listener.awaitClosed();
+            awaitZero(server);
+        }
+    }
+
+    @Test
+    void authBeforeClientHelloIsRejectedWithoutStartingAuthentication() throws Exception {
+        HabbuxServer server = new HabbuxServer(config(10_000, 8));
+        try (server; HttpClient client = HttpClient.newHttpClient()) {
+            server.start();
+            ClientListener listener = new ClientListener();
+            WebSocket socket = client.newWebSocketBuilder().buildAsync(uri(server.localPort()), listener).get(5, TimeUnit.SECONDS);
+            socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.AUTH_LOGIN.id(), 0, loginPayload("alice", "password"))), true)
+                    .get(5, TimeUnit.SECONDS);
+            HabbuxFrame error = decode(listener.nextBinary());
+            assertEquals(CoreMessage.SERVER_ERROR.id(), error.messageId());
+            assertEquals(1, ByteBuffer.wrap(error.payload()).getShort());
+            listener.awaitClosed();
+            awaitZero(server);
+        }
+    }
+
+    @Test
+    void databaseOutageReturnsSafeFailureAndKeepsCoreEventLoopResponsive() throws Exception {
+        int unavailablePort;
+        try (ServerSocket reservation = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
+            unavailablePort = reservation.getLocalPort();
+        }
+        DatabaseConfig databaseConfig = new DatabaseConfig("127.0.0.1", unavailablePort,
+                "habbux_unavailable_test", "habbux_test", "local-test-only", 1, 1,
+                500, 60_000, 1_800_000);
+        try (DatabasePool database = new DatabasePool(databaseConfig);
+             AuthExecutor executor = new AuthExecutor(1, 2)) {
+            AuthService auth = new AuthService(new UserRepository(database.dataSource()), executor,
+                    new Argon2idPasswordHasher());
+            HabbuxServer server = new HabbuxServer(config(10_000, 8), auth, executor);
+            try (server; HttpClient client = HttpClient.newHttpClient()) {
+                server.start();
+                ClientListener listener = new ClientListener();
+                WebSocket socket = client.newWebSocketBuilder().buildAsync(uri(server.localPort()), listener)
+                        .get(5, TimeUnit.SECONDS);
+                socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.CLIENT_HELLO.id(), 0, new byte[0])), true)
+                        .get(5, TimeUnit.SECONDS);
+                assertEquals(CoreMessage.SERVER_HELLO.id(), decode(listener.nextBinary()).messageId());
+                socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.AUTH_LOGIN.id(), 0,
+                        loginPayload("missing_user", "CorrectHorse"))), true).get(5, TimeUnit.SECONDS);
+                socket.sendBinary(encode(new HabbuxFrame(1, CoreMessage.PING.id(), 0,
+                        ByteBuffer.allocate(4).putInt(92).array())), true).get(5, TimeUnit.SECONDS);
+                boolean gotFailure = false;
+                boolean gotPong = false;
+                for (int index = 0; index < 2; index++) {
+                    HabbuxFrame response = decode(listener.nextBinary());
+                    if (response.messageId() == CoreMessage.AUTH_FAILURE.id()) {
+                        assertEquals(AuthFailure.UNAVAILABLE.code(), Byte.toUnsignedInt(response.payload()[0]));
+                        gotFailure = true;
+                    } else if (response.messageId() == CoreMessage.PONG.id()) {
+                        assertEquals(92, ByteBuffer.wrap(response.payload()).getInt());
+                        gotPong = true;
+                    }
+                }
+                assertTrue(gotFailure);
+                assertTrue(gotPong);
+                socket.sendClose(1000, "test").get(5, TimeUnit.SECONDS);
+                listener.awaitClosed();
+                awaitZero(server);
+            }
+        }
+    }
+
     private static AppConfig config(int handshakeMillis, int maxConnections) {
         return new AppConfig("test", 1, 5_000, "127.0.0.1", 0, PAYLOAD_LIMIT, handshakeMillis, 30,
                 maxConnections, 3, 30, 60, Set.of("http://localhost:5173"));
@@ -190,6 +347,14 @@ class HabbuxServerIntegrationTest {
         } finally {
             bytes.release();
         }
+    }
+
+    private static byte[] loginPayload(String login, String password) {
+        byte[] loginBytes = login.getBytes(StandardCharsets.UTF_8);
+        byte[] passwordBytes = password.getBytes(StandardCharsets.UTF_8);
+        return ByteBuffer.allocate(4 + loginBytes.length + passwordBytes.length)
+                .putShort((short) loginBytes.length).put(loginBytes)
+                .putShort((short) passwordBytes.length).put(passwordBytes).array();
     }
 
     private static HabbuxFrame decode(ByteBuffer data) throws Exception {

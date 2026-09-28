@@ -11,8 +11,22 @@ const emulatorStatus = document.querySelector<HTMLElement>('#emulator-status');
 const connectionError = document.querySelector<HTMLElement>('#connection-error');
 const toggle = document.querySelector<HTMLButtonElement>('#connection-toggle');
 const endpoint = document.querySelector<HTMLElement>('#endpoint');
+const authState = document.querySelector<HTMLElement>('#auth-state');
+const userId = document.querySelector<HTMLElement>('#user-id');
+const authenticatedUsername = document.querySelector<HTMLElement>('#authenticated-username');
+const authForm = document.querySelector<HTMLFormElement>('#auth-form');
+const authIdentifier = document.querySelector<HTMLInputElement>('#auth-identifier');
+const registerUsername = document.querySelector<HTMLInputElement>('#register-username');
+const registerEmail = document.querySelector<HTMLInputElement>('#register-email');
+const authPassword = document.querySelector<HTMLInputElement>('#auth-password');
+const loginButton = document.querySelector<HTMLButtonElement>('#login-button');
+const registerButton = document.querySelector<HTMLButtonElement>('#register-button');
+const logoutButton = document.querySelector<HTMLButtonElement>('#logout-button');
+const authStatus = document.querySelector<HTMLElement>('#auth-status');
 
-if (!viewport || !status || !connectionState || !sessionId || !rtt || !emulatorStatus || !connectionError || !toggle || !endpoint) {
+if (!viewport || !status || !connectionState || !sessionId || !rtt || !emulatorStatus || !connectionError || !toggle || !endpoint
+    || !authState || !userId || !authenticatedUsername || !authForm || !authIdentifier || !registerUsername
+    || !registerEmail || !authPassword || !loginButton || !registerButton || !logoutButton || !authStatus) {
   throw new Error('Client bootstrap: required elements were not found.');
 }
 const ui = {
@@ -23,6 +37,18 @@ const ui = {
   connectionError: connectionError!,
   toggle: toggle!,
   endpoint: endpoint!,
+  authState: authState!,
+  userId: userId!,
+  authenticatedUsername: authenticatedUsername!,
+  authForm: authForm!,
+  authIdentifier: authIdentifier!,
+  registerUsername: registerUsername!,
+  registerEmail: registerEmail!,
+  authPassword: authPassword!,
+  loginButton: loginButton!,
+  registerButton: registerButton!,
+  logoutButton: logoutButton!,
+  authStatus: authStatus!,
 };
 
 ui.endpoint.textContent = __HABBUX_WS_URL__;
@@ -38,12 +64,47 @@ function renderConnection(snapshot: CoreConnectionSnapshot): void {
   ui.toggle.textContent = ready || ['CONNECTING', 'HANDSHAKING', 'RECONNECTING'].includes(snapshot.state)
     ? 'Desconectar' : 'Conectar ao Emulator';
   ui.connectionError.textContent = snapshot.error ?? '';
+  ui.authState.textContent = snapshot.authState;
+  ui.userId.textContent = snapshot.userId ?? '—';
+  ui.authenticatedUsername.textContent = snapshot.username ?? '—';
+  const readyForAuth = snapshot.state === 'READY' && snapshot.authState === 'ANONYMOUS';
+  ui.authIdentifier.disabled = !readyForAuth;
+  ui.registerUsername.disabled = !readyForAuth;
+  ui.registerEmail.disabled = !readyForAuth;
+  ui.authPassword.disabled = !readyForAuth;
+  ui.loginButton.disabled = !readyForAuth;
+  ui.registerButton.disabled = !readyForAuth;
+  ui.logoutButton.hidden = snapshot.authState !== 'AUTHENTICATED';
+  ui.authStatus.textContent = snapshot.error ?? (snapshot.authState === 'AUTHENTICATED'
+    ? `Autenticado como ${snapshot.username ?? 'usuário'}.`
+    : snapshot.authState === 'AUTHENTICATING' ? 'Verificando credenciais…'
+      : snapshot.state === 'READY' ? 'Conexão pronta para autenticar.' : 'Conecte ao Core para testar autenticação.');
 }
 
 const unsubscribe = connection.subscribe(renderConnection);
 ui.toggle.addEventListener('click', () => {
   if (['CONNECTING', 'HANDSHAKING', 'READY', 'RECONNECTING'].includes(ui.connectionState.textContent ?? '')) connection.disconnect();
   else connection.connect();
+});
+ui.authForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  let secret = ui.authPassword.value;
+  ui.authPassword.value = '';
+  const attempt = connection.login(ui.authIdentifier.value, secret);
+  secret = '';
+  void attempt.catch((error: unknown) => { ui.authStatus.textContent = error instanceof Error ? error.message : 'Falha ao iniciar login.'; });
+});
+ui.registerButton.addEventListener('click', () => {
+  let secret = ui.authPassword.value;
+  ui.authPassword.value = '';
+  const attempt = connection.register(ui.registerUsername.value, ui.registerEmail.value, secret);
+  secret = '';
+  void attempt.catch((error: unknown) => { ui.authStatus.textContent = error instanceof Error ? error.message : 'Falha ao iniciar cadastro.'; });
+});
+ui.logoutButton.addEventListener('click', () => {
+  void connection.logout().catch((error: unknown) => {
+    ui.authStatus.textContent = error instanceof Error ? error.message : 'Falha ao sair da conta.';
+  });
 });
 
 let disposePreview = (): void => undefined;

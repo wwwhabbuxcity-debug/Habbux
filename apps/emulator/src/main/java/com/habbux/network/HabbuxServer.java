@@ -1,6 +1,8 @@
 package com.habbux.network;
 
 import com.habbux.config.AppConfig;
+import com.habbux.auth.AuthExecutor;
+import com.habbux.auth.AuthService;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.NetworkMetrics;
 import io.netty.bootstrap.ServerBootstrap;
@@ -33,16 +35,22 @@ public final class HabbuxServer implements AutoCloseable {
     private final EventLoopGroup workerGroup;
     private final ChannelGroup childChannels;
     private final ChannelInitializer<SocketChannel> initializer;
+    private final AuthExecutor authExecutor;
     private Channel listener;
 
     public HabbuxServer(AppConfig config) {
+        this(config, null, null);
+    }
+
+    public HabbuxServer(AppConfig config, AuthService authService, AuthExecutor authExecutor) {
         this.config = config;
+        this.authExecutor = authExecutor;
         registry = new ConnectionRegistry(config.maxConnections());
         bossGroup = new MultiThreadIoEventLoopGroup(1, new DefaultThreadFactory("habbux-boss"), NioIoHandler.newFactory());
         workerGroup = new MultiThreadIoEventLoopGroup(
                 config.eventLoopThreads(), new DefaultThreadFactory("habbux-worker"), NioIoHandler.newFactory());
         childChannels = new DefaultChannelGroup("habbux-children", workerGroup.next());
-        initializer = new CoreChannelInitializer(config, registry, childChannels);
+        initializer = new CoreChannelInitializer(config, registry, childChannels, authService);
     }
 
     public synchronized void start() throws InterruptedException {
@@ -83,11 +91,13 @@ public final class HabbuxServer implements AutoCloseable {
         long timeout = config.shutdownTimeoutMillis();
         if (listener != null) listener.close().awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
         childChannels.close().awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
+        boolean authStopped = authExecutor == null || authExecutor.shutdown(java.time.Duration.ofMillis(timeout));
+        AuthExecutor.Metrics authMetrics = authExecutor == null ? null : authExecutor.snapshot();
         boolean bossStopped = bossGroup.shutdownGracefully(0, timeout, TimeUnit.MILLISECONDS)
                 .awaitUninterruptibly(timeout + 1_000L, TimeUnit.MILLISECONDS);
         boolean workersStopped = workerGroup.shutdownGracefully(0, timeout, TimeUnit.MILLISECONDS)
                 .awaitUninterruptibly(timeout + 1_000L, TimeUnit.MILLISECONDS);
-        if (!bossStopped || !workersStopped || registry.activeConnections() != 0) {
+        if (!authStopped || !bossStopped || !workersStopped || registry.activeConnections() != 0) {
             throw new IllegalStateException("Habbux server shutdown did not finish cleanly");
         }
         NetworkMetrics metrics = registry.metrics();
@@ -106,6 +116,10 @@ public final class HabbuxServer implements AutoCloseable {
                 .addKeyValue("rateLimitDisconnects", metrics.rateLimitDisconnects())
                 .addKeyValue("backpressureDisconnects", metrics.backpressureDisconnects())
                 .addKeyValue("handshakeTimeouts", metrics.handshakeTimeouts())
+                .addKeyValue("authExecutorActive", authMetrics == null ? 0 : authMetrics.active())
+                .addKeyValue("authExecutorQueued", authMetrics == null ? 0 : authMetrics.queued())
+                .addKeyValue("authExecutorRejected", authMetrics == null ? 0 : authMetrics.rejected())
+                .addKeyValue("authExecutorCompleted", authMetrics == null ? 0 : authMetrics.completed())
                 .log("Habbux Core server stopped");
         listener = null;
     }

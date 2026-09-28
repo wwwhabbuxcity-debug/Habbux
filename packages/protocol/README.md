@@ -1,7 +1,7 @@
 # Fonte canônica do Habbux Protocol
 
-`protocol.json` define framing, limites, direções, IDs e tamanhos fixos das
-mensagens Core. `golden-vectors-v1.txt` é compartilhado pelos testes Java e
+`protocol.json` define framing, limites, direções, IDs e tamanhos fixos ou
+formatos limitados das mensagens Core. `golden-vectors-v1.txt` é compartilhado pelos testes Java e
 TypeScript. As regras legíveis estão em
 [`docs/protocol/HABBUX-PROTOCOL-v1.md`](../../docs/protocol/HABBUX-PROTOCOL-v1.md).
 

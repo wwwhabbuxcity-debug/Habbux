@@ -11,10 +11,10 @@ alocação, depois campos, contexto, autenticação e autorização. Limitar fra
 compressão, strings, listas, profundidade e complexidade das operações.
 
 Handshake de protocolo não autentica usuário. O schema armazena somente hash
-Argon2id da senha, sem tokens ou sessões persistentes. O protocolo de login,
-revogação e política de tentativas ainda serão implementados antes de uso real.
-Autorização ocorre por ação e recurso, inclusive mensagens válidas vindas de
-usuário autenticado. Não colocar tokens em URL ou em logs.
+Argon2id da senha, sem tokens ou sessões persistentes. Login, cadastro e logout
+já existem no Core v1, com falhas genéricas e sessão ligada a identidade mínima.
+Ainda não há revogação distribuída, recuperação de conta nem autorização de
+ações de gameplay. Não colocar tokens em URL ou em logs.
 
 ## Transporte e abuso
 
@@ -60,8 +60,10 @@ Argon2id usa `m=19456 KiB,t=2,p=1`, salt aleatório de 16 bytes e saída de 32 b
 O cadastro limita a senha a 128 pontos de código/512 bytes UTF-8 e exige mínimo de
 12 caracteres. Hash, verificação e JDBC ficam em executor de Auth com 2 threads e
 fila limitada a 8; nunca no EventLoop. Hashes PHC com custo fora dos limites são
-rejeitados antes de executar o algoritmo. O fluxo de login integrado ainda está
-pendente.
+rejeitados antes de executar o algoritmo. Cada canal admite uma operação Auth por
+vez e no máximo cinco pedidos por minuto; falhas por identidade usam estado local
+limitado. Essas proteções não são distribuídas e precisam de controles na borda
+antes de exposição pública.
 
 ## Supply chain, assets e extensões
 

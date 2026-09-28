@@ -20,8 +20,9 @@ IDs, tamanhos, handshake e erros pertencem a
 3. O codec valida versão, flags, ID e comprimento antes de copiar o payload.
 4. Cada mensagem WebSocket binária contém exatamente um frame. Texto, truncamento,
    bytes extras e mensagens incompatíveis são encerrados de forma genérica.
-5. O Core valida direção, tamanho dos payloads de controle e estado anônimo da
-   sessão. Não há autenticação, autorização nem comandos de domínio.
+5. O Core valida direção, tamanho dos payloads e estado da sessão. Login, cadastro
+   e logout são suportados pelo Auth Core; mensagens de domínio e autorização de
+   gameplay ainda não existem.
 6. PING/PONG de aplicação ecoa um uint32 big-endian; frames de controle WebSocket
    continuam sob responsabilidade do Netty.
 
@@ -43,11 +44,17 @@ mantém no máximo um PING pendente.
 Defaults configuráveis: bind `127.0.0.1:3100`, payload máximo 65.536 bytes,
 handshake 10 s, inatividade 120 s, 256 conexões e três mensagens antes de READY.
 Handshake não é autenticação. Sessões de transporte recebem UUID aleatório e
-seguem CONNECTED → HANDSHAKING → READY → DISCONNECTED. Disconnect, erro, timeout e
-shutdown removem a sessão do registry.
+seguem CONNECTED → HANDSHAKING → READY; Auth pode passar por AUTHENTICATING e
+AUTHENTICATED antes de voltar a READY no logout. Disconnect, erro, timeout e
+shutdown removem a sessão do registry. A sessão guarda somente ID e username do
+principal; várias conexões do mesmo usuário são permitidas.
 
-Filas de gameplay, identidade/autorização e rate limit por operação ainda precisam
-de projeto antes de qualquer mensagem de domínio.
+Hash Argon2id e consultas PostgreSQL executam fora do EventLoop, em executor com
+2 workers e fila 8 por padrão. Login/cadastro têm timeout de 10 s, limite local de
+5 pedidos por conexão a cada 60 s e proteção LRU limitada por identidade. Isso não
+é coordenação distribuída nem substitui limites de conexão na borda. PING/PONG
+continua permitido durante autenticação. Auth não implementa autorização de
+mensagens de gameplay.
 Não encaminhar `X-Forwarded-For` sem proxy confiável configurado.
 
 ## Observabilidade e testes
@@ -63,6 +70,7 @@ Appender assíncrono usa fila limitada. Para diagnosticar leaks durante testes,
 forkada pelo Maven; esse nível não fica habilitado no servidor de produção.
 
 Os testes verificam codec e vetores comuns em Java/TypeScript, handshake real,
-PING/PONG, desconexão, timeout, 24 conexões simultâneas, entradas inválidas,
-token bucket e backpressure. O smoke separado cobre 100 conexões loopback; isso não
-estima capacidade máxima ou número de jogadores.
+PING/PONG, autenticação PostgreSQL ponta a ponta, desconexão durante Auth,
+timeout, 24 conexões simultâneas, entradas inválidas, token bucket e backpressure.
+O smoke separado cobre até 100 conexões loopback; isso não estima capacidade
+máxima ou número de jogadores. Veja o [plano de carga](../../benchmarks/README.md).

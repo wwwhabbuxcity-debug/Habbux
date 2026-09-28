@@ -8,11 +8,28 @@ export const CORE_MESSAGE = {
   PONG: 4,
   CLIENT_DISCONNECT: 5,
   SERVER_ERROR: 6,
+  AUTH_LOGIN: 7,
+  AUTH_REGISTER: 8,
+  AUTH_SUCCESS: 9,
+  AUTH_FAILURE: 10,
+  AUTH_LOGOUT: 11,
+  AUTH_LOGOUT_SUCCESS: 12,
+} as const;
+export const AUTH_FAILURE_CATEGORY = {
+  INVALID_REQUEST: 1,
+  REJECTED: 2,
+  RATE_LIMITED: 3,
+  UNAVAILABLE: 4,
 } as const;
 const CORE_MESSAGE_IDS = new Set<number>(Object.values(CORE_MESSAGE));
 
 export type CoreMessageId = (typeof CORE_MESSAGE)[keyof typeof CORE_MESSAGE];
 export type CoreConnectionState = 'DISCONNECTED' | 'CONNECTING' | 'HANDSHAKING' | 'READY' | 'RECONNECTING';
+export type CoreAuthState = 'ANONYMOUS' | 'AUTHENTICATING' | 'AUTHENTICATED';
+export type CoreAuthFailureCategory = 'INVALID_REQUEST' | 'REJECTED' | 'RATE_LIMITED' | 'UNAVAILABLE';
+export type CoreAuthResult =
+  | { readonly ok: true; readonly userId: string; readonly username: string }
+  | { readonly ok: false; readonly category: CoreAuthFailureCategory };
 
 export interface HabbuxFrame {
   readonly version: number;
@@ -59,12 +76,18 @@ export interface CoreConnectionSnapshot {
   readonly sessionId: string | null;
   readonly rttMs: number | null;
   readonly error: string | null;
+  readonly authState: CoreAuthState;
+  readonly userId: string | null;
+  readonly username: string | null;
 }
 
 export class CoreConnection {
   private readonly listeners = new Set<(snapshot: CoreConnectionSnapshot) => void>();
   private socket: WebSocket | null = null;
-  private snapshot: CoreConnectionSnapshot = { state: 'DISCONNECTED', sessionId: null, rttMs: null, error: null };
+  private snapshot: CoreConnectionSnapshot = {
+    state: 'DISCONNECTED', sessionId: null, rttMs: null, error: null,
+    authState: 'ANONYMOUS', userId: null, username: null,
+  };
   private reconnectEnabled = true;
   private disposed = false;
   private reconnectAttempts = 0;
@@ -73,6 +96,8 @@ export class CoreConnection {
   private pingDeadline: ReturnType<typeof setTimeout> | null = null;
   private pendingPing: { sequence: number; sentAt: number } | null = null;
   private sequence = 0;
+  private pendingAuth: { resolve: (result: CoreAuthResult) => void; timer: ReturnType<typeof setTimeout> } | null = null;
+  private pendingLogout: { resolve: (success: boolean) => void; timer: ReturnType<typeof setTimeout> } | null = null;
 
   constructor(private readonly url: string, private readonly maxReconnectAttempts = 8) {
     const parsed = new URL(url);
@@ -98,10 +123,58 @@ export class CoreConnection {
     this.openSocket(false);
   }
 
+  login(usernameOrEmail: string, password: string): Promise<CoreAuthResult> {
+    const fields: Uint8Array[] = [];
+    try {
+      fields.push(encodeUtf8(usernameOrEmail, 1, 254));
+      fields.push(encodeUtf8(password, 1, 512));
+      return this.sendAuthRequest(CORE_MESSAGE.AUTH_LOGIN, fields);
+    } catch (error) {
+      fields.forEach((field) => field.fill(0));
+      throw error;
+    }
+  }
+
+  register(username: string, email: string, password: string): Promise<CoreAuthResult> {
+    const fields: Uint8Array[] = [];
+    try {
+      fields.push(encodeUtf8(username, 3, 20));
+      fields.push(encodeUtf8(email, 3, 254));
+      fields.push(encodeUtf8(password, 1, 512));
+      return this.sendAuthRequest(CORE_MESSAGE.AUTH_REGISTER, fields);
+    } catch (error) {
+      fields.forEach((field) => field.fill(0));
+      throw error;
+    }
+  }
+
+  logout(): Promise<boolean> {
+    const socket = this.socket;
+    if (!socket || socket.readyState !== WebSocket.OPEN || this.snapshot.authState !== 'AUTHENTICATED') {
+      return Promise.reject(new Error('É necessário estar autenticado para sair.'));
+    }
+    if (this.pendingLogout) return Promise.reject(new Error('Logout já está em andamento.'));
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingLogout = null;
+        socket.close(1001, 'logout timeout');
+        resolve(false);
+      }, 5_000);
+      this.pendingLogout = { resolve, timer };
+      try { socket.send(encodeFrame(CORE_MESSAGE.AUTH_LOGOUT)); }
+      catch (error) {
+        clearTimeout(timer);
+        this.pendingLogout = null;
+        reject(error instanceof Error ? error : new Error('Não foi possível enviar logout.'));
+      }
+    });
+  }
+
   disconnect(): void {
     this.reconnectEnabled = false;
     this.clearReconnectTimer();
     this.stopPings();
+    this.finishPendingOperations();
     const socket = this.socket;
     this.socket = null;
     if (socket?.readyState === WebSocket.OPEN) {
@@ -110,7 +183,8 @@ export class CoreConnection {
     } else {
       socket?.close();
     }
-    this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null });
+    this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null,
+      authState: 'ANONYMOUS', userId: null, username: null });
   }
 
   setReconnectEnabled(enabled: boolean): void {
@@ -129,7 +203,8 @@ export class CoreConnection {
 
   private openSocket(reconnecting: boolean): void {
     if (this.disposed) return;
-    this.setSnapshot({ ...this.snapshot, state: reconnecting ? 'RECONNECTING' : 'CONNECTING', sessionId: null, error: null });
+    this.setSnapshot({ ...this.snapshot, state: reconnecting ? 'RECONNECTING' : 'CONNECTING', sessionId: null,
+      error: null, authState: 'ANONYMOUS', userId: null, username: null });
     const socket = new WebSocket(this.url);
     socket.binaryType = 'arraybuffer';
     this.socket = socket;
@@ -157,7 +232,9 @@ export class CoreConnection {
     }
     if (frame.messageId === CORE_MESSAGE.SERVER_HELLO && this.snapshot.state === 'HANDSHAKING' && frame.payload.byteLength === 16) {
       this.reconnectAttempts = 0;
-      this.setSnapshot({ state: 'READY', sessionId: [...frame.payload].map((byte) => byte.toString(16).padStart(2, '0')).join(''), rttMs: null, error: null });
+      this.setSnapshot({ ...this.snapshot, state: 'READY',
+        sessionId: [...frame.payload].map((byte) => byte.toString(16).padStart(2, '0')).join(''),
+        rttMs: null, error: null, authState: 'ANONYMOUS', userId: null, username: null });
       this.startPings(socket);
       return;
     }
@@ -168,6 +245,25 @@ export class CoreConnection {
         this.clearPingDeadline();
         this.pendingPing = null;
       }
+      return;
+    }
+    if (frame.messageId === CORE_MESSAGE.AUTH_SUCCESS) {
+      this.onAuthSuccess(socket, frame.payload);
+      return;
+    }
+    if (frame.messageId === CORE_MESSAGE.AUTH_FAILURE) {
+      this.onAuthFailure(socket, frame.payload);
+      return;
+    }
+    if (frame.messageId === CORE_MESSAGE.AUTH_LOGOUT_SUCCESS) {
+      if (frame.payload.byteLength !== 0 || !this.pendingLogout) {
+        socket.close(1002, 'unexpected logout response');
+        return;
+      }
+      clearTimeout(this.pendingLogout.timer);
+      this.pendingLogout.resolve(true);
+      this.pendingLogout = null;
+      this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS', userId: null, username: null, error: null });
       return;
     }
     if (frame.messageId === CORE_MESSAGE.SERVER_ERROR) {
@@ -192,17 +288,119 @@ export class CoreConnection {
     if (socket !== this.socket) return;
     this.socket = null;
     this.stopPings();
+    this.finishPendingOperations();
     if (!this.disposed && this.reconnectEnabled && this.reconnectAttempts < this.maxReconnectAttempts) {
       const delay = Math.min(500 * (2 ** this.reconnectAttempts), 10_000);
       this.reconnectAttempts++;
-      this.setSnapshot({ ...this.snapshot, state: 'RECONNECTING', sessionId: null });
+      this.setSnapshot({ ...this.snapshot, state: 'RECONNECTING', sessionId: null,
+        authState: 'ANONYMOUS', userId: null, username: null });
       this.reconnectTimer = setTimeout(() => {
         this.reconnectTimer = null;
         this.openSocket(true);
       }, delay);
       return;
     }
-    this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null });
+    this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null,
+      authState: 'ANONYMOUS', userId: null, username: null });
+  }
+
+  private sendAuthRequest(messageId: number, fields: Uint8Array[]): Promise<CoreAuthResult> {
+    const socket = this.socket;
+    if (this.pendingAuth) {
+      for (const field of fields) field.fill(0);
+      return Promise.reject(new Error('Já existe uma autenticação em andamento.'));
+    }
+    if (!socket || socket.readyState !== WebSocket.OPEN || this.snapshot.state !== 'READY'
+        || this.snapshot.authState !== 'ANONYMOUS') {
+      for (const field of fields) field.fill(0);
+      return Promise.reject(new Error('Conecte ao Core e aguarde READY antes de autenticar.'));
+    }
+    let payload: Uint8Array;
+    try { payload = encodeFields(fields); }
+    catch (error) {
+      fields.forEach((field) => field.fill(0));
+      return Promise.reject(error instanceof Error ? error : new Error('Payload de autenticação inválido.'));
+    }
+    for (const field of fields) field.fill(0);
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        if (!this.pendingAuth) return;
+        this.pendingAuth = null;
+        this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS', error: 'A autenticação excedeu o tempo limite.' });
+        socket.close(1001, 'auth timeout');
+        resolve({ ok: false, category: 'UNAVAILABLE' });
+      }, 12_000);
+      this.pendingAuth = { resolve, timer };
+      this.setSnapshot({ ...this.snapshot, authState: 'AUTHENTICATING', error: null });
+      try {
+        const encoded = encodeFrame(messageId, payload);
+        socket.send(encoded);
+        new Uint8Array(encoded).fill(0);
+        payload.fill(0);
+      } catch (error) {
+        clearTimeout(timer);
+        this.pendingAuth = null;
+        payload.fill(0);
+        this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS' });
+        reject(error instanceof Error ? error : new Error('Não foi possível enviar autenticação.'));
+      }
+    });
+  }
+
+  private onAuthSuccess(socket: WebSocket, payload: Uint8Array): void {
+    if (!this.pendingAuth || this.snapshot.authState !== 'AUTHENTICATING' || payload.byteLength < 13) {
+      socket.close(1002, 'unexpected authentication response');
+      return;
+    }
+    const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+    const userId = view.getBigUint64(0, false);
+    const length = view.getUint16(8, false);
+    if (userId === 0n || length < 3 || length > 20 || payload.byteLength !== 10 + length) {
+      socket.close(1002, 'invalid authentication response');
+      return;
+    }
+    let username: string;
+    try { username = new TextDecoder('utf-8', { fatal: true }).decode(payload.subarray(10)); }
+    catch { socket.close(1002, 'invalid authentication username'); return; }
+    clearTimeout(this.pendingAuth.timer);
+    const resolve = this.pendingAuth.resolve;
+    this.pendingAuth = null;
+    this.setSnapshot({ ...this.snapshot, authState: 'AUTHENTICATED', userId: userId.toString(), username, error: null });
+    resolve({ ok: true, userId: userId.toString(), username });
+  }
+
+  private onAuthFailure(socket: WebSocket, payload: Uint8Array): void {
+    if (!this.pendingAuth || this.snapshot.authState !== 'AUTHENTICATING' || payload.byteLength !== 1) {
+      socket.close(1002, 'unexpected authentication failure');
+      return;
+    }
+    const category = (Object.entries(AUTH_FAILURE_CATEGORY) as [CoreAuthFailureCategory, number][])
+      .find(([, code]) => code === payload[0])?.[0];
+    if (!category) { socket.close(1002, 'unknown authentication failure'); return; }
+    clearTimeout(this.pendingAuth.timer);
+    const resolve = this.pendingAuth.resolve;
+    this.pendingAuth = null;
+    const messages = {
+      INVALID_REQUEST: 'Os dados enviados são inválidos.',
+      REJECTED: 'Não foi possível autenticar com esses dados.',
+      RATE_LIMITED: 'Muitas tentativas. Aguarde e tente novamente.',
+      UNAVAILABLE: 'A autenticação está temporariamente indisponível.',
+    } as const;
+    this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS', error: messages[category] });
+    resolve({ ok: false, category });
+  }
+
+  private finishPendingOperations(): void {
+    if (this.pendingAuth) {
+      clearTimeout(this.pendingAuth.timer);
+      this.pendingAuth.resolve({ ok: false, category: 'UNAVAILABLE' });
+      this.pendingAuth = null;
+    }
+    if (this.pendingLogout) {
+      clearTimeout(this.pendingLogout.timer);
+      this.pendingLogout.resolve(false);
+      this.pendingLogout = null;
+    }
   }
 
   private startPings(socket: WebSocket): void {
@@ -242,3 +440,42 @@ export class CoreConnection {
     for (const listener of this.listeners) listener(snapshot);
   }
 }
+
+function encodeUtf8(value: string, minimumBytes: number, maximumBytes: number): Uint8Array {
+  if (typeof value !== 'string' || !hasValidSurrogates(value)) throw new Error('O texto contém Unicode inválido.');
+  const bytes = new TextEncoder().encode(value);
+  if (bytes.byteLength < minimumBytes || bytes.byteLength > maximumBytes) {
+    bytes.fill(0);
+    throw new Error('O tamanho do campo está fora do limite do protocolo.');
+  }
+  return bytes;
+}
+
+function hasValidSurrogates(value: string): boolean {
+  for (let index = 0; index < value.length; index++) {
+    const code = value.charCodeAt(index);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      if (index + 1 >= value.length) return false;
+      const next = value.charCodeAt(index + 1);
+      if (next < 0xdc00 || next > 0xdfff) return false;
+      index++;
+    } else if (code >= 0xdc00 && code <= 0xdfff) return false;
+  }
+  return true;
+}
+
+function encodeFields(fields: Uint8Array[]): Uint8Array {
+  const length = fields.reduce((total, field) => total + ShortField.bytes + field.byteLength, 0);
+  const payload = new Uint8Array(length);
+  const view = new DataView(payload.buffer);
+  let offset = 0;
+  for (const field of fields) {
+    view.setUint16(offset, field.byteLength, false);
+    offset += ShortField.bytes;
+    payload.set(field, offset);
+    offset += field.byteLength;
+  }
+  return payload;
+}
+
+const ShortField = { bytes: 2 } as const;

@@ -23,6 +23,7 @@ proposta e não tratada como contrato.
 | [0012](0012-user-identity.md) | Identidade de usuário e normalização | Aceita |
 | [0013](0013-password-hashing.md) | Armazenamento de senha com Argon2id | Aceita |
 | [0014](0014-persistence-auth-execution.md) | JDBC, pool e executor de Auth limitados | Aceita |
+| [0015](0015-auth-session-policy.md) | Política de sessão e rate limit local de Auth | Aceita |
 
 Aceito não significa implementação completa: veja os limites de cada decisão e
 os READMEs dos módulos ainda planejados.
