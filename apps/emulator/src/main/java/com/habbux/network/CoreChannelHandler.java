@@ -28,12 +28,15 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private final AppConfig config;
     private final ConnectionRegistry registry;
     private final FrameCodec codec = new FrameCodec();
+    private final MessageTokenBucket messageRateLimiter;
     private ScheduledFuture<?> handshakeDeadline;
     private int messagesBeforeReady;
 
     CoreChannelHandler(AppConfig config, ConnectionRegistry registry) {
         this.config = config;
         this.registry = registry;
+        messageRateLimiter = new MessageTokenBucket(
+                config.messageRatePerSecond(), config.messageRateBurst(), System.nanoTime());
     }
 
     @Override
@@ -54,6 +57,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             }
             handshakeDeadline = ctx.executor().schedule(() -> {
                 if (session.state() == Session.State.HANDSHAKING) {
+                    registry.handshakeTimeout();
                     LOG.atWarn().addKeyValue("event", "protocol.handshake_timeout")
                             .addKeyValue("sessionId", session.id()).log("Habbux Core handshake expired");
                     sendErrorAndClose(ctx, ServerErrorCode.HANDSHAKE_TIMEOUT, 1008);
@@ -70,6 +74,16 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame webSocketFrame) {
+        registry.receivedFrame();
+        registry.receivedBytes(webSocketFrame.content().readableBytes());
+        Session session = session(ctx);
+        if (session.state() == Session.State.READY && !messageRateLimiter.tryAcquire(System.nanoTime())) {
+            registry.rateLimitDisconnect();
+            LOG.atWarn().addKeyValue("event", "protocol.rate_limit")
+                    .addKeyValue("sessionId", session.id()).log("Habbux Core message rate exceeded");
+            ctx.close();
+            return;
+        }
         if (!(webSocketFrame instanceof BinaryWebSocketFrame binary)) {
             registry.invalidFrame();
             closeProtocol(ctx, "binary messages required");
@@ -87,11 +101,10 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             closeProtocol(ctx, 1002, "invalid frame");
             return;
         }
-        registry.receivedFrame();
         CoreMessage message = CoreMessage.fromId(frame.messageId());
-        Session session = session(ctx);
         if (session.state() != Session.State.READY && ++messagesBeforeReady > config.maxPreReadyMessages()) {
             registry.invalidFrame();
+            registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
             return;
         }
@@ -109,6 +122,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private void handleHello(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
         if (frame.payload().length != 0 || !session.transition(Session.State.HANDSHAKING, Session.State.READY)) {
             registry.invalidFrame();
+            registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
             return;
         }
@@ -124,6 +138,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         byte[] payload = frame.payload();
         if (session.state() != Session.State.READY || payload.length != 4) {
             registry.invalidFrame();
+            registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
             return;
         }
@@ -133,6 +148,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private void handleDisconnect(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
         if (session.state() != Session.State.READY || frame.payload().length != 0) {
             registry.invalidFrame();
+            registry.protocolViolation();
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
             return;
         }
@@ -146,8 +162,12 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             return false;
         }
         ByteBuf encoded = codec.encode(ctx.alloc(), frame, config.maxPayloadBytes());
+        int encodedBytes = encoded.readableBytes();
         ctx.writeAndFlush(new BinaryWebSocketFrame(encoded)).addListener(future -> {
-            if (future.isSuccess()) registry.sentFrame();
+            if (future.isSuccess()) {
+                registry.sentFrame();
+                registry.sentBytes(encodedBytes);
+            }
             else ctx.close();
         });
         return true;
@@ -161,9 +181,13 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         byte[] payload = ByteBuffer.allocate(2).putShort((short) error.code()).array();
         ByteBuf encoded = codec.encode(ctx.alloc(), new HabbuxFrame(
                 FrameCodec.VERSION, CoreMessage.SERVER_ERROR.id(), 0, payload), config.maxPayloadBytes());
+        int encodedBytes = encoded.readableBytes();
         ctx.writeAndFlush(new BinaryWebSocketFrame(encoded))
                 .addListener(future -> {
-                    if (future.isSuccess()) registry.sentFrame();
+                    if (future.isSuccess()) {
+                        registry.sentFrame();
+                        registry.sentBytes(encodedBytes);
+                    }
                     ctx.writeAndFlush(new CloseWebSocketFrame(closeCode, "protocol error"))
                             .addListener(ChannelFutureListener.CLOSE);
                 });
@@ -172,12 +196,14 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private void closeProtocol(ChannelHandlerContext ctx, String reason) { closeProtocol(ctx, 1002, reason); }
 
     private void closeProtocol(ChannelHandlerContext ctx, int code, String reason) {
+        registry.protocolViolation();
         LOG.atWarn().addKeyValue("event", "protocol.violation").addKeyValue("reason", reason)
                 .addKeyValue("sessionId", session(ctx).id()).log("Habbux Core closed an invalid connection");
         ctx.writeAndFlush(new CloseWebSocketFrame(code, reason)).addListener(ChannelFutureListener.CLOSE);
     }
 
     private void closeForBackpressure(ChannelHandlerContext ctx) {
+        registry.backpressureDisconnect();
         LOG.atWarn().addKeyValue("event", "connection.backpressure")
                 .addKeyValue("sessionId", session(ctx).id())
                 .log("Habbux Core closed a connection with a saturated outbound buffer");

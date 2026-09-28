@@ -17,6 +17,8 @@ public record AppConfig(
         int idleTimeoutSeconds,
         int maxConnections,
         int maxPreReadyMessages,
+        int messageRatePerSecond,
+        int messageRateBurst,
         Set<String> allowedOrigins) {
     private static final Set<String> ENVIRONMENTS = Set.of("development", "test", "production");
 
@@ -35,6 +37,8 @@ public record AppConfig(
         requireRange(idleTimeoutSeconds, 1, 3600, "HABBUX_IDLE_TIMEOUT_SECONDS");
         requireRange(maxConnections, 1, 10_000, "HABBUX_MAX_CONNECTIONS");
         requireRange(maxPreReadyMessages, 1, 16, "HABBUX_MAX_PRE_READY_MESSAGES");
+        requireRange(messageRatePerSecond, 1, 1_000, "HABBUX_MESSAGE_RATE_PER_SECOND");
+        requireRange(messageRateBurst, 1, 5_000, "HABBUX_MESSAGE_RATE_BURST");
         allowedOrigins = Set.copyOf(Objects.requireNonNull(allowedOrigins, "allowedOrigins"));
         if (allowedOrigins.stream().anyMatch(origin -> origin.isBlank() || origin.equals("*"))) {
             throw new IllegalArgumentException("HABBUX_ALLOWED_ORIGINS must contain explicit origins");
@@ -54,6 +58,8 @@ public record AppConfig(
                 integerOr(variables, "HABBUX_IDLE_TIMEOUT_SECONDS", 120),
                 integerOr(variables, "HABBUX_MAX_CONNECTIONS", 256),
                 integerOr(variables, "HABBUX_MAX_PRE_READY_MESSAGES", 3),
+                integerOr(variables, "HABBUX_MESSAGE_RATE_PER_SECOND", 30),
+                integerOr(variables, "HABBUX_MESSAGE_RATE_BURST", 60),
                 origins(variables.getOrDefault("HABBUX_ALLOWED_ORIGINS", "http://127.0.0.1:5173,http://localhost:5173")));
     }
 

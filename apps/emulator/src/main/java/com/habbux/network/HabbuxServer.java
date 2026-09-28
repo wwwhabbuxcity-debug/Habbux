@@ -2,6 +2,7 @@ package com.habbux.network;
 
 import com.habbux.config.AppConfig;
 import com.habbux.session.ConnectionRegistry;
+import com.habbux.session.NetworkMetrics;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -89,13 +90,22 @@ public final class HabbuxServer implements AutoCloseable {
         if (!bossStopped || !workersStopped || registry.activeConnections() != 0) {
             throw new IllegalStateException("Habbux server shutdown did not finish cleanly");
         }
+        NetworkMetrics metrics = registry.metrics();
         LOG.atInfo().addKeyValue("event", "emulator.server_stopped")
-                .addKeyValue("activeConnections", registry.activeConnections())
-                .addKeyValue("activeSessions", registry.activeSessions())
-                .addKeyValue("framesReceived", registry.framesReceived())
-                .addKeyValue("framesSent", registry.framesSent())
-                .addKeyValue("invalidFrames", registry.invalidFrames())
-                .addKeyValue("rejectedConnections", registry.rejectedConnections())
+                .addKeyValue("activeConnections", metrics.activeConnections())
+                .addKeyValue("activeSessions", metrics.activeSessions())
+                .addKeyValue("connectionsAccepted", metrics.connectionsAccepted())
+                .addKeyValue("connectionsClosed", metrics.connectionsClosed())
+                .addKeyValue("connectionsRejected", metrics.connectionsRejected())
+                .addKeyValue("framesReceived", metrics.framesReceived())
+                .addKeyValue("framesSent", metrics.framesSent())
+                .addKeyValue("bytesReceived", metrics.bytesReceived())
+                .addKeyValue("bytesSent", metrics.bytesSent())
+                .addKeyValue("invalidFrames", metrics.invalidFrames())
+                .addKeyValue("protocolViolations", metrics.protocolViolations())
+                .addKeyValue("rateLimitDisconnects", metrics.rateLimitDisconnects())
+                .addKeyValue("backpressureDisconnects", metrics.backpressureDisconnects())
+                .addKeyValue("handshakeTimeouts", metrics.handshakeTimeouts())
                 .log("Habbux Core server stopped");
         listener = null;
     }

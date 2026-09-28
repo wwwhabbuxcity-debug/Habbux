@@ -68,6 +68,10 @@ class HabbuxServerIntegrationTest {
             assertEquals(0, server.registry().activeSessions());
             assertEquals(3, server.registry().framesReceived());
             assertEquals(2, server.registry().framesSent());
+            assertEquals(28, server.registry().metrics().bytesReceived());
+            assertEquals(36, server.registry().metrics().bytesSent());
+            assertEquals(1, server.registry().metrics().connectionsAccepted());
+            assertEquals(1, server.registry().metrics().connectionsClosed());
         }
     }
 
@@ -113,6 +117,7 @@ class HabbuxServerIntegrationTest {
             assertEquals(2, ByteBuffer.wrap(error.payload()).getShort());
             listener.awaitClosed();
             awaitZero(server);
+            assertEquals(1, server.registry().metrics().handshakeTimeouts());
             assertEquals(0, server.registry().activeSessions());
         }
     }
@@ -132,6 +137,7 @@ class HabbuxServerIntegrationTest {
             listener.awaitClosed();
             awaitZero(server);
             assertEquals(1, server.registry().invalidFrames());
+            assertEquals(1, server.registry().metrics().protocolViolations());
             assertEquals(0, server.registry().activeSessions());
         }
     }
@@ -170,7 +176,7 @@ class HabbuxServerIntegrationTest {
 
     private static AppConfig config(int handshakeMillis, int maxConnections) {
         return new AppConfig("test", 1, 5_000, "127.0.0.1", 0, PAYLOAD_LIMIT, handshakeMillis, 30,
-                maxConnections, 3, Set.of("http://localhost:5173"));
+                maxConnections, 3, 30, 60, Set.of("http://localhost:5173"));
     }
 
     private static URI uri(int port) { return URI.create("ws://127.0.0.1:" + port + "/ws"); }

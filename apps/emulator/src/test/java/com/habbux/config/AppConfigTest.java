@@ -31,6 +31,8 @@ class AppConfigTest {
         assertEquals("127.0.0.1", config.bindHost());
         assertEquals(3100, config.port());
         assertEquals(65_536, config.maxPayloadBytes());
+        assertEquals(30, config.messageRatePerSecond());
+        assertEquals(60, config.messageRateBurst());
     }
 
     @ParameterizedTest
@@ -75,7 +77,9 @@ class AppConfigTest {
         "HABBUX_HANDSHAKE_TIMEOUT_MS,99",
         "HABBUX_IDLE_TIMEOUT_SECONDS,0",
         "HABBUX_MAX_CONNECTIONS,0",
-        "HABBUX_MAX_PRE_READY_MESSAGES,17"
+        "HABBUX_MAX_PRE_READY_MESSAGES,17",
+        "HABBUX_MESSAGE_RATE_PER_SECOND,0",
+        "HABBUX_MESSAGE_RATE_BURST,5001"
     })
     void rejectsUnsafeCoreLimits(String key, String value) {
         Map<String, String> variables = new HashMap<>(valid());

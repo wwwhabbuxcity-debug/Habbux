@@ -71,8 +71,10 @@ conclui o handshake no estado `READY`.
 relógio monotônico local. O Client envia no máximo um ping a cada 15 s e fecha se
 não recebe resposta em 10 s. O timeout de inatividade do servidor é configurável
 (`HABBUX_IDLE_TIMEOUT_SECONDS`, padrão 120 s). Antes de `READY`, no máximo três
-frames são processados por conexão; o limite de conexões também é configurável e
-tem padrão 256.
+frames são processados por conexão; em `READY`, um token bucket local permite 30
+mensagens/s com burst de 60 por conexão, ajustáveis por configuração. Ao exceder o
+limite, o servidor conta o evento e fecha o canal sem processar a mensagem. O
+limite de conexões também é configurável e tem padrão 256.
 
 Disconnect explícito, fechamento remoto, timeout, frame inválido, exceção e
 shutdown removem a sessão do registry. O registry é concorrente, limitado pela
@@ -91,11 +93,17 @@ junto com uma borda TLS revisada.
 
 Não se executa I/O de aplicação, banco, arquivo, sleep nem espera de Future no
 event loop. O Core não cria thread por conexão. Controles atuais limitam payload,
-conexões, handshake, inatividade e mensagens pré-handshake. A fila de saída do
-canal tem high watermark de 64 KiB e uma conexão sem capacidade de escrita é
-encerrada, evitando acúmulo ilimitado de PONGs. Rate limit global por IP,
-autenticação, autorização e filas de gameplay não existem porque não há operações
-de gameplay nesta etapa.
+conexões, handshake, inatividade, mensagens pré-handshake e taxa local por canal.
+A fila de saída do canal tem high watermark de 64 KiB e uma conexão sem capacidade
+de escrita é encerrada, evitando acúmulo ilimitado de PONGs. Não há rate limit
+global por IP, autenticação, autorização ou filas de gameplay.
+
+O `ByteBuf` recebido pertence ao pipeline e é liberado pelo
+`SimpleChannelInboundHandler`; o decoder copia somente o payload depois de validar
+seu tamanho. O buffer de saída é transferido ao `BinaryWebSocketFrame`, que o
+libera após escrita ou fechamento do canal. Para diagnosticar leaks, rode Maven
+com `-Dhabbux.nettyLeakDetection=paranoid`; essa configuração se aplica somente à
+JVM de testes e não altera o processo de produção.
 
 ## Vetores e validação
 

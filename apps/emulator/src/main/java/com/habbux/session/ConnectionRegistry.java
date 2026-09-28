@@ -13,8 +13,16 @@ public final class ConnectionRegistry {
     private final AtomicInteger activeConnections = new AtomicInteger();
     private final LongAdder framesReceived = new LongAdder();
     private final LongAdder framesSent = new LongAdder();
+    private final LongAdder bytesReceived = new LongAdder();
+    private final LongAdder bytesSent = new LongAdder();
     private final LongAdder invalidFrames = new LongAdder();
     private final LongAdder rejectedConnections = new LongAdder();
+    private final LongAdder connectionsAccepted = new LongAdder();
+    private final LongAdder connectionsClosed = new LongAdder();
+    private final LongAdder protocolViolations = new LongAdder();
+    private final LongAdder rateLimitDisconnects = new LongAdder();
+    private final LongAdder backpressureDisconnects = new LongAdder();
+    private final LongAdder handshakeTimeouts = new LongAdder();
 
     public ConnectionRegistry(int maxConnections) { this.maxConnections = maxConnections; }
 
@@ -27,7 +35,10 @@ public final class ConnectionRegistry {
             }
             if (!activeConnections.compareAndSet(current, current + 1)) continue;
             Session session = new Session(randomSessionId());
-            if (sessions.putIfAbsent(session.id(), session) == null) return session;
+            if (sessions.putIfAbsent(session.id(), session) == null) {
+                connectionsAccepted.increment();
+                return session;
+            }
             activeConnections.decrementAndGet();
         }
     }
@@ -37,6 +48,7 @@ public final class ConnectionRegistry {
         if (removed == null) return false;
         removed.transition(removed.state(), Session.State.DISCONNECTED);
         activeConnections.decrementAndGet();
+        connectionsClosed.increment();
         return true;
     }
 
@@ -45,12 +57,26 @@ public final class ConnectionRegistry {
     public int activeSessions() { return sessions.size(); }
     public long framesReceived() { return framesReceived.sum(); }
     public long framesSent() { return framesSent.sum(); }
+    public long bytesReceived() { return bytesReceived.sum(); }
+    public long bytesSent() { return bytesSent.sum(); }
     public long invalidFrames() { return invalidFrames.sum(); }
     public long rejectedConnections() { return rejectedConnections.sum(); }
+    public NetworkMetrics metrics() {
+        return new NetworkMetrics(activeConnections(), activeSessions(), connectionsAccepted.sum(),
+                connectionsClosed.sum(), rejectedConnections.sum(), framesReceived.sum(), framesSent.sum(),
+                bytesReceived.sum(), bytesSent.sum(), invalidFrames.sum(), protocolViolations.sum(),
+                rateLimitDisconnects.sum(), backpressureDisconnects.sum(), handshakeTimeouts.sum());
+    }
     public void receivedFrame() { framesReceived.increment(); }
     public void sentFrame() { framesSent.increment(); }
+    public void receivedBytes(long bytes) { bytesReceived.add(bytes); }
+    public void sentBytes(long bytes) { bytesSent.add(bytes); }
     public void invalidFrame() { invalidFrames.increment(); }
     public void rejectedConnection() { rejectedConnections.increment(); }
+    public void protocolViolation() { protocolViolations.increment(); }
+    public void rateLimitDisconnect() { rateLimitDisconnects.increment(); }
+    public void backpressureDisconnect() { backpressureDisconnects.increment(); }
+    public void handshakeTimeout() { handshakeTimeouts.increment(); }
 
     private static UUID randomSessionId() {
         ThreadLocalRandom random = ThreadLocalRandom.current();

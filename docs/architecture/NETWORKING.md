@@ -36,7 +36,9 @@ no event loop. Não há threads por conexão. O Core usa event loops Netty, regi
 concorrente, admissão limitada e uma tarefa agendada de handshake por conexão.
 Cada canal limita a fila de saída com high watermark de 64 KiB; se o canal seguir
 sem capacidade de escrita ao responder, a conexão é encerrada para não acumular
-PONGs indefinidamente. O client normal mantém no máximo um PING pendente.
+PONGs indefinidamente. Em `READY`, o canal permite 30 mensagens/s e burst 60 por
+default via token bucket no EventLoop; excesso fecha a conexão. O client normal
+mantém no máximo um PING pendente.
 
 Defaults configuráveis: bind `127.0.0.1:3100`, payload máximo 65.536 bytes,
 handshake 10 s, inatividade 120 s, 256 conexões e três mensagens antes de READY.
@@ -50,12 +52,17 @@ Não encaminhar `X-Forwarded-For` sem proxy confiável configurado.
 
 ## Observabilidade e testes
 
-O Core expõe contadores internos de conexões/sessões ativas, frames recebidos e
-enviados, frames inválidos e conexões rejeitadas. Logs JSON registram start,
-stop, conexão, sessão pronta, timeout, violações e exceções; não registram payload
-nem PING individual. Appender assíncrono usa fila limitada.
+O snapshot leve `ConnectionRegistry.metrics()` expõe conexões/sessões ativas,
+conexões aceitas/fechadas/rejeitadas, frames e bytes do payload WebSocket
+(incluindo o cabeçalho Habbux, sem overhead TCP/WebSocket) recebidos/enviados,
+frames inválidos, violações de protocolo, desconexões por rate limit/backpressure e
+timeouts de handshake. Logs JSON registram start, stop, conexão, sessão pronta,
+timeout, violações e exceções; não registram payload nem PING individual.
+Appender assíncrono usa fila limitada. Para diagnosticar leaks durante testes,
+`-Dhabbux.nettyLeakDetection=paranoid` ativa o ResourceLeakDetector do Netty na JVM
+forkada pelo Maven; esse nível não fica habilitado no servidor de produção.
 
 Os testes verificam codec e vetores comuns em Java/TypeScript, handshake real,
-PING/PONG, desconexão, timeout, 24 conexões simultâneas e entradas inválidas
-determinísticas. O smoke separado cobre 100 conexões loopback; isso não estima
-capacidade máxima ou número de jogadores.
+PING/PONG, desconexão, timeout, 24 conexões simultâneas, entradas inválidas,
+token bucket e backpressure. O smoke separado cobre 100 conexões loopback; isso não
+estima capacidade máxima ou número de jogadores.
