@@ -1,0 +1,42 @@
+import { execFileSync } from 'node:child_process';
+import { readFileSync, statSync } from 'node:fs';
+
+// Inspect versionable files only. Local secrets/builds must remain ignored.
+const files = [...new Set(execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { encoding: 'utf8' }).split('\0').filter(Boolean))];
+const prohibited = /(^|\/)(node_modules|target|dist|build|secrets|credentials|\.deploy)(\/|$)|\.(?:pem|key|p12|pfx|jar|class|log)$/;
+const secretPatterns = [
+  /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/,
+  /gh[pousr]_[A-Za-z0-9]{36,}/,
+  /github_pat_[A-Za-z0-9_]{50,}/,
+  /AKIA[0-9A-Z]{16}/,
+  /xox[baprs]-[0-9A-Za-z-]{20,}/,
+  /https?:\/\/[^\s/:]+:[^\s/@]+@/,
+];
+let problems = 0;
+for (const file of files) {
+  const name = file.split('/').at(-1);
+  const envFile = (name === '.env' || name.startsWith('.env.')) && name !== '.env.example';
+  if (prohibited.test(file) || envFile || file === 'registro.md') {
+    console.error(`Forbidden repository file: ${file}`);
+    problems++;
+    continue;
+  }
+  let stat;
+  try { stat = statSync(file); } catch { continue; } // A tracked deletion has no content to scan.
+  if (!stat.isFile()) continue;
+  if (stat.size > 1024 * 1024) {
+    console.error(`File exceeds bootstrap 1 MiB review limit: ${file}`);
+    problems++;
+    continue;
+  }
+  const content = readFileSync(file);
+  if (content.includes(0)) {
+    console.error(`Unexpected binary: ${file}`);
+    problems++;
+  } else if (secretPatterns.some(pattern => pattern.test(content.toString('utf8')))) {
+    console.error(`Possible secret in ${file}; value deliberately omitted`);
+    problems++;
+  }
+}
+if (problems) process.exitCode = 1;
+else console.log(`Repository hygiene: ${files.length} files checked; no forbidden artifacts or known secret patterns. Manual review still required.`);

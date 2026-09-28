@@ -1,0 +1,31 @@
+{
+  "name": "Habbux Protocol",
+  "status": "draft",
+  "version": 1,
+  "transport": "binary-websocket",
+  "byteOrder": "big-endian",
+  "header": [
+    { "name": "VERSION", "type": "uint8" },
+    { "name": "MESSAGE_ID", "type": "uint16" },
+    { "name": "FLAGS", "type": "uint8" },
+    { "name": "PAYLOAD_LENGTH", "type": "uint32" }
+  ],
+  "limits": {
+    "maxPayloadBytes": 65536,
+    "allowedFlags": 0,
+    "framesPerWebSocketMessage": 1
+  },
+  "messages": [
+    { "id": 1, "name": "HELLO", "direction": "client-to-server", "purpose": "Negociação inicial de versão; autenticação por ticket será especificada separadamente." },
+    { "id": 2, "name": "WELCOME", "direction": "server-to-client", "purpose": "Confirma a versão escolhida e os limites da conexão." },
+    { "id": 3, "name": "PING", "direction": "bidirectional", "purpose": "Heartbeat de aplicação; identificador monotônico de correlação." },
+    { "id": 4, "name": "PONG", "direction": "bidirectional", "purpose": "Resposta ao heartbeat sem mudar autoridade de estado." },
+    { "id": 5, "name": "DISCONNECT", "direction": "bidirectional", "purpose": "Encerramento com motivo estável e sem detalhes internos." }
+  ],
+  "payloadEncoding": "TBD",
+  "disconnectReasons": [
+    "NORMAL", "UNSUPPORTED_VERSION", "MALFORMED_MESSAGE", "AUTHENTICATION_FAILED",
+    "AUTHORIZATION_FAILED", "RATE_LIMITED", "OVERLOADED", "HEARTBEAT_TIMEOUT",
+    "SERVER_SHUTDOWN", "INTERNAL_ERROR"
+  ]
+}

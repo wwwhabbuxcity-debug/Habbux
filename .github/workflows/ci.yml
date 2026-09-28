@@ -1,0 +1,55 @@
+name: Foundation checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: foundation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --max-old-space-size=512
+      RAYON_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.23.2'
+          cache: npm
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Runtime versions
+        run: java -version && node --version && npm --version
+      - name: Install locked JavaScript dependencies
+        run: nice -n 19 npm ci
+      - name: Typecheck client and web
+        run: npm run typecheck
+      - name: Validate protocol and repository
+        run: npm run protocol:validate && npm run protocol:test && npm run repository:check
+      - name: Emulator clean build and tests
+        run: nice -n 19 ./mvnw --batch-mode clean verify
+      - name: Emulator lifecycle smoke
+        env:
+          HABBUX_ENV: test
+          HABBUX_EVENT_LOOP_THREADS: '1'
+          HABBUX_SHUTDOWN_TIMEOUT_MS: '5000'
+        run: nice -n 19 java -Xmx128m -XX:ActiveProcessorCount=1 -jar apps/emulator/target/habbux-emulator-0.1.0-SNAPSHOT.jar
+      - name: Client and web build
+        run: nice -n 19 npm run build
+      - name: Validate optional local infrastructure
+        run: docker compose --env-file .env.example -f infrastructure/docker/compose.yaml --profile data --profile cache --profile tools config --quiet
