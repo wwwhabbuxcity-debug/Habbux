@@ -36,7 +36,10 @@
     { "id": 15, "name": "ROOM_JOIN_FAILURE", "direction": "server-to-client", "payloadBytes": 1, "purpose": "Recusa entrada por categoria limitada: inexistente, lotado, já associado ou indisponível." },
     { "id": 16, "name": "ROOM_LEAVE", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Solicita saída do quarto atual." },
     { "id": 17, "name": "ROOM_LEAVE_SUCCESS", "direction": "server-to-client", "payloadBytes": 0, "purpose": "Confirma a saída do quarto atual." },
-    { "id": 18, "name": "ROOM_SNAPSHOT", "direction": "server-to-client", "payloadBytes": "variable", "payloadFormat": "uint64 roomId, uint8 width, uint8 height, uint8 capacity, walkability[width*height], uint8 occupantCount, occupants[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]", "purpose": "Entrega um estado inicial limitado com grade estática e ocupantes atuais." }
+    { "id": 18, "name": "ROOM_SNAPSHOT", "direction": "server-to-client", "payloadBytes": "variable", "payloadFormat": "uint64 roomId, uint8 width, uint8 height, uint8 capacity, walkability[width*height], uint8 occupantCount, occupants[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]", "purpose": "Entrega um estado inicial limitado com grade estática e ocupantes atuais." },
+    { "id": 19, "name": "ROOM_MOVE", "direction": "client-to-server", "payloadBytes": 2, "payloadFormat": "uint8 destinationX, uint8 destinationY", "purpose": "Pede um destino; o servidor valida e calcula caminho cardinal." },
+    { "id": 20, "name": "ROOM_USER_POSITION", "direction": "server-to-client", "payloadBytes": 11, "payloadFormat": "uint64 userId, uint8 x, uint8 y, uint8 z", "purpose": "Publica um passo de movimento autoritativo." },
+    { "id": 21, "name": "ROOM_ACTION_FAILURE", "direction": "server-to-client", "payloadBytes": 2, "payloadFormat": "uint8 operation, uint8 category", "purpose": "Retorna erro limitado; movimento categorias 1 fora, 2 destino inválido, 3 sem rota, 4 limite e 5 indisponível." }
   ],
   "serverErrors": [
     { "code": 1, "name": "INVALID_STATE" },

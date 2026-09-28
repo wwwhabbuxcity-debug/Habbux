@@ -5,7 +5,13 @@ import java.util.Map;
 /** Conservative bounded execution defaults. Values are deliberately few and validated centrally. */
 public record RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacity,
                          int eventsPerRun, int maxRunMillis, int idleTimeoutMillis, int maxRoomCapacity,
-                         int ioQueueCapacity) {
+                         int ioQueueCapacity, int maxExploredNodes, int maxPathLength, int movementTickMillis) {
+    public RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacity, int eventsPerRun,
+                      int maxRunMillis, int idleTimeoutMillis, int maxRoomCapacity, int ioQueueCapacity) {
+        this(workerCount, maxActiveRooms, mailboxCapacity, eventsPerRun, maxRunMillis,
+                idleTimeoutMillis, maxRoomCapacity, ioQueueCapacity, 4_096, 128, 100);
+    }
+
     public RoomConfig {
         range(workerCount, 1, 8, "workerCount");
         range(maxActiveRooms, 1, 1_024, "maxActiveRooms");
@@ -15,6 +21,9 @@ public record RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacit
         range(idleTimeoutMillis, 100, 3_600_000, "idleTimeoutMillis");
         range(maxRoomCapacity, 1, RoomMetadata.MAX_CAPACITY, "maxRoomCapacity");
         range(ioQueueCapacity, 1, 4_096, "ioQueueCapacity");
+        range(maxExploredNodes, 1, RoomGridDefinition.MAX_WIDTH * RoomGridDefinition.MAX_HEIGHT, "maxExploredNodes");
+        range(maxPathLength, 1, RoomGridDefinition.MAX_WIDTH * RoomGridDefinition.MAX_HEIGHT, "maxPathLength");
+        range(movementTickMillis, 10, 1_000, "movementTickMillis");
         if (mailboxCapacity < maxRoomCapacity + 10) {
             throw new IllegalArgumentException("mailboxCapacity must reserve room for every leave plus lifecycle events");
         }
@@ -31,7 +40,10 @@ public record RoomConfig(int workerCount, int maxActiveRooms, int mailboxCapacit
                 value(environment, "HABBUX_ROOM_MAX_RUN_MS", defaults.maxRunMillis),
                 value(environment, "HABBUX_ROOM_IDLE_TIMEOUT_MS", defaults.idleTimeoutMillis),
                 value(environment, "HABBUX_MAX_ROOM_CAPACITY", defaults.maxRoomCapacity),
-                value(environment, "HABBUX_ROOM_IO_QUEUE_CAPACITY", defaults.ioQueueCapacity));
+                value(environment, "HABBUX_ROOM_IO_QUEUE_CAPACITY", defaults.ioQueueCapacity),
+                value(environment, "HABBUX_ROOM_MAX_EXPLORED_NODES", defaults.maxExploredNodes),
+                value(environment, "HABBUX_ROOM_MAX_PATH_LENGTH", defaults.maxPathLength),
+                value(environment, "HABBUX_ROOM_MOVEMENT_TICK_MS", defaults.movementTickMillis));
     }
 
     private static int value(Map<String, String> environment, String key, int fallback) {

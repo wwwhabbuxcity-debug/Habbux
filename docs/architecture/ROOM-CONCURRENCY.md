@@ -1,8 +1,9 @@
 # Concorrência do Room Engine v1
 
-Status: **checkpoint 1 implementado: lifecycle, diretório, scheduler, mailbox,
-presença, entrada/saída e spawn sobre grade estática**. Movimento, chat e load
-baselines pertencem aos checkpoints posteriores.
+Status: **checkpoints 1 e 2 implementados: lifecycle, diretório, scheduler,
+mailbox, presença, grade estática, entrada/saída, pathfinding e movimento**.
+Chat, estado interativo do Client e load baselines ficam para os próximos
+checkpoints.
 
 ## Autoridade e ordem
 
@@ -16,8 +17,8 @@ O `RoomScheduler` tem dois workers fixos por padrão, limitados a oito, e fila d
 salas prontas limitada ao máximo de quartos ativos (padrão 128). Não existe uma
 thread por quarto, worker pinado a um quarto ou lock global para o estado do
 hotel. Cada lote cede após no máximo 32 eventos **ou 2 ms**, o que ocorrer
-primeiro. Um evento individual já iniciado não é interrompido; movimento terá
-limites próprios para reduzir esse custo.
+primeiro. Um evento individual já iniciado não é interrompido; busca de caminho
+é limitada a 4.096 nós e 128 passos por padrão.
 
 ```text
 Netty EventLoop → valida frame/estado → mailbox limitado por RoomId
@@ -68,6 +69,11 @@ estado e relógios existem somente em RAM. SQL acontece na ativação e criaçã
 explícita; interações em runtime não consultam o banco. Quarto ativo
 continua operando se PostgreSQL ficar indisponível depois da ativação.
 
+Cada pedido recebe somente o destino; o servidor calcula BFS em grade sem pesos,
+com vizinhos cardinais na ordem norte/oeste/leste/sul. Diagonais e corte de canto
+não existem. A busca reutiliza arrays pelo owner e guarda somente o caminho
+limitado de cada presença em movimento.
+
 ## Snapshot, spawn e tráfego
 
 Spawn busca em largura a partir do spawn configurado, ordem fixa norte/oeste/
@@ -76,6 +82,12 @@ entrada falha sem sobrepor ocupantes. O payload de snapshot tem no máximo 7.308
 bytes: 4.096 bytes de grade, até 100 entradas com ID/posição/username ASCII de
 até 20 bytes e campos fixos. O processo com Room Engine habilitado exige
 `HABBUX_MAX_PAYLOAD_BYTES >= 7308`; o limite global do protocolo continua 65.536.
+
+Um ticker compartilhado acorda a cada 100 ms, inspeciona o diretório limitado e
+envia tick pela mailbox só aos quartos com movimento pendente. Cada tick avança
+até 16 presenças por quarto em rotação FIFO. Caminhos têm no máximo 128 passos;
+destino bloqueado/ocupado, sem caminho ou busca acima de 4.096 nós resulta em
+falha limitada. Movimento não consulta SQL.
 
 Respostas geradas pelo quarto são enfileiradas no EventLoop. Uma conexão lenta
 não segura o worker: writes não aguardam socket, e a fila Netty existente fecha
@@ -91,8 +103,9 @@ Testes do checkpoint atual cobrem 10 mil eventos ordenados, paralelo entre
 quartos, justiça por quantidade e tempo de lote, mailbox cheia, handler
 exception, 100 entradas no mesmo quarto, activation race, unload/rejoin,
 cancelamento durante ativação, disconnect, leave duplo, ausência do quarto e
-shutdown. Pathfinding, movimento, chat e cenários de carga ficam para os
-próximos checkpoints.
+shutdown. Pathfinding/movimento cobrem rota cardinal ao redor de obstáculos,
+passos por tick, colisão, destino inválido, trecho desconectado e limites de
+busca/caminho. Chat e cenários de carga ficam para os próximos checkpoints.
 
 Essas garantias de teste não definem capacidade sustentável. Use o relatório de
 load smoke para limites, percentis e condições da máquina observada. Furniture,

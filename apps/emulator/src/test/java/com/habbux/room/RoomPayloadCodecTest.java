@@ -21,6 +21,24 @@ class RoomPayloadCodecTest {
     }
 
     @Test
+    void decodesUnsignedMovementCoordinatesAndEncodesPositionAndActionFailures() {
+        assertEquals(new RoomPayloadCodec.Destination(3, 4), RoomPayloadCodec.decodeMove(new byte[] {3, 4}));
+        assertEquals(new RoomPayloadCodec.Destination(255, 2),
+                RoomPayloadCodec.decodeMove(new byte[] {(byte) 255, 2}));
+        assertThrows(RoomPayloadCodec.MalformedRoomPayloadException.class,
+                () -> RoomPayloadCodec.decodeMove(new byte[] {1}));
+
+        var position = RoomPayloadCodec.encode(new RoomOutbound.Position(42, 3, 4, 0));
+        assertEquals(20, position.messageId());
+        assertArrayEquals(hex("000000000000002a030400"), position.payload());
+        var failure = RoomPayloadCodec.encode(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.PATH_LIMIT));
+        assertEquals(21, failure.messageId());
+        assertArrayEquals(hex("0104"), failure.payload());
+        var unavailable = RoomPayloadCodec.encode(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.UNAVAILABLE));
+        assertArrayEquals(hex("0105"), unavailable.payload());
+    }
+
+    @Test
     void encodesSnapshotWithinLimitAndContainsOnlyStaticGridAndBoundedOccupants() {
         byte[] walkability = {1, 1, 1, 1};
         RoomSnapshot snapshot = new RoomSnapshot(new RoomId(42), 2, 2, 3, walkability,

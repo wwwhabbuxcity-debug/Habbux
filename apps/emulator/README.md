@@ -3,7 +3,8 @@
 Emulator Java 25 com servidor Netty WebSocket para o Core v1. O processo fica em
 execução até receber SIGTERM/SIGINT; usa loopback por padrão, PostgreSQL é
 opcional, e não conecta a Redis ou aos demais projetos deste servidor. Auth e
-Room Core existem; movimento, chat e Furniture Engine ainda não.
+Room Engine v1 com movimento autoritativo existem; chat, UI interativa e Furniture
+Engine ainda não.
 
 Na raiz do repositório, com JDK 25 e Node 22/npm 10:
 
@@ -52,6 +53,9 @@ exigem proxy de borda configurado numa etapa de deploy própria.
 | `HABBUX_ROOM_IDLE_TIMEOUT_MS` | 30.000 | 100–3.600.000 ms |
 | `HABBUX_MAX_ROOM_CAPACITY` | 100 | 1–100 presenças por quarto |
 | `HABBUX_ROOM_IO_QUEUE_CAPACITY` | 64 | 1–4.096 ativações aguardando JDBC |
+| `HABBUX_ROOM_MAX_EXPLORED_NODES` | 4.096 | 1–4.096 nós por busca |
+| `HABBUX_ROOM_MAX_PATH_LENGTH` | 128 | 1–4.096 passos por caminho |
+| `HABBUX_ROOM_MOVEMENT_TICK_MS` | 100 | 10–1.000 ms, scheduler compartilhado |
 
 Origem ausente é permitida para clientes nativos; uma origem enviada pelo browser
 precisa corresponder exatamente à allowlist. A configuração de produção deve
@@ -70,9 +74,12 @@ event loop não executa I/O de aplicação, banco, filesystem, sleeps ou `.get()
 O registry de sessões é concorrente e limitado pela admissão; cada conexão usa
 os event loops partilhados do Netty, sem thread dedicada.
 
-Se PostgreSQL estiver configurado, o Room Core lê quartos sob demanda em um
-executor JDBC separado. Presença e posição de entrada ficam em memória. Com Room
-Core ativo, `HABBUX_MAX_PAYLOAD_BYTES` precisa ser pelo menos 7.308
+Se PostgreSQL estiver configurado, o Room Engine lê quartos sob demanda em um
+executor JDBC separado. Presença, caminho e posição ficam em memória; busca usa
+4 direções em ordem norte/oeste/leste/sul e rejeita destino bloqueado, ocupado,
+inalcançável ou acima dos limites. Um ticker único de 100 ms visita quartos com
+movimentos ativos e avança no máximo 16 ocupantes por quarto/tick, sem timer por
+jogador. Com Room Engine ativo, `HABBUX_MAX_PAYLOAD_BYTES` precisa ser pelo menos 7.308
 bytes para comportar o maior snapshot v1 possível; o default permanece 65.536.
 
 Teste local separado de 100 conexões: depois de `mvn clean verify`, dependências

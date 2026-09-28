@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -31,7 +30,6 @@ public final class RoomManager implements AutoCloseable {
     private final ThreadPoolExecutor roomIo;
     private final ScheduledExecutorService idleSweep;
     private final ConcurrentHashMap<RoomId, Slot> active = new ConcurrentHashMap<>();
-    private final AtomicInteger reservedRooms = new AtomicInteger();
     private final Semaphore roomSlots;
     private final AtomicBoolean accepting = new AtomicBoolean(true);
 
@@ -47,6 +45,8 @@ public final class RoomManager implements AutoCloseable {
         idleSweep = Executors.newSingleThreadScheduledExecutor(namedFactory("habbux-room-control-"));
         long cadence = Math.min(1_000, Math.max(50, config.idleTimeoutMillis() / 4));
         idleSweep.scheduleWithFixedDelay(this::unloadIdleRooms, cadence, cadence, TimeUnit.MILLISECONDS);
+        idleSweep.scheduleWithFixedDelay(this::tickMovingRooms, config.movementTickMillis(),
+                config.movementTickMillis(), TimeUnit.MILLISECONDS);
     }
 
     public static RoomManager backedBy(com.habbux.persistence.RoomRepository repository, RoomConfig config) {
@@ -110,6 +110,22 @@ public final class RoomManager implements AutoCloseable {
         return slot.loaded.thenCompose(runtime -> runtime.leave(sessionId, client, acknowledge));
     }
 
+    public CompletableFuture<RoomRuntime.MoveOutcome> move(RoomId roomId, UUID sessionId,
+                                                           int x, int y, RoomClient client) {
+        Slot slot = active.get(roomId);
+        if (slot == null) {
+            client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.NOT_IN_ROOM));
+            return CompletableFuture.completedFuture(RoomRuntime.MoveOutcome.NOT_IN_ROOM);
+        }
+        synchronized (slot.gate) { slot.lastAccessNanos = System.nanoTime(); }
+        return slot.loaded.thenCompose(runtime -> runtime.move(sessionId, x, y)).thenApply(outcome -> {
+            if (outcome == RoomRuntime.MoveOutcome.UNAVAILABLE) {
+                client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.UNAVAILABLE));
+            }
+            return outcome;
+        });
+    }
+
     void forceIdleSweep() { unloadIdleRooms(); }
 
     public Optional<RoomRuntime> activeRoom(RoomId roomId) {
@@ -134,7 +150,6 @@ public final class RoomManager implements AutoCloseable {
                 return existing;
             }
             if (!roomSlots.tryAcquire()) return null;
-            reservedRooms.incrementAndGet();
             created.set(true);
             return new Slot(System.nanoTime());
         });
@@ -148,7 +163,8 @@ public final class RoomManager implements AutoCloseable {
                     RoomMetadata metadata = found.orElseThrow();
                     RoomRuntime runtime = new RoomRuntime(metadata, scheduler.newMailbox(config.mailboxCapacity(),
                             config.maxRoomCapacity() + 2, config.eventsPerRun(),
-                            TimeUnit.MILLISECONDS.toNanos(config.maxRunMillis())));
+                            TimeUnit.MILLISECONDS.toNanos(config.maxRunMillis())),
+                            config.maxExploredNodes(), config.maxPathLength());
                     slot.runtime = runtime;
                     slot.loaded.complete(runtime);
                 } catch (Throwable failure) {
@@ -166,7 +182,14 @@ public final class RoomManager implements AutoCloseable {
     private void removeSlot(RoomId id, Slot slot) {
         if (active.remove(id, slot)) {
             roomSlots.release();
-            reservedRooms.decrementAndGet();
+        }
+    }
+
+    void tickMovingRooms() {
+        if (!accepting.get()) return;
+        for (Slot slot : active.values()) {
+            RoomRuntime runtime = slot.runtime;
+            if (runtime != null && runtime.movingCount() != 0) runtime.tickMovement();
         }
     }
 

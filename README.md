@@ -5,8 +5,8 @@
 Habbux é uma plataforma multiplayer independente em fase inicial. Não é fork de
 Polaris, Arcturus, Morningstar, Nitro ou Octane. O Core abre WebSocket binário,
 autentica a identidade mínima e inclui Room Core para lifecycle, presença, grade
-estática, entrada e saída. Movimento, chat e estado interativo no Client seguem
-nos próximos checkpoints. Furniture Engine, catálogo, economia e conversor de
+estática e movimento autoritativo. Chat e estado interativo no Client seguem no
+próximo checkpoint. Furniture Engine, catálogo, economia e conversor de
 assets ainda não existem. Nenhum código ou asset desses projetos foi incorporado.
 
 Princípios: **desempenho, estabilidade, baixa latência, escala e manutenção**.
@@ -21,8 +21,8 @@ PixiJS em uma única codebase adaptativa para desktop, tablet e mobile.
 
 O protocolo binário próprio possui registro canônico versionado e Core v1 de
 rede. Auth/User tem schema, JDBC, hashing e executor limitado. O Room Engine tem
-mailbox e workers limitados, persistência de metadados/grade estática e runtime
-em memória. O pipeline futuro importa SWF/Nitro e gera HBX nativo; o client não
+mailbox/workers limitados, persistência de metadados/grade estática, presença e
+pathfinding/movimento em runtime. O pipeline futuro importa SWF/Nitro e gera HBX nativo; o client não
 interpretará esses formatos de importação. Web e futura API dependem de contratos,
 sem acesso ao estado interno do emulador. Não há microserviços adicionais nem
 frameworks de servidor adicionados por conveniência.
@@ -69,7 +69,7 @@ npm run repository:check
 nice -n 19 env NODE_OPTIONS=--max-old-space-size=512 RAYON_NUM_THREADS=1 npm run build
 ```
 
-`clean verify` compila e executa testes de codec, handshake, Room Core,
+`clean verify` compila e executa testes de codec, handshake, Room Engine,
 concorrência, timeout, pool/config, Argon2id e executor. Integração PostgreSQL só roda com configuração para
 `habbux_phase2_test`; sem ela aparece como `SKIPPED`. Typecheck cobre client e web. Para iniciar o Emulator em
 loopback:
@@ -117,4 +117,5 @@ Segredos expostos devem ser revogados, não apenas removidos do último commit.
 O CI valida os componentes existentes: Java/testes de integração locais,
 client/web/typecheck, vetores de protocolo, higiene e configuração Compose. Os
 testes e smokes de quartos serão curtos e não afirmarão capacidade sustentável de
-produção. Movimento, chat e Furniture Engine ainda não fazem parte do núcleo atual.
+produção. Chat, estado interativo do Client e Furniture Engine ainda não fazem
+parte do núcleo atual.

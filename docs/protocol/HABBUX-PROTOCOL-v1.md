@@ -56,14 +56,22 @@ Os IDs e direções abaixo são conferidos contra o registro em CI:
 | 16 | `ROOM_LEAVE` | Client → servidor | vazio |
 | 17 | `ROOM_LEAVE_SUCCESS` | Servidor → Client | vazio |
 | 18 | `ROOM_SNAPSHOT` | Servidor → Client | room ID, width/height/capacity uint8, walkability[width×height], occupant count uint8 e ocupantes `[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]` |
+| 19 | `ROOM_MOVE` | Client → servidor | destino uint8 x + uint8 y; o servidor calcula caminho em quatro direções |
+| 20 | `ROOM_USER_POSITION` | Servidor → Client | uint64 user ID + uint8 x/y/z; v1 usa z=0 |
+| 21 | `ROOM_ACTION_FAILURE` | Servidor → Client | operação uint8 (1 movimento) + categoria uint8: 1 fora do quarto, 2 inválido/ocupado, 3 sem rota, 4 limite, 5 indisponível |
 
 Username de snapshot usa comprimento `uint16` de **bytes UTF-8**, validado antes
 de decodificar/copiar. Room ID e user ID são BIGINT positivo representado por
 `uint64` big-endian. Nome de usuário autenticado é limitado a 20 bytes. O maior
 snapshot permitido ocupa 7.308 bytes: 4.096 de grade, 100 ocupantes de até 32
-bytes cada e 12 bytes fixos. Se Room Engine estiver habilitado, o limite de frame
+bytes cada e 12 bytes fixos. Se Room Core estiver habilitado, o limite de frame
 configurado precisa comportar esse snapshot; o Core v1 continua limitado a
 65.536 bytes.
+
+`ROOM_MOVE` aceita apenas um destino; usa BFS sem pesos, 4 direções na ordem
+norte/oeste/leste/sul, até 4.096 nós e 128 passos por padrão. Um ticker global de
+quartos avança no máximo 16 jogadores por quarto a cada 100 ms. A configuração
+pode ajustar esses limites dentro dos intervalos do README do Emulator.
 
 `SERVER_ERROR` códigos v1: `1 INVALID_STATE`, `2 HANDSHAKE_TIMEOUT`. Versão
 incompatível ou frame que não possa ser interpretado recebe apenas close `1002`.

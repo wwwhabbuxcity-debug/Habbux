@@ -159,6 +159,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             case AUTH_LOGOUT -> handleLogout(ctx, session, frame);
             case ROOM_JOIN -> handleRoomJoin(ctx, session, frame);
             case ROOM_LEAVE -> handleRoomLeave(ctx, session, frame);
+            case ROOM_MOVE -> handleRoomMove(ctx, session, frame);
             default -> {
                 registry.invalidFrame();
                 sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
@@ -391,6 +392,30 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         }
         if (membership.joinHandle() != null) membership.joinHandle().cancel();
         roomManager.leave(membership.roomId(), session.id(), roomClient(ctx), true);
+    }
+
+    private void handleRoomMove(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
+        if (session.state() != Session.State.AUTHENTICATED) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        RoomPayloadCodec.Destination destination;
+        try { destination = RoomPayloadCodec.decodeMove(frame.payload()); }
+        catch (RoomPayloadCodec.MalformedRoomPayloadException malformed) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        RoomClient client = roomClient(ctx);
+        RoomId roomId = session.roomId();
+        if (session.roomState() != Session.RoomState.IN_ROOM || roomId == null || roomManager == null) {
+            client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.NOT_IN_ROOM));
+            return;
+        }
+        roomManager.move(roomId, session.id(), destination.x(), destination.y(), client);
     }
 
     private void detachRoom(Session session, RoomClient client, boolean acknowledge) {

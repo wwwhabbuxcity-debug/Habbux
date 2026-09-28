@@ -132,6 +132,17 @@ class CoreChannelHandlerTest {
             assertEquals(Session.RoomState.IN_ROOM, session.roomState());
             assertEquals(1, rooms.activeRoom(room.id()).orElseThrow().presenceCount());
 
+            channel.writeInbound(roomRequest(CoreMessage.ROOM_MOVE, new byte[] {2, 0}));
+            for (int expectedX = 1; expectedX <= 2; expectedX++) {
+                HabbuxFrame position = awaitOutbound(channel);
+                assertEquals(CoreMessage.ROOM_USER_POSITION.id(), position.messageId());
+                java.nio.ByteBuffer payload = java.nio.ByteBuffer.wrap(position.payload());
+                assertEquals(9, payload.getLong());
+                assertEquals(expectedX, Byte.toUnsignedInt(payload.get()));
+                assertEquals(0, Byte.toUnsignedInt(payload.get()));
+                assertEquals(0, Byte.toUnsignedInt(payload.get()));
+            }
+
             channel.writeInbound(roomRequest(CoreMessage.ROOM_LEAVE, new byte[0]));
             assertEquals(CoreMessage.ROOM_LEAVE_SUCCESS.id(), awaitOutbound(channel).messageId());
             awaitRoomState(channel, session, Session.RoomState.NONE);

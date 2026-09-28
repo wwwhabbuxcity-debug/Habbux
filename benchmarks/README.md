@@ -94,6 +94,35 @@ Encode inclui criar o buffer e escrever o frame; decode inclui validação e có
 defensiva do payload. Foi uma execução local sem repetição estatística, rede ou
 JVM; use apenas como baseline do codec TypeScript nesta máquina.
 
+## Room Engine: microbenchmark de pathfinding
+
+`RoomPathfindingBenchmarkTest` executa 500 pedidos medidos de destino numa grade
+aberta 64×64, após 100 pedidos de aquecimento, pelo caminho real da
+mailbox/scheduler, sem rede ou PostgreSQL. O teste mede throughput e p50/p95/p99; quando o JDK expõe
+`ThreadMXBean`, também informa bytes alocados pelos workers de quarto por pedido.
+Para rodar isolado e ver a linha gerada:
+
+```bash
+nice -n 19 env JAVA_HOME=/usr/lib/jvm/java-25-openjdk-amd64 \
+  PATH=/usr/lib/jvm/java-25-openjdk-amd64/bin:/usr/bin:/bin \
+  ./mvnw --batch-mode --no-transfer-progress -pl apps/emulator \
+  -Dtest=RoomPathfindingBenchmarkTest -Dsurefire.useFile=false test
+```
+
+Três execuções em 2026-09-28 (Java 25.0.4.1, host compartilhado com 4 CPUs
+lógicas) registraram:
+
+| Execução | Pedidos/s | p50 | p95 | p99 | Alocação/pedido |
+|---|---:|---:|---:|---:|---:|
+| 1 | 4.697,8 | 134,6 µs | 361,6 µs | 1.883,7 µs | 563 B |
+| 2 | 2.580,8 | 129,2 µs | 1.385,5 µs | 5.217,3 µs | 562 B |
+| 3 | 5.052,4 | 131,1 µs | 522,1 µs | 1.097,8 µs | 566 B |
+
+A medição inclui submissão e espera na mailbox; não é tempo puro de BFS. O host
+compartilhado apresentou variação considerável em throughput e caudas de
+latência. São amostras curtas sem intervalo de confiança, úteis como baseline
+local; não representam capacidade sustentável do servidor.
+
 ## Progressão
 
 Planejar níveis de 100, 500, 1.000, 2.500, 5.000 e 10.000+ conexões/jogadores

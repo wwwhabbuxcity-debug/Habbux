@@ -17,6 +17,8 @@ public final class RoomPayloadCodec {
 
     private RoomPayloadCodec() { }
 
+    public record Destination(int x, int y) { }
+
     public static RoomId decodeJoin(byte[] payload) {
         if (payload.length != Long.BYTES) throw new MalformedRoomPayloadException("room join must contain one uint64");
         long value = ByteBuffer.wrap(payload).order(ByteOrder.BIG_ENDIAN).getLong();
@@ -26,6 +28,11 @@ public final class RoomPayloadCodec {
 
     public static void validateLeave(byte[] payload) {
         if (payload.length != 0) throw new MalformedRoomPayloadException("room leave payload must be empty");
+    }
+
+    public static Destination decodeMove(byte[] payload) {
+        if (payload.length != 2) throw new MalformedRoomPayloadException("room move must contain uint8 x and y");
+        return new Destination(Byte.toUnsignedInt(payload[0]), Byte.toUnsignedInt(payload[1]));
     }
 
     public static HabbuxFrame encode(RoomOutbound message) {
@@ -44,6 +51,20 @@ public final class RoomPayloadCodec {
         }
         if (message instanceof RoomOutbound.Left) return frame(CoreMessage.ROOM_LEAVE_SUCCESS, new byte[0]);
         if (message instanceof RoomOutbound.Snapshot snapshot) return encodeSnapshot(snapshot.snapshot());
+        if (message instanceof RoomOutbound.Position position) {
+            return frame(CoreMessage.ROOM_USER_POSITION, ByteBuffer.allocate(11).putLong(position.userId())
+                    .put((byte) position.x()).put((byte) position.y()).put((byte) position.z()).array());
+        }
+        if (message instanceof RoomOutbound.ActionFailed failed) {
+            int category = switch (failed.reason()) {
+                case NOT_IN_ROOM -> 1;
+                case INVALID_DESTINATION -> 2;
+                case UNREACHABLE -> 3;
+                case PATH_LIMIT -> 4;
+                case UNAVAILABLE -> 5;
+            };
+            return frame(CoreMessage.ROOM_ACTION_FAILURE, new byte[] {1, (byte) category});
+        }
         throw new IllegalArgumentException("unsupported room outbound message");
     }
 

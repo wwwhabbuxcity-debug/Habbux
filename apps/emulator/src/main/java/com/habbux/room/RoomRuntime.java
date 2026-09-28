@@ -1,6 +1,7 @@
 package com.habbux.room;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
@@ -12,19 +13,40 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class RoomRuntime {
     public enum State { LOADING, ACTIVE, IDLE, UNLOADING, CLOSED }
     public enum JoinOutcome { JOINED, CANCELLED, NOT_FOUND, FULL, ALREADY_IN_ROOM, UNAVAILABLE }
+    public enum MoveOutcome { MOVING, ARRIVED, NOT_IN_ROOM, INVALID_DESTINATION, UNREACHABLE, PATH_LIMIT, UNAVAILABLE }
 
+    private static final int[] DX = {0, -1, 1, 0};
+    private static final int[] DY = {-1, 0, 0, 1};
+    private static final int MAX_MOVERS_PER_TICK = 16;
     private final RoomMetadata metadata;
     private final RoomMailbox mailbox;
-    private final long[] occupantByCell;
+    private final Presence[] occupantByCell;
+    private final int[] searchQueue;
+    private final int[] searchParent;
+    private final int[] searchGenerationByCell;
+    private final int maxExploredNodes;
+    private final int maxPathLength;
     private final LinkedHashMap<UUID, Presence> presences = new LinkedHashMap<>();
+    private final ArrayDeque<Presence> movingPresences = new ArrayDeque<>();
     private volatile State state = State.LOADING;
     private volatile long lastActivityNanos = System.nanoTime();
     private volatile int presenceCount;
+    private volatile int movingCount;
+    private int searchGeneration;
 
-    RoomRuntime(RoomMetadata metadata, RoomMailbox mailbox) {
+    RoomRuntime(RoomMetadata metadata, RoomMailbox mailbox, int maxExploredNodes, int maxPathLength) {
         this.metadata = java.util.Objects.requireNonNull(metadata, "metadata");
         this.mailbox = java.util.Objects.requireNonNull(mailbox, "mailbox");
-        occupantByCell = new long[metadata.grid().width() * metadata.grid().height()];
+        int cellCount = metadata.grid().width() * metadata.grid().height();
+        if (maxExploredNodes < 1 || maxPathLength < 1) {
+            throw new IllegalArgumentException("pathfinding limits must be positive");
+        }
+        this.maxExploredNodes = Math.min(maxExploredNodes, cellCount);
+        this.maxPathLength = Math.min(maxPathLength, cellCount);
+        occupantByCell = new Presence[cellCount];
+        searchQueue = new int[cellCount];
+        searchParent = new int[cellCount];
+        searchGenerationByCell = new int[cellCount];
         state = State.IDLE;
     }
 
@@ -32,6 +54,7 @@ public final class RoomRuntime {
     public State state() { return state; }
     public long lastActivityNanos() { return lastActivityNanos; }
     public int presenceCount() { return presenceCount; }
+    public int movingCount() { return movingCount; }
     public int mailboxDepth() { return mailbox.depth(); }
 
     CompletableFuture<JoinOutcome> join(UUID sessionId, long userId, String username, RoomClient client,
@@ -68,7 +91,7 @@ public final class RoomRuntime {
             Presence joined = new Presence(sessionId, userId, username, x, y, client);
             presences.put(sessionId, joined);
             presenceCount = presences.size();
-            occupantByCell[cell] = userId;
+            occupantByCell[cell] = joined;
             state = State.ACTIVE;
             lastActivityNanos = System.nanoTime();
             client.send(new RoomOutbound.Joined(metadata.id(), x, y));
@@ -87,9 +110,14 @@ public final class RoomRuntime {
         boolean accepted = mailbox.submitCritical(() -> {
             Presence removed = presences.remove(sessionId);
             if (removed != null) {
-                presenceCount = presences.size();
                 int cell = removed.y * metadata.grid().width() + removed.x;
-                occupantByCell[cell] = 0;
+                occupantByCell[cell] = null;
+                if (removed.path != null) {
+                    removed.path = null;
+                    movingPresences.remove(removed);
+                    movingCount = movingPresences.size();
+                }
+                presenceCount = presences.size();
                 lastActivityNanos = System.nanoTime();
                 if (presences.isEmpty()) state = State.IDLE;
             }
@@ -100,6 +128,92 @@ public final class RoomRuntime {
         return result;
     }
 
+    CompletableFuture<MoveOutcome> move(UUID sessionId, int x, int y) {
+        CompletableFuture<MoveOutcome> result = new CompletableFuture<>();
+        boolean accepted = mailbox.submit(() -> {
+            Presence presence = presences.get(sessionId);
+            if (presence == null) {
+                result.complete(MoveOutcome.NOT_IN_ROOM);
+                return;
+            }
+            RoomGridDefinition grid = metadata.grid();
+            if (!grid.isWalkable(x, y)) {
+                presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.INVALID_DESTINATION));
+                result.complete(MoveOutcome.INVALID_DESTINATION);
+                return;
+            }
+            int start = presence.y * grid.width() + presence.x;
+            int destination = y * grid.width() + x;
+            Presence blocker = occupantByCell[destination];
+            if (blocker != null && blocker != presence) {
+                presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.INVALID_DESTINATION));
+                result.complete(MoveOutcome.INVALID_DESTINATION);
+                return;
+            }
+            if (start == destination) {
+                stopMovement(presence);
+                lastActivityNanos = System.nanoTime();
+                result.complete(MoveOutcome.ARRIVED);
+                return;
+            }
+            PathResult path = findPath(presence, start, destination);
+            if (path.failure != null) {
+                presence.client.send(new RoomOutbound.ActionFailed(path.failure));
+                result.complete(switch (path.failure) {
+                    case NOT_IN_ROOM -> MoveOutcome.NOT_IN_ROOM;
+                    case INVALID_DESTINATION -> MoveOutcome.INVALID_DESTINATION;
+                    case UNREACHABLE -> MoveOutcome.UNREACHABLE;
+                    case PATH_LIMIT -> MoveOutcome.PATH_LIMIT;
+                    case UNAVAILABLE -> MoveOutcome.UNAVAILABLE;
+                });
+                return;
+            }
+            boolean wasMoving = presence.path != null;
+            presence.path = path.cells;
+            presence.pathIndex = 0;
+            if (!wasMoving) movingPresences.addLast(presence);
+            movingCount = movingPresences.size();
+            lastActivityNanos = System.nanoTime();
+            result.complete(MoveOutcome.MOVING);
+        });
+        if (!accepted) result.complete(MoveOutcome.UNAVAILABLE);
+        return result;
+    }
+
+    /** Called by one shared manager ticker; actual mutation still enters this room's mailbox. */
+    void tickMovement() {
+        if (movingCount == 0 || state != State.ACTIVE) return;
+        mailbox.submit(() -> {
+            for (int moved = 0; moved < MAX_MOVERS_PER_TICK && !movingPresences.isEmpty(); moved++) {
+                Presence presence = movingPresences.removeFirst();
+                if (presences.get(presence.sessionId) != presence || presence.path == null) continue;
+                int nextCell = presence.path[presence.pathIndex];
+                Presence blocker = occupantByCell[nextCell];
+                if (blocker != null && blocker != presence) {
+                    stopMovement(presence);
+                    presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.INVALID_DESTINATION));
+                    continue;
+                }
+                int oldCell = presence.y * metadata.grid().width() + presence.x;
+                occupantByCell[oldCell] = null;
+                presence.x = nextCell % metadata.grid().width();
+                presence.y = nextCell / metadata.grid().width();
+                occupantByCell[nextCell] = presence;
+                RoomOutbound.Position update = new RoomOutbound.Position(presence.userId, presence.x, presence.y, 0);
+                for (Presence recipient : presences.values()) recipient.client.send(update);
+                presence.pathIndex++;
+                lastActivityNanos = System.nanoTime();
+                if (presence.pathIndex == presence.path.length) {
+                    presence.path = null;
+                    presence.pathIndex = 0;
+                } else {
+                    movingPresences.addLast(presence);
+                }
+            }
+            movingCount = movingPresences.size();
+        });
+    }
+
     CompletableFuture<Boolean> unload(Runnable onUnloaded, java.util.function.BooleanSupplier stillIdle) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         boolean accepted = mailbox.submitCritical(() -> {
@@ -108,9 +222,9 @@ public final class RoomRuntime {
                 return;
             }
             state = State.UNLOADING;
-            presences.clear();
-            presenceCount = 0;
-            java.util.Arrays.fill(occupantByCell, 0);
+            movingPresences.clear();
+            movingCount = 0;
+            Arrays.fill(occupantByCell, null);
             state = State.CLOSED;
             onUnloaded.run();
             result.complete(true);
@@ -124,8 +238,10 @@ public final class RoomRuntime {
         boolean accepted = mailbox.submitCritical(() -> {
             state = State.UNLOADING;
             presences.clear();
+            movingPresences.clear();
+            movingCount = 0;
             presenceCount = 0;
-            java.util.Arrays.fill(occupantByCell, 0);
+            Arrays.fill(occupantByCell, null);
             state = State.CLOSED;
             mailbox.closeAdmission();
             result.complete(null);
@@ -137,25 +253,86 @@ public final class RoomRuntime {
         return result;
     }
 
+    private PathResult findPath(Presence presence, int start, int destination) {
+        int generation = nextSearchGeneration();
+        int read = 0;
+        int write = 0;
+        searchQueue[write++] = start;
+        searchGenerationByCell[start] = generation;
+        searchParent[start] = -1;
+        int explored = 0;
+        RoomGridDefinition grid = metadata.grid();
+        while (read < write) {
+            int current = searchQueue[read++];
+            if (current == destination) {
+                int distance = 0;
+                for (int cell = destination; cell != start; cell = searchParent[cell]) distance++;
+                if (distance > maxPathLength) return PathResult.failure(RoomOutbound.ActionFailure.PATH_LIMIT);
+                int[] path = new int[distance];
+                int cell = destination;
+                for (int index = distance - 1; index >= 0; index--) {
+                    path[index] = cell;
+                    cell = searchParent[cell];
+                }
+                return PathResult.success(path);
+            }
+            if (explored >= maxExploredNodes) return PathResult.failure(RoomOutbound.ActionFailure.PATH_LIMIT);
+            explored++;
+            int x = current % grid.width();
+            int y = current / grid.width();
+            for (int direction = 0; direction < DX.length; direction++) {
+                int nx = x + DX[direction];
+                int ny = y + DY[direction];
+                if (!grid.isWalkable(nx, ny)) continue;
+                int next = ny * grid.width() + nx;
+                if (searchGenerationByCell[next] == generation) continue;
+                Presence blocker = occupantByCell[next];
+                if (blocker != null && blocker != presence) continue;
+                searchGenerationByCell[next] = generation;
+                searchParent[next] = current;
+                searchQueue[write++] = next;
+            }
+        }
+        return PathResult.failure(RoomOutbound.ActionFailure.UNREACHABLE);
+    }
+
+    private int nextSearchGeneration() {
+        if (++searchGeneration == 0) {
+            Arrays.fill(searchGenerationByCell, 0);
+            searchGeneration = 1;
+        }
+        return searchGeneration;
+    }
+
+    private void stopMovement(Presence presence) {
+        if (presence.path == null) return;
+        presence.path = null;
+        presence.pathIndex = 0;
+        movingPresences.remove(presence);
+        movingCount = movingPresences.size();
+    }
+
     private int findSpawn() {
         RoomGridDefinition grid = metadata.grid();
         int start = grid.spawnY() * grid.width() + grid.spawnX();
-        boolean[] visited = new boolean[occupantByCell.length];
-        int[] queue = new int[occupantByCell.length];
-        int read = 0, write = 0;
-        queue[write++] = start;
-        visited[start] = true;
-        int[] dx = {0, -1, 1, 0};
-        int[] dy = {-1, 0, 0, 1};
+        int generation = nextSearchGeneration();
+        int read = 0;
+        int write = 0;
+        searchQueue[write++] = start;
+        searchGenerationByCell[start] = generation;
         while (read < write) {
-            int cell = queue[read++];
-            int x = cell % grid.width(), y = cell / grid.width();
-            if (grid.isWalkable(x, y) && occupantByCell[cell] == 0) return cell;
-            for (int direction = 0; direction < dx.length; direction++) {
-                int nx = x + dx[direction], ny = y + dy[direction];
-                if (grid.isWalkable(nx, ny)) {
-                    int next = ny * grid.width() + nx;
-                    if (!visited[next]) { visited[next] = true; queue[write++] = next; }
+            int cell = searchQueue[read++];
+            int x = cell % grid.width();
+            int y = cell / grid.width();
+            if (grid.isWalkable(x, y) && occupantByCell[cell] == null) return cell;
+            for (int direction = 0; direction < DX.length; direction++) {
+                int nx = x + DX[direction];
+                int ny = y + DY[direction];
+                if (!grid.isWalkable(nx, ny)) continue;
+                int next = ny * grid.width() + nx;
+                if (searchGenerationByCell[next] != generation) {
+                    searchGenerationByCell[next] = generation;
+                    searchQueue[write++] = next;
                 }
             }
         }
@@ -172,13 +349,22 @@ public final class RoomRuntime {
                 grid.walkability(), occupants);
     }
 
+    private record PathResult(int[] cells, RoomOutbound.ActionFailure failure) {
+        private static PathResult success(int[] cells) { return new PathResult(cells, null); }
+        private static PathResult failure(RoomOutbound.ActionFailure failure) { return new PathResult(null, failure); }
+    }
+
     private static final class Presence {
+        private final UUID sessionId;
         private final long userId;
         private final String username;
-        private final int x;
-        private final int y;
+        private int x;
+        private int y;
         private final RoomClient client;
+        private int[] path;
+        private int pathIndex;
         private Presence(UUID sessionId, long userId, String username, int x, int y, RoomClient client) {
+            this.sessionId = sessionId;
             this.userId = userId;
             this.username = username;
             this.x = x;
