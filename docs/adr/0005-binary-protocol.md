@@ -8,8 +8,8 @@ Client e emulador precisam de contrato comum e limites definidos sem importar pr
 
 ## DECISION
 
-Definir Habbux Protocol; registro canônico de IDs e framing fica em `packages/protocol/protocol.json`. A especificação inicial permanece draft até os codecs e schemas serem testados.
+Definir Habbux Protocol v1; o registro canônico de IDs, direções, framing e tamanho dos payloads fica em `packages/protocol/protocol.json`. O framing e as seis mensagens Core têm codecs operacionais e vetores binários em `packages/protocol/golden-vectors-v1.txt`.
 
 ## CONSEQUENCES
 
-Exige geração e testes compartilhados para evitar divergência. Alterações incompatíveis precisam nova versão; nenhuma interoperabilidade operacional é afirmada neste bootstrap.
+Testes Java e TypeScript comparam os mesmos vetores e os IDs locais com o registro. Os enums locais ainda são declarações manuais, então toda mudança contratual precisa atualizar os três lados no mesmo diff. Alterações incompatíveis exigem nova versão. O Core não define autenticação nem gameplay.

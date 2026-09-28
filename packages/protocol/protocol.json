@@ -1,31 +1,33 @@
 {
   "name": "Habbux Protocol",
-  "status": "draft",
+  "status": "core-v1",
   "version": 1,
   "transport": "binary-websocket",
+  "webSocketPath": "/ws",
   "byteOrder": "big-endian",
+  "headerBytes": 8,
   "header": [
-    { "name": "VERSION", "type": "uint8" },
-    { "name": "MESSAGE_ID", "type": "uint16" },
-    { "name": "FLAGS", "type": "uint8" },
-    { "name": "PAYLOAD_LENGTH", "type": "uint32" }
+    { "name": "VERSION", "type": "uint8", "bytes": 1 },
+    { "name": "MESSAGE_ID", "type": "uint16", "bytes": 2 },
+    { "name": "FLAGS", "type": "uint8", "bytes": 1 },
+    { "name": "PAYLOAD_LENGTH", "type": "uint32", "bytes": 4 }
   ],
   "limits": {
     "maxPayloadBytes": 65536,
     "allowedFlags": 0,
     "framesPerWebSocketMessage": 1
   },
+  "payloadEncoding": "per-message-big-endian",
   "messages": [
-    { "id": 1, "name": "HELLO", "direction": "client-to-server", "purpose": "Negociação inicial de versão; autenticação por ticket será especificada separadamente." },
-    { "id": 2, "name": "WELCOME", "direction": "server-to-client", "purpose": "Confirma a versão escolhida e os limites da conexão." },
-    { "id": 3, "name": "PING", "direction": "bidirectional", "purpose": "Heartbeat de aplicação; identificador monotônico de correlação." },
-    { "id": 4, "name": "PONG", "direction": "bidirectional", "purpose": "Resposta ao heartbeat sem mudar autoridade de estado." },
-    { "id": 5, "name": "DISCONNECT", "direction": "bidirectional", "purpose": "Encerramento com motivo estável e sem detalhes internos." }
+    { "id": 1, "name": "CLIENT_HELLO", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Inicia o handshake sem credenciais." },
+    { "id": 2, "name": "SERVER_HELLO", "direction": "server-to-client", "payloadBytes": 16, "purpose": "Confirma o protocolo e associa um identificador aleatório à sessão." },
+    { "id": 3, "name": "PING", "direction": "client-to-server", "payloadBytes": 4, "purpose": "Envia um número de sequência uint32 para medir RTT de aplicação." },
+    { "id": 4, "name": "PONG", "direction": "server-to-client", "payloadBytes": 4, "purpose": "Ecoa o uint32 recebido em PING." },
+    { "id": 5, "name": "CLIENT_DISCONNECT", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Solicita encerramento normal da conexão." },
+    { "id": 6, "name": "SERVER_ERROR", "direction": "server-to-client", "payloadBytes": 2, "purpose": "Comunica um código de erro estável uint16 sem detalhes internos." }
   ],
-  "payloadEncoding": "TBD",
-  "disconnectReasons": [
-    "NORMAL", "UNSUPPORTED_VERSION", "MALFORMED_MESSAGE", "AUTHENTICATION_FAILED",
-    "AUTHORIZATION_FAILED", "RATE_LIMITED", "OVERLOADED", "HEARTBEAT_TIMEOUT",
-    "SERVER_SHUTDOWN", "INTERNAL_ERROR"
+  "serverErrors": [
+    { "code": 1, "name": "INVALID_STATE" },
+    { "code": 2, "name": "HANDSHAKE_TIMEOUT" }
   ]
 }

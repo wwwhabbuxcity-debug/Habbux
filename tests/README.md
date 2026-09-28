@@ -1,9 +1,10 @@
 # Convenções de testes
 
-Unitários Java ficam junto ao módulo (`apps/emulator/src/test`); registro do
-protocolo usa Node test runner em `tests/protocol/`. Sem runtime adicional para
-rodar os testes do registro. Testes determinísticos, sem sleeps arbitrários e
-sem dependência de serviços de outros projetos.
+Unitários e integração Java ficam junto ao módulo (`apps/emulator/src/test`);
+codec e contrato TypeScript usam Node test runner em `tests/protocol/`. Java abre
+listener WebSocket loopback/porta efêmera e verifica handshake, ping/pong,
+desconexão, timeout e até 24 clientes concorrentes. Testes não dependem de
+serviços de outros projetos.
 
 - `integration`: futuros testes com serviços dedicados, migration/checksum e rede
   em portas efêmeras; liberar recursos em `finally` e nunca reutilizar banco,
@@ -11,15 +12,15 @@ sem dependência de serviços de outros projetos.
 - `e2e`: fluxo futuro navegador ↔ serviço com dados sintéticos; cobrir desktop,
   toque, falha de GPU, visibilidade da página e perda/restauração do contexto.
   Ferramenta de navegador só entra quando esses testes forem implementados.
-- `protocol/`: hoje integridade do registro; futuros vetores binários iguais em
-  Java e TypeScript e casos inválidos/fuzzing com limites.
-- `load`: cenários em ambiente isolado, relatórios de recursos, seeds e versão;
-  não executar no host compartilhado por padrão.
+- `protocol/`: vetores de bytes comuns em Java e TypeScript, framing inválido,
+  limite, round-trip e entradas determinísticas fuzz-like.
+- `load`: `npm run core:load-smoke` roda explicitamente 100 conexões loopback
+  contra um processo local do Emulator, limitado a 100 e sem alcançar outros
+  serviços; mede cleanup e erros, não capacidade máxima.
 
-Somente `protocol/` existe hoje neste diretório. As categorias futuras serão
-criadas junto com testes reais, sem pastas ou READMEs vazios. Benchmarks ficam
-separados em [`../benchmarks`](../benchmarks/README.md); `mvn verify` não roda
-carga.
+Somente `protocol/` fica versionado neste diretório. Benchmarks ficam separados
+em [`../benchmarks`](../benchmarks/README.md); `mvn verify` executa apenas a
+integração leve de 24 clientes e não roda o smoke separado de 100 conexões.
 
 Room Engine futuro recebe relógio/scheduler controláveis e eventos em memória,
 permitindo testes de ordenação/invariantes sem iniciar o hotel. Economia exige

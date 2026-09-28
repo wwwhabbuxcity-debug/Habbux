@@ -10,7 +10,7 @@ proposta e não tratada como contrato.
 | ADR | Decisão | Estado |
 | --- | --- | --- |
 | [0001](0001-java-25.md) | Java 25 sem recursos preview | Aceita |
-| [0002](0002-netty.md) | Netty para transporte assíncrono futuro | Aceita |
+| [0002](0002-netty.md) | Netty para transporte assíncrono | Aceita |
 | [0003](0003-postgresql.md) | PostgreSQL como fonte persistente | Aceita |
 | [0004](0004-redis-role.md) | Redis opcional e efêmero | Aceita |
 | [0005](0005-binary-protocol.md) | Protocolo binário versionado próprio | Aceita |

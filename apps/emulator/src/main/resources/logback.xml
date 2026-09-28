@@ -6,7 +6,13 @@
       <withArguments>false</withArguments>
     </encoder>
   </appender>
-  <root level="INFO">
+  <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>1024</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <neverBlock>true</neverBlock>
     <appender-ref ref="STDOUT"/>
+  </appender>
+  <root level="INFO">
+    <appender-ref ref="ASYNC"/>
   </root>
 </configuration>

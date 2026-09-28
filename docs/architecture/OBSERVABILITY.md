@@ -1,7 +1,7 @@
 # Observabilidade
 
-Status: arquitetura; a implementação inicial registra apenas o ciclo de vida do
-bootstrap. Não há plataforma de monitoramento instalada por este documento.
+Status: Core registra lifecycle, conexões e erros em JSON e mantém contadores
+internos agregados. Não há plataforma de monitoramento instalada por este documento.
 
 ## Logs estruturados
 
@@ -18,6 +18,11 @@ administrativos/econômicos usam auditoria própria; amostragem não pode apagar
 histórico exigido para rastrear uma transação.
 
 ## Métricas futuras
+
+O Core já mantém contadores agregados em `ConnectionRegistry`: `activeConnections`,
+`activeSessions`, `framesReceived`, `framesSent`, `invalidFrames` e
+`rejectedConnections`. Não são expostos por endpoint HTTP e não têm labels por
+conexão. O evento de shutdown registra os totais após cleanup.
 
 | Área | Sinais necessários |
 |---|---|

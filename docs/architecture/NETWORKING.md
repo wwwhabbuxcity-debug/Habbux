@@ -1,64 +1,61 @@
 # Networking
 
-Status: desenho inicial; não há listener de gameplay nesta etapa.
+Status: **Core de transporte v1 implementado; gameplay ainda não existe.**
 
 ## Transporte e contrato
 
-O transporte planejado é WebSocket binário sobre TLS na borda. O servidor usa
-Netty. A especificação de framing, versões, IDs, payloads, handshake, heartbeat e
-motivos de desconexão pertence a
+O transporte é WebSocket binário com caminho `/ws`. A borda TLS/WSS ainda não foi
+configurada; o servidor local escuta em loopback por padrão. Framing, versões,
+IDs, tamanhos, handshake e erros pertencem a
 [`packages/protocol`](../../packages/protocol/README.md) e
 [Habbux Protocol v1](../protocol/HABBUX-PROTOCOL-v1.md).
-`packages/protocol/protocol.json` é a fonte única dos números do contrato;
-este documento não mantém outra tabela de IDs.
+`packages/protocol/protocol.json` é a fonte canônica dos números do contrato.
 
-## Pipeline futuro
+## Pipeline implementado
 
-1. Validar upgrade HTTP, origem permitida, limites de conexões e tempo de handshake.
-2. Limitar o tamanho do frame WebSocket e o total agregado antes de alocar um
-   payload inteiro; fragmentação não pode contornar o limite da mensagem.
-3. Validar versão, flags, ID e tamanho declarado conforme o contrato central.
-4. Decodificar campos com limites, consumir exatamente o payload e rejeitar
-   truncamento, bytes extras, valores impossíveis e UTF-8 inválido quando aplicável.
-5. Validar estado da sessão, autenticação, autorização e rate limit da operação.
-6. Traduzir em comando imutável e oferecer à fila limitada de seu proprietário.
-7. Serializar a resposta autorizada e enviar somente enquanto o canal comportar.
+1. Netty valida upgrade HTTP, origem enviada e limite de conexões; limita o
+   handshake WebSocket e agrega fragmentos.
+2. O tamanho WebSocket total fica limitado ao cabeçalho de 8 bytes mais o payload
+   configurado, cujo teto é 65.536 bytes.
+3. O codec valida versão, flags, ID e comprimento antes de copiar o payload.
+4. Cada mensagem WebSocket binária contém exatamente um frame. Texto, truncamento,
+   bytes extras e mensagens incompatíveis são encerrados de forma genérica.
+5. O Core valida direção, tamanho dos payloads de controle e estado anônimo da
+   sessão. Não há autenticação, autorização nem comandos de domínio.
+6. PING/PONG de aplicação ecoa um uint32 big-endian; frames de controle WebSocket
+   continuam sob responsabilidade do Netty.
 
-Retenção/liberação de buffers Netty precisa de dono claro e teste de vazamento.
-Dados que atravessam executores precisam de política explícita de posse; não
-compartilhar buffers mutáveis apenas porque copiar parece custoso.
+Buffers ByteBuf de entrada pertencem ao handler Netty e são liberados pelo ciclo
+do WebSocket; o frame imutável mantém cópia própria do payload. O encoder transfere
+o ByteBuf de saída ao canal, que o libera após escrita ou falha.
 
-## Event loops e backpressure
+## Event loops, limites e ciclo
 
-Não executar SQL, acesso a arquivos, chamadas HTTP, espera por locks, compressão
-pesada ou espera síncrona de futures no event loop. Tarefas caras vão para
-executores limitados; a fila cheia produz rejeição previsível.
+Não executar SQL, filesystem, chamadas HTTP, sleeps ou espera síncrona de futures
+no event loop. Não há threads por conexão. O Core usa event loops Netty, registry
+concorrente, admissão limitada e uma tarefa agendada de handshake por conexão.
+Cada canal limita a fila de saída com high watermark de 64 KiB; se o canal seguir
+sem capacidade de escrita ao responder, a conexão é encerrada para não acumular
+PONGs indefinidamente. O client normal mantém no máximo um PING pendente.
 
-O canal de saída tem limite de bytes pendentes e tempo máximo sem progresso.
-Consumidor lento pode ter admissões pausadas ou ser desconectado de forma
-controlada. Coalescer atualização substituível pode ser permitido; não descartar
-confirmação econômica, comando ou evento cuja ordem mude o resultado.
+Defaults configuráveis: bind `127.0.0.1:3100`, payload máximo 65.536 bytes,
+handshake 10 s, inatividade 120 s, 256 conexões e três mensagens antes de READY.
+Handshake não é autenticação. Sessões de transporte recebem UUID aleatório e
+seguem CONNECTED → HANDSHAKING → READY → DISCONNECTED. Disconnect, erro, timeout e
+shutdown removem a sessão do registry.
 
-Limites por conexão, por identidade autenticada e globais possuem métricas. IP
-não equivale a pessoa: NAT e proxies precisam ser considerados. Headers de IP
-encaminhado só são confiáveis quando originados de proxies explicitamente
-configurados; o cliente não pode escolher a identidade usada no rate limit.
-
-## Ciclo da conexão
-
-O handshake versionado deve concluir antes de comandos de domínio. Heartbeat
-identifica conexões sem progresso; usa relógio monotônico e prazos externos.
-Reconnect cria sessão explicitamente validada; não reaplica compras anteriores
-sem chave de idempotência e consulta do resultado persistente.
-
-Handshake não será tratado como autenticação. Sessão, identidade e permissões
-continuam sendo verificados durante sua vida útil. A expiração/revogação deve
-encerrar ou restringir acesso segundo contrato futuro.
+Filas de gameplay, identidade/autorização e rate limit por operação ainda precisam
+de projeto antes de qualquer mensagem de domínio.
+Não encaminhar `X-Forwarded-For` sem proxy confiável configurado.
 
 ## Observabilidade e testes
 
-Medir conexões aceitas/rejeitadas, erros de decode, tempo de handshake,
-mensagens/bytes, fila de saída, event-loop lag, timeouts e disconnect reasons.
-Evitar labels de conexão/usuário em séries de métricas. Testar limites exatos,
-fragmentação, desconexão parcial, consumidor lento e fuzzing em ambiente isolado.
-Nenhum ensaio de carga deve ser executado neste servidor compartilhado.
+O Core expõe contadores internos de conexões/sessões ativas, frames recebidos e
+enviados, frames inválidos e conexões rejeitadas. Logs JSON registram start,
+stop, conexão, sessão pronta, timeout, violações e exceções; não registram payload
+nem PING individual. Appender assíncrono usa fila limitada.
+
+Os testes verificam codec e vetores comuns em Java/TypeScript, handshake real,
+PING/PONG, desconexão, timeout, 24 conexões simultâneas e entradas inválidas
+determinísticas. O smoke separado cobre 100 conexões loopback; isso não estima
+capacidade máxima ou número de jogadores.

@@ -1,72 +1,111 @@
-# Habbux Protocol v1 — draft
+# Habbux Protocol v1 — Core de rede
 
-Especificação inicial própria, sem compatibilidade com protocolos de outros
-hotéis. Não há listener, encoder/decoder ou gameplay implementado nesta etapa.
-`packages/protocol/protocol.json` é a fonte única dos IDs e limites; o validador
-da fundação confere o registro, não valida tráfego de rede.
+Status: **operacional para handshake anônimo, ping/pong e desconexão**. Não há
+autenticação nem mensagens de gameplay. `packages/protocol/protocol.json` é a
+fonte única dos IDs, direções, tamanhos de payload e limites; o arquivo de vetores
+compartilhados fica em `packages/protocol/golden-vectors-v1.txt`.
 
 ## Transporte e framing
 
-WebSocket binário sobre TLS na borda. Uma mensagem WebSocket reconstituída contém
-exatamente um frame Habbux: VERSION (uint8), MESSAGE_ID (uint16), FLAGS (uint8),
-PAYLOAD_LENGTH (uint32) e PAYLOAD. Inteiros sem sinal em big endian. Cabeçalho de
-8 bytes; comprimento refere-se somente ao payload. Limite inicial de payload:
-64 KiB, configurável futuramente apenas dentro do teto negociado. Mensagens
-maiores exigem outro contrato; não aumentar limites silenciosamente.
+O transporte é WebSocket binário no caminho `/ws`. Cada mensagem WebSocket
+completa contém exatamente um frame Habbux. Fragmentos WebSocket são agregados
+antes do decode, com limite total; texto, compressão e bytes extras não fazem
+parte do contrato.
 
-Limitar também tamanho agregado durante fragmentação WebSocket, antes de
-alocar/copy ou decodificar. Comprimento recebido deve coincidir exatamente com o
-frame, com soma verificada contra overflow. Frames truncados, bytes extras,
-texto, versão desconhecida, ID desconhecido, direção inválida e flags reservadas
-são erros de protocolo. Todos os bits de FLAGS estão reservados como zero.
-Compressão WebSocket fica desabilitada inicialmente, evitando amplificação e
-custo de CPU até medição específica. Não interpretar comprimento como int
-assinado nem aceitar alocações comandadas pelo cliente.
+| Campo | Tamanho | Formato |
+|---|---:|---|
+| `VERSION` | 1 byte | uint8; v1 = 1 |
+| `MESSAGE_ID` | 2 bytes | uint16 sem sinal |
+| `FLAGS` | 1 byte | uint8; todos os bits devem ser zero |
+| `PAYLOAD_LENGTH` | 4 bytes | uint32 sem sinal, apenas payload |
+| `PAYLOAD` | variável | formato definido por mensagem |
 
-## Payload e compatibilidade
+Todos os inteiros multibyte usam **big-endian**. O cabeçalho tem 8 bytes. O
+payload máximo padrão é 65.536 bytes e a configuração pode reduzi-lo, nunca
+ultrapassá-lo. O servidor compara tamanho declarado e recebido antes de alocar
+payload. Cada frame precisa caber em uma única mensagem WebSocket; vários frames
+concatenados numa mesma mensagem são rejeitados.
 
-Codec binário e schemas dos cinco controles: **TBD**, antes de qualquer conexão
-real. Não serializar objetos Java, executar scripts ou usar JSON para gameplay
-frequente. Strings futuras terão encoding UTF-8 e limites em bytes e caracteres;
-coleções terão teto de itens; valores inválidos serão rejeitados, não truncados.
+Versão diferente, ID desconhecido, flags não zero, frame truncado, tamanho
+inconsistente, mensagem textual ou payload acima do limite encerra a conexão com
+WebSocket close `1002`, sem tentar interpretar o conteúdo. Não há fallback para
+protocolo textual. TLS ainda pertence a um proxy reverso futuro; o servidor nesta
+etapa escuta em `127.0.0.1` por padrão e não altera vhosts.
 
-Cada schema terá campos, ranges, obrigatoriedade, direção, autorização e
-compatibilidade explícitos. Não reutilizar IDs removidos; reservar tombstones.
-Mudança incompatível de framing/schema exige nova versão. Política de janela de
-suporte é TBD; não assumir que clientes antigos continuam válidos. O handshake
-básico precisa permanecer decodificável durante negociação de versões.
+## Mensagens Core
 
-## Ciclo da conexão planejado
+Os IDs e direções abaixo são conferidos contra o registro em CI:
 
-Após upgrade, conexão não autenticada envia HELLO dentro de prazo configurado.
-Servidor valida origem permitida, versão e limites; devolve WELCOME somente após
-negociação aceita. Formato de ticket de autenticação, sua emissão pela API,
-expiração curta, uso único e defesa contra replay são TBD. Nenhum segredo deve
-ir na URL ou em logs. Não aceitar eventos de domínio antes de autenticação e
-autorização. Logout/revogação precisam invalidar a sessão.
+| ID | Mensagem | Direção | Payload |
+|---:|---|---|---|
+| 1 | `CLIENT_HELLO` | Client → servidor | vazio; não contém versão duplicada nem credenciais |
+| 2 | `SERVER_HELLO` | Servidor → Client | 16 bytes de UUID RFC 4122, codificados em ordem de rede |
+| 3 | `PING` | Client → servidor | uint32 de sequência big-endian |
+| 4 | `PONG` | Servidor → Client | eco dos 4 bytes de sequência recebidos |
+| 5 | `CLIENT_DISCONNECT` | Client → servidor | vazio |
+| 6 | `SERVER_ERROR` | Servidor → Client | código uint16 big-endian |
 
-PING/PONG de aplicação medirão RTT/liveness com correlação; ping/pong nativo do
-WebSocket também exige limite para evitar abuso. Intervalos, tolerância a abas
-suspensas e prazo de desconexão são TBD e externos. Não usar o relógio do cliente
-como autoridade. DISCONNECT informa motivo estável do registro; o mapeamento
-para códigos Close WebSocket válidos é TBD. Encerramento abrupto ainda precisa
-limpar recursos, sem depender do recebimento de DISCONNECT.
+`SERVER_ERROR` códigos v1: `1 INVALID_STATE`, `2 HANDSHAKE_TIMEOUT`. Versão
+incompatível ou frame que não possa ser interpretado recebe apenas close `1002`.
+Estado inválido e timeout de handshake enviam o erro estável e fecham com `1008`.
+O servidor não inclui detalhes internos, stack trace ou configuração na resposta.
+Pings de protocolo não são WebSocket Ping/Pong de controle; o Netty trata os
+frames de controle separadamente.
 
-## Erros e proteção
+## Handshake e sessão
 
-Distinguir erro de protocolo, validação, autenticação, autorização, domínio,
-infraestrutura e interno conforme `docs/architecture/ERROR-MODEL.md`. Mensagens
-malformadas graves encerram a conexão com código genérico, sem stack trace.
-Rejeições de domínio futuras podem manter a conexão. Nunca devolver SQL,
-credenciais ou detalhes internos. Rate limits por origem, conexão, sessão e tipo
-de mensagem; filas de entrada/saída limitadas; quotas e política de sobrecarga
-antes de enfileirar. Leituras pausadas/desconexão devem ser decisões explícitas.
+Após o upgrade WebSocket, a sessão anônima passa por:
 
-## Fonte única e próximos testes
+```text
+CONNECTED → HANDSHAKING → READY → DISCONNECTED
+```
 
-A geração Java/TypeScript partirá do registro e schemas versionados. Não criar
-listas paralelas. CI futura verificará geração limpa e fixtures compartilhadas
-para byte order, limites, fragmentação, frames inválidos, compatibilidade entre
-versões e round-trip. Fuzzing terá tempo/memória limitados. Heartbeat e handshake
-serão testados com relógio controlável, sem sleeps arbitrários. Essa etapa só
-testa integridade do catálogo; não afirma interoperabilidade de um codec ausente.
+O servidor cria uma sessão com UUID v4 aleatório ao aceitar a conexão. Esse UUID
+é identificador de transporte, não credencial, usuário autenticado ou segredo de
+login. Após o upgrade WebSocket, a sessão muda para `HANDSHAKING` e inicia o prazo
+configurável (`HABBUX_HANDSHAKE_TIMEOUT_MS`, padrão 10 s). Só aceita
+`CLIENT_HELLO` vazio nesse estado; responde `SERVER_HELLO` com o UUID da sessão e
+conclui o handshake no estado `READY`.
+
+`PING` só é aceito em `READY`; `PONG` ecoa a sequência e o Client estima RTT com
+relógio monotônico local. O Client envia no máximo um ping a cada 15 s e fecha se
+não recebe resposta em 10 s. O timeout de inatividade do servidor é configurável
+(`HABBUX_IDLE_TIMEOUT_SECONDS`, padrão 120 s). Antes de `READY`, no máximo três
+frames são processados por conexão; o limite de conexões também é configurável e
+tem padrão 256.
+
+Disconnect explícito, fechamento remoto, timeout, frame inválido, exceção e
+shutdown removem a sessão do registry. O registry é concorrente, limitado pela
+admissão e não usa lock global para cada frame. Nenhum estado de gameplay ou
+identidade existe nesta etapa.
+
+## Limites e configuração
+
+`HABBUX_BIND_HOST` e `HABBUX_PORT` escolhem interface e porta; padrão loopback e
+3100. `HABBUX_MAX_PAYLOAD_BYTES` varia de 16 a 65.536 bytes para comportar o
+`SERVER_HELLO` de 16 bytes. `HABBUX_ALLOWED_ORIGINS`
+é lista explícita separada por vírgula; requests WebSocket sem `Origin` (clientes
+nativos) são aceitos, enquanto uma origem enviada precisa estar na lista. Em
+produção, a terminação WSS, origem externa e publicação só devem ser configuradas
+junto com uma borda TLS revisada.
+
+Não se executa I/O de aplicação, banco, arquivo, sleep nem espera de Future no
+event loop. O Core não cria thread por conexão. Controles atuais limitam payload,
+conexões, handshake, inatividade e mensagens pré-handshake. A fila de saída do
+canal tem high watermark de 64 KiB e uma conexão sem capacidade de escrita é
+encerrada, evitando acúmulo ilimitado de PONGs. Rate limit global por IP,
+autenticação, autorização e filas de gameplay não existem porque não há operações
+de gameplay nesta etapa.
+
+## Vetores e validação
+
+`golden-vectors-v1.txt` é consumido pelos testes Java e TypeScript. Os vetores
+cobrem as seis mensagens, inclusive o UUID e a sequência 42. Os testes também
+verificam round-trip, limite configurado, versões/IDs/flags inválidos, truncamento,
+length divergente e entradas aleatórias determinísticas. O teste de integração
+abre um WebSocket real, faz handshake, ping/pong, desconexão, timeout e 24 conexões
+simultâneas; `npm run core:load-smoke` executa separadamente 100 clientes locais.
+
+Esses ensaios verificam o Core funcional e cleanup no ambiente observado. Não
+representam capacidade máxima, jogadores ativos, desempenho de salas ou escala de
+produção.

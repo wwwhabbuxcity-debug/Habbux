@@ -14,7 +14,11 @@
   <dependencies>
     <dependency>
       <groupId>io.netty</groupId>
-      <artifactId>netty-transport</artifactId>
+      <artifactId>netty-codec-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -33,6 +37,13 @@
     </dependency>
   </dependencies>
   <build>
+    <testResources>
+      <testResource><directory>src/test/resources</directory></testResource>
+      <testResource>
+        <directory>${maven.multiModuleProjectDirectory}/packages/protocol</directory>
+        <includes><include>protocol.json</include><include>golden-vectors-v1.txt</include></includes>
+      </testResource>
+    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

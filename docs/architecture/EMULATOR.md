@@ -2,9 +2,9 @@
 
 ## Estado atual
 
-A fundação Java 25 comprova configuração, início, log estruturado e término
-controlado. Rede de jogo, autenticação, quartos, inventário e economia não são
-funcionalidades entregues por este bootstrap. O projeto usa Maven Wrapper 3.9.x;
+O processo Java 25 abre um listener WebSocket Netty para o Core v1, administra
+sessões anônimas e encerra canais/event loops no shutdown. Autenticação, quartos,
+inventário e economia não estão implementados. O projeto usa Maven Wrapper 3.9.x;
 versões efetivas de dependências e plugins ficam nos arquivos de build.
 
 ## Limites planejados
@@ -26,20 +26,18 @@ versões efetivas de dependências e plugins ficam nos arquivos de build.
 Esses nomes delimitam responsabilidade; não exigem classes vazias nem módulos de
 build por domínio. Cada implementação futura precisa de caso de uso e teste.
 
-## Ciclo de vida futuro
+## Ciclo de vida do processo
 
-1. Ler configuração externa do ambiente e validar requisitos antes de aceitar
-   trabalho. Falhar claramente se uma opção obrigatória estiver ausente.
-2. Preparar recursos realmente habilitados. O bootstrap não depende de PostgreSQL
-   nem de Redis para iniciar.
-3. Tornar-se pronto somente depois dos recursos obrigatórios estarem disponíveis.
-4. Ao terminar, retirar prontidão, parar admissões, drenar trabalho dentro de um
-   prazo e liberar recursos. O estado persistente pendente precisa de política de
-   retry/recuperação; encerrar não pode afirmar que gravou algo que falhou.
+1. Ler configuração do ambiente e validar limites antes de abrir a porta.
+2. Criar event loops boss/worker, pipeline HTTP/WebSocket e iniciar o listener.
+   O Core não depende de PostgreSQL nem Redis.
+3. No shutdown, fechar a porta de entrada, fechar sessões, conferir contadores e
+   desligar event loops dentro do prazo configurado.
 
 `development`, `test` e `production` são ambientes explícitos. Hostnames, portas,
 senhas, endpoints e secrets não são embutidos no binário. A referência de
-variáveis fica na configuração raiz; a aplicação valida tipos e faixas.
+variáveis fica na configuração raiz; a aplicação valida tipos e faixas. O bind
+default é loopback e WSS exige proxy de borda configurado separadamente.
 
 ## Execução e dependências
 

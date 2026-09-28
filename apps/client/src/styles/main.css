@@ -23,10 +23,28 @@ h1 { font-size: clamp(1.8rem, 5vw, 2.9rem); letter-spacing: -0.04em; line-height
 #viewport { height: clamp(180px, 35svh, 360px); overflow: hidden; border: 1px solid #2b3944; border-radius: 12px; margin-top: 32px; }
 .preview-canvas { display: block; width: 100%; height: 100%; }
 .status { font-size: 0.8rem; min-height: 2.7em; }
+.core-panel { margin: 28px 0; padding: 22px; border: 1px solid #2b3944; border-radius: 12px; background: #151f28; }
+.core-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.core-heading .eyebrow { margin: 0 0 6px; }
+.core-heading h2 { margin: 0; font-size: 1.4rem; }
+.badge { border-radius: 999px; padding: 7px 12px; font-size: 0.72rem; font-weight: 750; letter-spacing: 0.06em; }
+.badge-online { color: #09241d; background: #69dcc1; }
+.badge-offline { color: #f2c7c7; background: #512f37; }
+.core-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 22px 0; }
+.core-grid div { min-width: 0; padding: 13px; border-radius: 8px; background: #101820; }
+.core-grid dt { color: #a4b3bf; font-size: 0.78rem; }
+.core-grid dd { overflow-wrap: anywhere; margin: 7px 0 0; font-size: 0.92rem; font-weight: 650; }
+.connection-error { min-height: 1.4em; color: #ffc0c0; font-size: 0.8rem; }
+.connect-button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 7px; color: #09241d; background: #69dcc1; font: inherit; font-weight: 700; cursor: pointer; }
+.connect-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.endpoint-note { color: #a4b3bf; font-size: 0.75rem; overflow-wrap: anywhere; }
+.endpoint-note code { color: #d8e7eb; }
 footer { padding: 24px 0; border-top: 1px solid #2b3944; color: #a4b3bf; font-size: 0.8rem; }
 @media (max-width: 480px) {
   .shell { padding: 0 20px; }
   header { min-height: 76px; flex-wrap: wrap; padding: 16px 0; }
   section { padding-top: 28px; }
   footer { align-items: flex-start; flex-direction: column; }
+  .core-panel { padding: 17px; }
+  .core-grid { grid-template-columns: 1fr; gap: 9px; }
 }

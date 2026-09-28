@@ -25,6 +25,8 @@
     "build": "npm run client:build && npm run web:build",
     "protocol:validate": "node tools/validate-protocol.mjs",
     "protocol:test": "node --test tests/protocol/*.test.mjs",
+    "core:load-smoke": "node tools/core-load-smoke.mjs",
+    "core:benchmark": "node tools/frame-codec-benchmark.mjs",
     "repository:check": "node tools/check-repository.mjs"
   },
   "devDependencies": {

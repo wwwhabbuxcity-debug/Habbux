@@ -1,8 +1,8 @@
 # Client
 
-Uma codebase TypeScript com PixiJS 8 como camada gráfica de baixo nível.
-Vite prepara desenvolvimento e build; npm workspaces organiza os projetos sob
-Node 22. A fundação mostra apenas uma página/canvas mínimo, sem gameplay.
+Uma codebase TypeScript com PixiJS 8 como camada gráfica de baixo nível. Vite
+prepara desenvolvimento e build; npm workspaces organiza os projetos sob Node 22.
+O client possui codec/conexão WebSocket Core e painel técnico; ainda não há gameplay.
 
 ## Responsabilidades
 
@@ -10,7 +10,7 @@ Node 22. A fundação mostra apenas uma página/canvas mínimo, sem gameplay.
 |---|---|
 | `bootstrap` | Inicializar configuração, renderer e descarte dos recursos |
 | `core` | Ciclo de vida e composição; sem estado global irrestrito |
-| `communication`, `protocol` | Transporte futuro e contratos originados de `packages/protocol` |
+| `communication`, `protocol` | Codec binário e conexão WebSocket com contrato em `packages/protocol` |
 | `renderer` | Cena, câmera, sorting, animações e futura apresentação de entidades |
 | `assets` | Carregamento, cache com limites e descarte de HBX/texturas |
 | `input` | Normalizar mouse, teclado, touch e gestos em intenções |
@@ -30,9 +30,10 @@ O servidor decide regras, permissões, saldos e propriedade. O Client apresenta
 projeções e envia intenções. Predição visual futura precisa de reconciliação; nunca
 vira confirmação de compra, movimento permitido ou ação autorizada.
 
-Rede não altera objetos gráficos diretamente. Mensagens validadas atualizam uma
-projeção e o renderer consome mudanças. Frame rate e frequência de eventos de rede
-são independentes; não enviar mensagem nem fazer consulta de API a cada frame.
+Rede não altera objetos gráficos diretamente. Futuras mensagens de domínio
+atualizarão uma projeção e o renderer consumirá mudanças. Frame rate e frequência
+de eventos de rede são independentes; não enviar mensagem nem fazer consulta de
+API a cada frame.
 Relógio visual não é relógio de autoridade do jogo.
 
 ## Renderização e recursos

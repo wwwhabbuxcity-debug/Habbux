@@ -1,7 +1,7 @@
 # Arquitetura Habbux v1
 
-Status: **EARLY DEVELOPMENT / FOUNDATION**. Este documento registra limites e
-direções aprovadas; não afirma que os sistemas de jogo já existem.
+Status: **EARLY DEVELOPMENT / CORE NETWORKING v1**. Este documento registra
+limites e direções aprovadas; não afirma que os sistemas de jogo já existem.
 
 ## Objetivo e restrições
 
@@ -15,10 +15,10 @@ Uma dependência ou abstração precisa resolver uma necessidade identificada.
 
 | Limite | Responsabilidade | Situação nesta etapa |
 |---|---|---|
-| `apps/emulator` | Processo Java 25 autoritativo; rede Netty e futuros domínios | Bootstrap executável; sem gameplay |
-| `apps/client` | Uma aplicação TypeScript/PixiJS para desktop, tablet e mobile | Bootstrap de renderização e build |
+| `apps/emulator` | Processo Java 25 autoritativo; rede Netty e futuros domínios | Listener WebSocket Core v1; sem gameplay |
+| `apps/client` | Uma aplicação TypeScript/PixiJS para desktop, tablet e mobile | Codec, conexão Core e diagnóstico técnico |
 | `apps/web` | Site e futuro acesso às APIs públicas | Projeto mínimo |
-| `packages/protocol` | Fonte única do Habbux Protocol | Contrato inicial, sem conexão de jogo implementada |
+| `packages/protocol` | Fonte única do Habbux Protocol | Contrato Core v1 e vetores binários compartilhados |
 | Contratos HTTP futuros | Necessidades públicas da Web | Sem serviço ou pacote até haver contratos e consumidores reais |
 | Código compartilhado futuro | Utilidades puras com mais de um consumidor | Sem pacote vazio |
 | `asset-engine` | Importação offline e produção de HBX | Pipeline conceitual documentado; sem conversores implementados |

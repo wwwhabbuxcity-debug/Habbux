@@ -1,81 +1,69 @@
 # Habbux Emulator
 
-Fundação Java 25 independente. O executável é um smoke check: valida configuração,
-inicializa um event loop Netty, registra `starting`, `ready` e `stopped` em JSON e
-encerra. **Não abre portas, não mantém um hotel online e não conecta a PostgreSQL
-ou Redis.** `ready` significa apenas que esse bootstrap foi inicializado.
+Emulator Java 25 com servidor Netty WebSocket para o Core v1. O processo fica em
+execução até receber SIGTERM/SIGINT; usa loopback por padrão e não conecta a
+PostgreSQL, Redis ou aos demais projetos deste servidor. O Core não tem login nem
+gameplay.
 
-Na raiz do repositório, com um JDK 25 em `JAVA_HOME`:
+Na raiz do repositório, com JDK 25 e Node 22/npm 10:
 
 ```sh
 nice -n 19 ./mvnw --batch-mode clean verify
-HABBUX_ENV=development HABBUX_EVENT_LOOP_THREADS=1 HABBUX_SHUTDOWN_TIMEOUT_MS=5000 \
-  "$JAVA_HOME/bin/java" -Xms32m -Xmx128m -XX:ActiveProcessorCount=2 \
+nice -n 19 env PATH=/opt/node22/bin:$PATH NODE_OPTIONS=--max-old-space-size=512 npm ci
+npm run protocol:validate
+npm run protocol:test
+```
+
+Para iniciar manualmente, exporte as variáveis de `.env.example` no ambiente do
+processo; Java não lê `.env` automaticamente:
+
+```sh
+env HABBUX_ENV=development HABBUX_EVENT_LOOP_THREADS=1 \
+  HABBUX_SHUTDOWN_TIMEOUT_MS=5000 HABBUX_BIND_HOST=127.0.0.1 HABBUX_PORT=3100 \
+  "$JAVA_HOME/bin/java" -Xms32m -Xmx256m -XX:ActiveProcessorCount=2 \
   -jar apps/emulator/target/habbux-emulator-0.1.0-SNAPSHOT.jar
 ```
 
-O Maven Wrapper oficial usa Maven 3.9.16, distribuição HTTPS e SHA-256 fixo.
-Escolhemos Maven por lifecycle estável, configuração declarativa e CI simples.
-Plugins/dependências estão fixados; o BOM alinha os módulos Netty e JUnit, e o
-Enforcer rejeita versões transitivas divergentes e dependências SNAPSHOT.
-Maven não tem lockfile nativo: revisão de alterações no POM e convergência de
-dependências são obrigatórias. Não há preview do Java nem daemon de build.
-O timestamp do artefato é fixo; a reprodutibilidade byte a byte entre sistemas
-diferentes ainda precisa ser medida. A distribuição do JDK também deve ser fixada
-na infraestrutura de release futura.
+O Client local usa `CLIENT_WS_URL=ws://127.0.0.1:3100/ws`. Para encerrar, envie
+SIGTERM ao PID específico do Emulator; o hook para novas conexões, fecha canais e
+desliga os event loops. Não exponha o listener diretamente: terminação TLS e WSS
+exigem proxy de borda configurado numa etapa de deploy própria.
 
-## Configuração externa
+## Configuração
 
-Variáveis obrigatórias, sem leitura implícita de `.env`:
+| Variável | Padrão | Limites |
+|---|---|---|
+| `HABBUX_ENV` | obrigatória | `development`, `test`, `production` |
+| `HABBUX_EVENT_LOOP_THREADS` | obrigatória | 1–32 |
+| `HABBUX_SHUTDOWN_TIMEOUT_MS` | obrigatória | 1–30.000 ms |
+| `HABBUX_BIND_HOST` | `127.0.0.1` | hostname/IP não vazio |
+| `HABBUX_PORT` | `3100` | 0–65.535; 0 reservado para teste efêmero |
+| `HABBUX_MAX_PAYLOAD_BYTES` | 65.536 | 16–65.536 bytes (SERVER_HELLO tem 16 bytes) |
+| `HABBUX_HANDSHAKE_TIMEOUT_MS` | 10.000 | 100–60.000 ms |
+| `HABBUX_IDLE_TIMEOUT_SECONDS` | 120 | 1–3.600 s |
+| `HABBUX_MAX_CONNECTIONS` | 256 | 1–10.000 |
+| `HABBUX_MAX_PRE_READY_MESSAGES` | 3 | 1–16 |
+| `HABBUX_ALLOWED_ORIGINS` | localhost Vite | lista separada por vírgula, sem `*` |
 
-| Variável | Valores |
-|---|---|
-| `HABBUX_ENV` | `development`, `test`, `production` |
-| `HABBUX_EVENT_LOOP_THREADS` | Inteiro de 1 a 32; usar 1 neste bootstrap |
-| `HABBUX_SHUTDOWN_TIMEOUT_MS` | Inteiro de 1 a 30000; exemplo local: 5000 |
+Origem ausente é permitida para clientes nativos; uma origem enviada pelo browser
+precisa corresponder exatamente à allowlist. A configuração de produção deve
+incluir apenas a origem publicada, junto com o proxy WSS.
 
-Os limites são proteção do bootstrap, não promessa de capacidade de produção.
-Configuração inválida retorna código 2; falha operacional retorna 1; sucesso, 0.
-Valores inválidos não são repetidos nos logs. Host, portas, credenciais e
-integrações serão configuração externa quando o listener e a persistência
-existirem; o bootstrap não consome `GAME_WS_PORT`.
+## Dependências e lifecycle
 
-## Dependências necessárias
+- `netty-codec-http` e `netty-handler` 4.2.18.Final: HTTP upgrade, WebSocket,
+  agregação limitada e idle timeout; BOM central mantém módulos na mesma versão.
+- SLF4J 2.0.20 e Logback 1.6.4: logs JSON em appender assíncrono de fila limitada,
+  para que o event loop não escreva em console diretamente.
+- JUnit Jupiter 6.1.3: codec, configuração e integração WebSocket local.
 
-- `netty-transport` 4.2.18.Final: lifecycle real de event loop com transporte NIO
-  portátil. Não usamos `netty-all`, transporte nativo ou codecs ainda.
-- SLF4J 2.0.20 e Logback 1.6.4: API de logging e encoder JSON maduro; sem biblioteca
-  extra de JSON. O appender síncrono é suficiente para três logs do bootstrap.
-  Logging no hot path exigirá política explícita de amostragem, fila limitada e
-  tratamento de saturação antes de implementar tráfego.
-- JUnit Jupiter 6.1.3: testes determinísticos de configuração e lifecycle.
+O controle de lifecycle espera futures somente na thread principal/teste. O
+event loop não executa I/O de aplicação, banco, filesystem, sleeps ou `.get()`.
+O registry de sessões é concorrente e limitado pela admissão; cada conexão usa
+os event loops partilhados do Netty, sem thread dedicada.
 
-Somente o thread de bootstrap aguarda os futures de inicialização/desligamento.
-Nenhum I/O bloqueante é colocado no event loop. A API não expõe submissão de
-trabalho: só uma tarefa interna de prontidão é enfileirada. Filas de produção,
-backpressure e limites de mensagens são trabalho futuro obrigatório antes de
-aceitar qualquer tráfego. O lifecycle deve ser chamado pelo mesmo thread de
-controle; não é uma API concorrente de administração.
-
-## Limites dos módulos futuros
-
-Não criamos classes vazias para recursos ainda inexistentes. Os limites planejados
-dentro de `com.habbux` são:
-
-| Limite | Responsabilidade e regra |
-|---|---|
-| `bootstrap`, `config` | Composição, lifecycle e validação de configuração externa |
-| `network`, `protocol` | Transporte, framing e contratos gerados de `packages/protocol`; sem regra de domínio |
-| `auth`, `session`, `permission`, `moderation`, `command` | Identidade e autorização explícitas; sem confiar no client |
-| `user`, `avatar`, `achievement` | Estado e progressão do usuário sob autoridade do servidor |
-| `room`, `navigator`, `furniture`, `wired`, `pet`, `bot` | Eventos ordenados por quarto; estado isolado; sem thread por quarto |
-| `catalog`, `inventory`, `economy` | Compras transacionais, idempotência e auditoria |
-| `messenger`, `group` | Interações sociais com acesso por contratos definidos |
-| `persistence`, `cache` | PostgreSQL oficial; Redis opcional e efêmero; nenhum SQL em hot path |
-| `plugin` | APIs públicas versionadas; sem acesso irrestrito aos internals |
-| `metrics` | Métricas de event loop, JVM e recursos; cardinalidade limitada |
-| `common` | Somente utilidades pequenas comprovadamente compartilhadas |
-
-O Room Engine será testável sem iniciar o processo inteiro. Nenhum desses
-sistemas de gameplay foi implementado. Consulte `docs/architecture/EMULATOR.md`
-e `docs/architecture/ROOM-CONCURRENCY.md` na raiz.
+Teste local separado de 100 conexões: depois de `mvn clean verify`, dependências
+Node instaladas e Java 25 ativo, rode `nice -n 19 npm run core:load-smoke`. O
+script inicia um processo local em loopback, faz handshake/ping/pong/disconnect
+em cada WebSocket e confere counters zerados no shutdown. O ensaio não estima
+capacidade de produção.

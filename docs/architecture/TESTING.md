@@ -1,13 +1,13 @@
 # Convenções de testes
 
-Os testes entregues no bootstrap validam somente código implementado. Casos de
+Os testes entregues validam somente código implementado. Casos de
 gameplay abaixo são requisitos para futuros incrementos, não resultados já obtidos.
 
 | Tipo | Escopo | Dependências |
 |---|---|---|
 | Unit | Configuração, regras puras e transformação de contratos | Sem rede, DB ou relógio real obrigatório |
-| Integration | Adaptadores e transações reais | Serviços descartáveis com versão/configuração registradas |
-| Protocol | Esquema central, codecs e interoperabilidade futura | Vetores fixos válidos/inválidos compartilhados |
+| Integration | Listener WebSocket real, handshake, sessão e ping/pong | Porta efêmera em loopback; sem serviço externo |
+| Protocol | Registro central, codecs e interoperabilidade Java/TypeScript | Vetores fixos válidos/inválidos compartilhados |
 | E2E | Percurso observável pelo navegador e servidor | Ambiente isolado e dados próprios |
 | Load | Capacidade, degradação e recuperação | Máquina dedicada e gerador medido |
 
@@ -36,8 +36,8 @@ por corrida. Um resultado determinístico não substitui teste do agendador real
 
 ## Contratos e qualidade
 
-Codecs futuros compartilham vetores canônicos entre Java e TypeScript: round-trip
-sozinho é insuficiente porque dois lados podem repetir o mesmo erro. Incluir
+Codecs compartilham vetores canônicos entre Java e TypeScript: round-trip sozinho
+é insuficiente porque dois lados podem repetir o mesmo erro. Incluir
 limites, truncamento, flags, IDs inválidos, estados incorretos de handshake e
 consumidor lento. Fuzzing deve ter orçamento e seed reproduzível.
 

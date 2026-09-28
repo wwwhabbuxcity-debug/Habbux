@@ -19,6 +19,21 @@
         <p class="eyebrow">O começo de um novo mundo</p>
         <h1 id="title">Estamos construindo a base.</h1>
         <p class="intro">Este é o ambiente inicial do Habbux. O jogo ainda está em desenvolvimento.</p>
+        <section class="core-panel" aria-labelledby="core-title">
+          <div class="core-heading">
+            <div><p class="eyebrow">Diagnóstico de rede</p><h2 id="core-title">Habbux Core</h2></div>
+            <span id="emulator-status" class="badge badge-offline" role="status">OFFLINE</span>
+          </div>
+          <dl class="core-grid">
+            <div><dt>Protocolo</dt><dd>v1 · WebSocket binário</dd></div>
+            <div><dt>Conexão</dt><dd id="connection-state">DISCONNECTED</dd></div>
+            <div><dt>Sessão anônima</dt><dd id="session-id">—</dd></div>
+            <div><dt>RTT de aplicação</dt><dd id="rtt">—</dd></div>
+          </dl>
+          <p id="connection-error" class="connection-error" aria-live="polite"></p>
+          <button id="connection-toggle" class="connect-button" type="button">Conectar ao Emulator</button>
+          <p class="endpoint-note">Endpoint configurado para este build: <code id="endpoint"></code></p>
+        </section>
         <div id="viewport" aria-label="Prévia gráfica do Habbux"></div>
         <p id="renderer-status" class="status" role="status" aria-live="polite">Preparando a prévia…</p>
         <noscript><p>Ative o JavaScript para abrir a prévia.</p></noscript>

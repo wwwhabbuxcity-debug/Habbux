@@ -1,8 +1,25 @@
 # Plano de benchmarks
 
-**Nenhum benchmark de capacidade foi executado neste bootstrap.** Este diretório
-contém o plano; ferramentas e resultados serão adicionados com funcionalidades
-mensuráveis. Não usar números de conexões como alegação de jogadores suportados.
+O benchmark atual (`npm run core:benchmark`) mede encode/decode do codec
+TypeScript para um frame PING de 4 bytes. Ele é um baseline de CPU local, não mede
+Netty, estabelecimento de conexão, RTT de rede ou capacidade de jogadores. Não
+usar números de conexões como alegação de jogadores suportados.
+
+## Core v1: baseline do codec
+
+Execução única em 2026-09-28, com Node v22.23.2, Linux x64, AMD EPYC Processor
+(with IBPB), 4 CPUs lógicas. Comando:
+`nice -n 19 env HABBUX_BENCH_ITERATIONS=250000 npm run core:benchmark`. Payload
+PING de 4 bytes, 20.000 iterações de aquecimento:
+
+| Operação | Duração | Operações/s |
+|---|---:|---:|
+| Encode | 413,09 ms | 605.202 |
+| Decode | 142,89 ms | 1.749.560 |
+
+Encode inclui criar o buffer e escrever o frame; decode inclui validação e cópia
+defensiva do payload. Foi uma execução local sem repetição estatística, rede ou
+JVM; use apenas como baseline do codec TypeScript nesta máquina.
 
 ## Progressão
 
@@ -11,7 +28,8 @@ simulados, registrando qual população cada nível representa. São pontos de e
 não metas garantidas. Avançar só se o nível anterior permanecer estável dentro dos
 critérios de proteção e do orçamento definidos para o ambiente dedicado.
 
-**10.000 WebSockets ociosos NÃO equivalem a 10.000 jogadores reais.**
+**100 WebSockets de smoke ou 10.000 WebSockets ociosos NÃO equivalem a jogadores
+reais.**
 
 ## Cenários futuros
 
@@ -55,7 +73,9 @@ como JMH, com warmup e prevenção de otimizações que eliminem trabalho medido
 
 ## Restrições operacionais
 
-Não executar carga neste servidor compartilhado com Gallaxys, Peptídeos,
-Labsciences e Modelgold. Não reutilizar contas, bancos ou dados desses projetos.
+Não executar carga prolongada neste servidor compartilhado com Gallaxys,
+Peptídeos, Labsciences e Modelgold. A única exceção deste Core é o smoke local,
+explicitamente limitado a 100 conexões loopback e sem tocar outros projetos.
+Não reutilizar contas, bancos ou dados desses projetos.
 Critérios de parada e capacidade permanecem **TBD** no
 [orçamento de performance](../docs/performance/PERFORMANCE-BUDGET.md).

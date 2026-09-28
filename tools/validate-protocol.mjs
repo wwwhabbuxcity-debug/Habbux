@@ -2,44 +2,54 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
-/** Validates the draft registry, not network traffic. No wire codec exists yet. */
 export function validateProtocol(spec) {
   assert.equal(spec.name, 'Habbux Protocol');
-  assert.equal(spec.status, 'draft');
-  assert.ok(Number.isInteger(spec.version) && spec.version > 0 && spec.version <= 255, 'version must fit uint8');
+  assert.equal(spec.status, 'core-v1');
+  assert.equal(spec.version, 1);
   assert.equal(spec.transport, 'binary-websocket');
+  assert.equal(spec.webSocketPath, '/ws');
   assert.equal(spec.byteOrder, 'big-endian');
+  assert.equal(spec.headerBytes, 8);
   assert.deepEqual(spec.header, [
-    { name: 'VERSION', type: 'uint8' },
-    { name: 'MESSAGE_ID', type: 'uint16' },
-    { name: 'FLAGS', type: 'uint8' },
-    { name: 'PAYLOAD_LENGTH', type: 'uint32' },
-  ], 'header layout is part of the versioned contract');
+    { name: 'VERSION', type: 'uint8', bytes: 1 },
+    { name: 'MESSAGE_ID', type: 'uint16', bytes: 2 },
+    { name: 'FLAGS', type: 'uint8', bytes: 1 },
+    { name: 'PAYLOAD_LENGTH', type: 'uint32', bytes: 4 },
+  ]);
   const { maxPayloadBytes, allowedFlags, framesPerWebSocketMessage } = spec.limits;
-  assert.ok(Number.isInteger(maxPayloadBytes) && maxPayloadBytes > 0 && maxPayloadBytes <= 65536, 'payload limit must be bounded to 64 KiB');
-  assert.equal(allowedFlags, 0, 'draft reserves all flags');
+  assert.equal(maxPayloadBytes, 65536, 'Core v1 payload bound must remain 64 KiB');
+  assert.equal(allowedFlags, 0, 'Core v1 reserves all flags');
   assert.equal(framesPerWebSocketMessage, 1);
-  assert.ok(Array.isArray(spec.messages) && spec.messages.length > 0);
+  assert.equal(spec.payloadEncoding, 'per-message-big-endian');
+  assert.deepEqual(spec.messages.map(({ id, name, direction, payloadBytes }) => [id, name, direction, payloadBytes]), [
+    [1, 'CLIENT_HELLO', 'client-to-server', 0],
+    [2, 'SERVER_HELLO', 'server-to-client', 16],
+    [3, 'PING', 'client-to-server', 4],
+    [4, 'PONG', 'server-to-client', 4],
+    [5, 'CLIENT_DISCONNECT', 'client-to-server', 0],
+    [6, 'SERVER_ERROR', 'server-to-client', 2],
+  ], 'message IDs, direction, and payload sizes are the v1 contract');
   const ids = new Set();
   const names = new Set();
   for (const message of spec.messages) {
-    assert.ok(Number.isInteger(message.id) && message.id > 0 && message.id <= 65535, 'message ID must fit uint16 and cannot be zero');
+    assert.ok(Number.isInteger(message.id) && message.id > 0 && message.id <= 65535);
     assert.ok(!ids.has(message.id), 'duplicate message ID');
-    assert.ok(typeof message.name === 'string' && /^[A-Z][A-Z0-9_]*$/.test(message.name), 'invalid message name');
+    assert.match(message.name, /^[A-Z][A-Z0-9_]*$/);
     assert.ok(!names.has(message.name), 'duplicate message name');
-    assert.ok(['client-to-server', 'server-to-client', 'bidirectional'].includes(message.direction), 'invalid direction');
-    assert.ok(typeof message.purpose === 'string' && message.purpose.trim().length > 0, 'missing purpose');
+    assert.ok(Number.isInteger(message.payloadBytes) && message.payloadBytes >= 0 && message.payloadBytes <= maxPayloadBytes);
+    assert.ok(typeof message.purpose === 'string' && message.purpose.trim());
     ids.add(message.id);
     names.add(message.name);
   }
-  assert.equal(spec.payloadEncoding, 'TBD', 'a payload codec requires a reviewed protocol revision');
-  assert.ok(Array.isArray(spec.disconnectReasons) && spec.disconnectReasons.length > 0);
-  assert.equal(new Set(spec.disconnectReasons).size, spec.disconnectReasons.length, 'duplicate disconnect reason');
-  for (const reason of spec.disconnectReasons) assert.match(reason, /^[A-Z][A-Z0-9_]*$/);
+  assert.deepEqual(spec.serverErrors, [
+    { code: 1, name: 'INVALID_STATE' },
+    { code: 2, name: 'HANDSHAKE_TIMEOUT' },
+  ]);
+  assert.equal(new Set(spec.serverErrors.map(({ code }) => code)).size, spec.serverErrors.length);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const spec = JSON.parse(await readFile(new URL('../packages/protocol/protocol.json', import.meta.url), 'utf8'));
   validateProtocol(spec);
-  console.log(`Protocol registry v${spec.version}: valid (${spec.messages.length} control messages; wire codec not implemented)`);
+  console.log(`Protocol registry v${spec.version}: valid (${spec.messages.length} core messages)`);
 }

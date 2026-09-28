@@ -1,4 +1,4 @@
-name: Foundation checks
+name: Core checks
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: foundation-${{ github.workflow }}-${{ github.ref }}
+  group: core-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -43,12 +43,8 @@ jobs:
         run: npm run protocol:validate && npm run protocol:test && npm run repository:check
       - name: Emulator clean build and tests
         run: nice -n 19 ./mvnw --batch-mode clean verify
-      - name: Emulator lifecycle smoke
-        env:
-          HABBUX_ENV: test
-          HABBUX_EVENT_LOOP_THREADS: '1'
-          HABBUX_SHUTDOWN_TIMEOUT_MS: '5000'
-        run: nice -n 19 java -Xmx128m -XX:ActiveProcessorCount=1 -jar apps/emulator/target/habbux-emulator-0.1.0-SNAPSHOT.jar
+      - name: 100 connection local Core smoke
+        run: nice -n 19 npm run core:load-smoke
       - name: Client and web build
         run: nice -n 19 npm run build
       - name: Validate optional local infrastructure

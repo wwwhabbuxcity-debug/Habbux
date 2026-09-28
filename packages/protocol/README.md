@@ -1,14 +1,14 @@
-# Fonte única do Habbux Protocol
+# Fonte canônica do Habbux Protocol
 
-`protocol.json` é o registro canônico versionado de framing, limites, IDs de
-controle e motivos de desconexão. A especificação humana está em
+`protocol.json` define framing, limites, direções, IDs e tamanhos fixos das
+mensagens Core. `golden-vectors-v1.txt` é compartilhado pelos testes Java e
+TypeScript. As regras legíveis estão em
 [`docs/protocol/HABBUX-PROTOCOL-v1.md`](../../docs/protocol/HABBUX-PROTOCOL-v1.md).
 
-Nenhum enum de mensagens independente deve ser escrito à mão no Java/TypeScript.
-Quando o codec for implementado, um gerador pequeno lerá este registro e os
-schemas de payload, emitirá tipos/IDs/codecs para ambas as linguagens e fixtures
-binárias de referência. CI verificará geração determinística e diferenças de
-arquivos gerados. Até lá o registro é documentação validável, não um protocolo
-operacional. Não duplicar o catálogo fora deste diretório.
+Java e TypeScript declaram enums locais para uso tipado; testes comparam os IDs
+ao registro e ambos decodificam os mesmos vetores em bytes. Uma alteração de
+contrato precisa atualizar o JSON, a especificação e os dois codecs na mesma
+mudança; divergências falham nos testes. Não criar um catálogo paralelo.
 
-Validar: `npm run protocol:validate`; regressões: `npm run protocol:test`.
+Validar o contrato e vetores: `npm run protocol:validate` e
+`npm run protocol:test`.
