@@ -1,68 +1,100 @@
-# Concorrência do futuro Room Engine
+# Concorrência do Room Engine v1
 
-Status: requisitos e modelo; Room Engine não implementado.
+Status: **checkpoint 1 implementado: lifecycle, diretório, scheduler, mailbox,
+presença, entrada/saída e spawn sobre grade estática**. Movimento, chat e load
+baselines pertencem aos checkpoints posteriores.
 
-## Autoridade e ordenação
+## Autoridade e ordem
 
-Cada quarto possui um único proprietário lógico do estado. Comandos entram em
-uma fila limitada e são processados sequencialmente para aquele quarto:
+Cada `RoomRuntime` possui um único proprietário lógico: o worker que executa seu
+mailbox naquele lote. A fila FIFO é limitada (padrão 512 eventos por quarto) e
+preserva a ordem em que o mailbox aceita comandos concorrentes. Eventos do mesmo
+quarto nunca executam ao mesmo tempo; quartos diferentes usam workers distintos
+quando disponíveis.
+
+O `RoomScheduler` tem dois workers fixos por padrão, limitados a oito, e fila de
+salas prontas limitada ao máximo de quartos ativos (padrão 128). Não existe uma
+thread por quarto, worker pinado a um quarto ou lock global para o estado do
+hotel. Cada lote cede após no máximo 32 eventos **ou 2 ms**, o que ocorrer
+primeiro. Um evento individual já iniciado não é interrompido; movimento terá
+limites próprios para reduzir esse custo.
 
 ```text
-Comando validado → Event Queue limitada → Room Worker → State Mutation → Outgoing Events
+Netty EventLoop → valida frame/estado → mailbox limitado por RoomId
+                                    → worker compartilhado
+                                    → mutação exclusiva + eventos imutáveis
+Netty EventLoop ← tarefas de saída ordenadas pela origem do quarto
 ```
 
-Não existe uma thread física por quarto nem lock global do hotel. Um conjunto
-limitado de workers atende vários quartos, com no máximo uma execução simultânea
-por quarto. Quartos diferentes podem executar em paralelo. A quantidade de
-workers e o orçamento por execução serão definidos por medição.
+O Room Engine não recebe `ByteBuf`, canal mutável nem `User` completo. `RoomClient`
+é um adaptador não bloqueante: transforma mensagens imutáveis em tarefas do
+EventLoop. A escrita verifica o estado de backpressure do canal; conexão sem
+capacidade de escrita é fechada pelo limite de saída já existente no Core.
 
-A ordem é a de aceitação pelo proprietário do quarto; eventos concorrentes de
-conexões diferentes não possuem uma ordem global presumida. Registrar sequência
-local permite diagnosticar a ordem efetivamente aplicada. O agendador preserva a
-ordem de cada fila e cede execução após orçamento limitado para evitar que um
-quarto monopolize o executor.
+## Diretório, ativação e lifecycle
 
-## Estado e trabalho externo
+O diretório é `ConcurrentHashMap<RoomId, Slot>` com reserva atômica por chave e
+`Semaphore` para limitar quartos em loading/ativos (padrão 128). Só ativa um
+quarto sob demanda; não faz preload da tabela. Um executor separado de dois
+workers e fila limitada (padrão 64) lê metadados e grade do PostgreSQL, sem SQL
+no EventLoop nem no worker de gameplay. Falha de ativação libera a reserva.
 
-Somente o proprietário altera o estado. Leituras externas usam projeções/snapshots
-imutáveis com versão, nunca referências mutáveis a jogadores ou objetos. Consultas
-SQL e outros I/O não bloqueiam o worker. Uma conclusão assíncrona retorna como
-novo evento com correlação e versão; resultados obsoletos são descartados ou
-revalidados conforme a operação.
+Estados runtime: `LOADING → IDLE ↔ ACTIVE → UNLOADING → CLOSED`. A entrada muda
+`IDLE` para `ACTIVE`; saída do último ocupante muda para `IDLE`. Um único
+agendador de controle verifica idle timeout (padrão 30 s). Admissão e retirement
+usam estado por slot; uma entrada concorrente atualiza a atividade e cancela
+unload antes da transição a `CLOSED`, ou espera o slot sair do diretório e ativa
+uma nova instância. A capacidade de quartos continua reservada até remover o slot.
 
-Transferir jogador entre quartos exige um protocolo explícito de saída/entrada,
-timeouts e compensação. Não adquirir locks de dois quartos. Regras econômicas
-continuam pertencendo à transação persistente, mesmo quando acionadas no quarto.
+No shutdown, o servidor fecha listener e canais primeiro, aceita os eventos de
+leave enviados por `channelInactive`, para o executor de I/O, enfileira drenagem
+de cada runtime, espera os workers dentro do timeout e só então encerra os
+EventLoops. Timeout/falha de drenagem é reportado pelo bootstrap; não confirma
+cleanup sem checagem.
 
-## Saturação e justiça
+## Presença e persistência
 
-- Limitar eventos e bytes por fila, custo admitido por origem e duração por turno.
-- Rejeitar comandos novos com resultado definido quando não houver capacidade.
-- Não descartar silenciosamente ações econômicas ou eventos de mudança de posse.
-- Eventos substituíveis só podem ser agregados com equivalência documentada.
-- Medir tamanho e idade da fila, tempo de processamento, rejeições e tempo até
-  uma alteração tornar-se observável.
+Uma conexão autenticada mantém zero ou um quarto (`NONE`, `JOINING`, `IN_ROOM`).
+O principal é copiado para presença mínima (`session UUID`, user ID, username,
+posição e adaptador de saída). Capacidade e alocação de posição são verificadas
+no owner do quarto, então concorrência não ultrapassa o limite. Máximo de
+capacidade é 100; entrada em grid sem tile livre retorna “cheio”. Leave duplo é
+idempotente e disconnect cancela join pendente e enfileira remoção.
 
-Timers usam o mesmo caminho ordenado dos demais eventos. Não criam loops, threads
-ou temporizadores ilimitados por objeto; limites e cancelamento serão definidos
-antes da implementação de comportamentos recorrentes.
+PostgreSQL persiste somente proprietário, nome, descrição, capacidade,
+dimensões, walkability, spawn e timestamps. Grid estática é limitada a 64×64
+(4.096 tiles), com um byte por tile. Ocupantes, posições, caminhos, mailbox,
+estado e relógios existem somente em RAM. SQL acontece na ativação e criação
+explícita; interações em runtime não consultam o banco. Quarto ativo
+continua operando se PostgreSQL ficar indisponível depois da ativação.
 
-## Carregamento, unload e encerramento
+## Snapshot, spawn e tráfego
 
-Carregar quarto prepara seu estado antes de admitir comandos. Unload transita
-para drenagem, recusa novas entradas, cancela timers, resolve trabalho pendente,
-persiste o que precisa ser durável e remove referências. Quarto com jogadores ou
-transação pendente não é descartado como se estivesse ocioso.
+Spawn busca em largura a partir do spawn configurado, ordem fixa norte/oeste/
+leste/sul, ignorando tiles bloqueados e ocupados. Se não houver tile livre,
+entrada falha sem sobrepor ocupantes. O payload de snapshot tem no máximo 7.308
+bytes: 4.096 bytes de grade, até 100 entradas com ID/posição/username ASCII de
+até 20 bytes e campos fixos. O processo com Room Engine habilitado exige
+`HABBUX_MAX_PAYLOAD_BYTES >= 7308`; o limite global do protocolo continua 65.536.
 
-Shutdown retira prontidão e usa prazo de drenagem. Se a persistência falhar, o
-processo reporta a falha e a política de recuperação é aplicada; não marca dados
-como salvos. Limites de perda aceitável dependem do tipo de estado, nunca de um
-timeout implícito de infraestrutura.
+Respostas geradas pelo quarto são enfileiradas no EventLoop. Uma conexão lenta
+não segura o worker: writes não aguardam socket, e a fila Netty existente fecha
+a conexão se passar o high watermark de 64 KiB. Saturação de mailbox rejeita o
+evento explicitamente; eventos críticos de cleanup usam reserva na mesma FIFO,
+sem exceder sua capacidade total.
 
-## Testabilidade
+## Observabilidade e teste
 
-Relógio virtual, IDs e gerador aleatório controlados permitem reproduzir uma
-sequência de comandos sem Netty, banco ou hotel inteiro. Testar exclusividade de
-mutação, ordem local, justiça entre quartos, fila cheia, conclusão atrasada,
-transferência, unload e shutdown. Testes de concorrência reais complementam o
-executor determinístico; repetir um teste com sleeps não prova correção.
+O snapshot de métricas conta quartos ativos, workers vivos, eventos aceitos,
+rejeitados/processados, handler failures, maior mailbox e atraso médio de fila.
+Testes do checkpoint atual cobrem 10 mil eventos ordenados, paralelo entre
+quartos, justiça por quantidade e tempo de lote, mailbox cheia, handler
+exception, 100 entradas no mesmo quarto, activation race, unload/rejoin,
+cancelamento durante ativação, disconnect, leave duplo, ausência do quarto e
+shutdown. Pathfinding, movimento, chat e cenários de carga ficam para os
+próximos checkpoints.
+
+Essas garantias de teste não definem capacidade sustentável. Use o relatório de
+load smoke para limites, percentis e condições da máquina observada. Furniture,
+economia, bots, direitos de quarto e transferência entre quartos continuam fora
+do Room Engine v1.

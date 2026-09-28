@@ -1,7 +1,7 @@
 # Arquitetura Habbux v1
 
-Status: **EARLY DEVELOPMENT / CORE NETWORKING v1**. Este documento registra
-limites e direções aprovadas; não afirma que os sistemas de jogo já existem.
+Status: **EARLY DEVELOPMENT / CORE NETWORKING + ROOM CORE**. Este documento
+registra limites e direções aprovadas; Furniture Engine e economia ainda não existem.
 
 ## Objetivo e restrições
 
@@ -15,14 +15,14 @@ Uma dependência ou abstração precisa resolver uma necessidade identificada.
 
 | Limite | Responsabilidade | Situação nesta etapa |
 |---|---|---|
-| `apps/emulator` | Processo Java 25 autoritativo; rede Netty e futuros domínios | Listener WebSocket Core v1; sem gameplay |
-| `apps/client` | Uma aplicação TypeScript/PixiJS para desktop, tablet e mobile | Codec, conexão Core e diagnóstico técnico |
+| `apps/emulator` | Processo Java 25 autoritativo; rede Netty, Auth e Room Core | Listener WebSocket Core v1 e lifecycle/presença de quartos |
+| `apps/client` | Uma aplicação TypeScript/PixiJS para desktop, tablet e mobile | Codec, conexão Core e diagnóstico de rede/Auth |
 | `apps/web` | Site e futuro acesso às APIs públicas | Projeto mínimo |
 | `packages/protocol` | Fonte única do Habbux Protocol | Contrato Core v1 e vetores binários compartilhados |
 | Contratos HTTP futuros | Necessidades públicas da Web | Sem serviço ou pacote até haver contratos e consumidores reais |
 | Código compartilhado futuro | Utilidades puras com mais de um consumidor | Sem pacote vazio |
 | `asset-engine` | Importação offline e produção de HBX | Pipeline conceitual documentado; sem conversores implementados |
-| `database` | Evolução versionada da persistência PostgreSQL | Infraestrutura inicial; sem schema do hotel |
+| `database` | Evolução versionada da persistência PostgreSQL | Auth/User e metadados estáticos de quarto |
 | `infrastructure` | Desenvolvimento, publicação e operação | Configuração isolada do projeto |
 
 Contratos HTTP serão autenticados, versionados, validados e limitados; antes do

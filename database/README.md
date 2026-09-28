@@ -1,7 +1,8 @@
 # Persistência e migrations
 
-PostgreSQL é a fonte de verdade persistente. A primeira migration cria somente
-identidade e credenciais do User/Auth Core; tabelas de gameplay não existem.
+PostgreSQL é a fonte de verdade persistente. Migrations criam identidade e
+credenciais do User/Auth Core e metadados/grade estática do Room Core. Estado de
+ocupação, caminhos e posições não é persistido.
 `migrations/` usa SQL versionado `Vnnnn__descricao.sql`, gerenciado por Flyway.
 Seeds sintéticas e snapshots só serão adicionados quando houver conteúdo real.
 
@@ -26,9 +27,9 @@ carregado pelo processo do Emulator. Flyway mantém histórico/checksums e
 serializa migrations. Não editar migrations aplicadas; fazer uma nova versão.
 `clean` permanece desabilitado.
 
-Depois da primeira migration, conceda ao usuário de runtime somente `SELECT` e
-`INSERT` nas colunas usadas por login/cadastro e `USAGE/SELECT` na sequence de
-identidade. Conceda colunas e operações explicitamente em cada nova migration; não
+Depois das migrations, conceda ao usuário de runtime somente `SELECT` e
+`INSERT` nas colunas usadas por login/cadastro e nos metadados de quarto, além de
+`USAGE/SELECT` nas sequences necessárias. Conceda operações explicitamente; não
 use privilégios padrão amplos. Não conceda `UPDATE`, `DELETE`, DDL, `CREATE DATABASE`
 ou superuser ao runtime nesta fase. No Compose descartável local, o usuário inicial pode
 ser dono para facilitar desenvolvimento; ambientes persistentes devem separar as
@@ -40,8 +41,13 @@ credenciais.
   originais e normalizados, status e timestamps `TIMESTAMPTZ`.
 - `user_credentials`: relação 1:1 com o usuário e hash PHC Argon2id. Não guarda
   senha, token ou sessão persistente.
+- `rooms` (V0003): owner com `ON DELETE RESTRICT`, nome, descrição, capacidade,
+  grid de 1–64 por dimensão (até 4.096 bytes de walkability), tile de spawn e
+  timestamps. Runtime usa somente `SELECT`/`INSERT`; não atualiza nem remove
+  metadados por conexão de jogo.
 - Índices: PKs e constraints `UNIQUE` geram somente os índices usados pela busca
-  de login por `username_normalized` ou `email_normalized`.
+  de login por `username_normalized` ou `email_normalized`; `idx_rooms_owner_id`
+  serve a consulta de quartos do proprietário.
 - Constraints rejeitam formato/tamanho inválido, status fora do conjunto,
   relações órfãs e hashes fora do formato PHC Argon2id v=19.
 
@@ -59,9 +65,9 @@ docker compose --env-file .env -f infrastructure/docker/compose.yaml --profile d
 docker compose --env-file .env -f infrastructure/docker/compose.yaml --profile data --profile tools run --rm migrations migrate
 ```
 
-O teste opcional de integração aplica migrations somente no banco local de nome
+Os testes opcionais de integração aplicam migrations somente no banco local de nome
 exato `habbux_phase2_test`, confirma `current_database()` antes de qualquer DDL e
-limpa somente as duas tabelas Habbux desse banco. As variáveis `HABBUX_TEST_POSTGRES_*`
+limpam somente `rooms`, `user_credentials` e `users` desse banco. As variáveis `HABBUX_TEST_POSTGRES_*`
 devem ficar em arquivo local ignorado e com modo `0600`; host precisa ser loopback.
 O teste exige usuário de migration separado e papel de runtime `habbux_phase2_app`.
 Sem as variáveis locais de teste, o teste PostgreSQL aparece como `SKIPPED`; isso

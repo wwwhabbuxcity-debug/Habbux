@@ -4,6 +4,7 @@ import com.habbux.config.AppConfig;
 import com.habbux.auth.AuthService;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.Session;
+import com.habbux.room.RoomManager;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -25,6 +26,7 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final ConnectionRegistry registry;
     private final ChannelGroup childChannels;
     private final AuthService authService;
+    private final RoomManager roomManager;
 
     CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels) {
         this(config, registry, childChannels, null);
@@ -32,10 +34,16 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels,
                            AuthService authService) {
+        this(config, registry, childChannels, authService, null);
+    }
+
+    CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels,
+                           AuthService authService, RoomManager roomManager) {
         this.config = config;
         this.registry = registry;
         this.childChannels = childChannels;
         this.authService = authService;
+        this.roomManager = roomManager;
     }
 
     @Override
@@ -62,7 +70,7 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
         channel.pipeline().addLast("websocket-aggregate", new WebSocketFrameAggregator(
                 CoreChannelHandler.HEADER_BYTES + config.maxPayloadBytes()));
         channel.pipeline().addLast("idle", new IdleStateHandler(config.idleTimeoutSeconds(), 0, 0, TimeUnit.SECONDS));
-        channel.pipeline().addLast("core", new CoreChannelHandler(config, registry, authService));
+        channel.pipeline().addLast("core", new CoreChannelHandler(config, registry, authService, roomManager));
         childChannels.add(channel);
     }
 }

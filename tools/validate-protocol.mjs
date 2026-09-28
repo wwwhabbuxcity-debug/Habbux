@@ -34,6 +34,12 @@ export function validateProtocol(spec) {
     [10, 'AUTH_FAILURE', 'server-to-client', 1],
     [11, 'AUTH_LOGOUT', 'client-to-server', 0],
     [12, 'AUTH_LOGOUT_SUCCESS', 'server-to-client', 0],
+    [13, 'ROOM_JOIN', 'client-to-server', 8],
+    [14, 'ROOM_JOIN_SUCCESS', 'server-to-client', 10],
+    [15, 'ROOM_JOIN_FAILURE', 'server-to-client', 1],
+    [16, 'ROOM_LEAVE', 'client-to-server', 0],
+    [17, 'ROOM_LEAVE_SUCCESS', 'server-to-client', 0],
+    [18, 'ROOM_SNAPSHOT', 'server-to-client', 'variable'],
   ], 'message IDs, direction, and payload sizes are the v1 contract');
   const ids = new Set();
   const names = new Set();

@@ -1,12 +1,13 @@
 # Habbux
 
-**Project status: EARLY DEVELOPMENT / NETWORK + PERSISTENCE FOUNDATION**
+**Project status: EARLY DEVELOPMENT / NETWORK + ROOM CORE FOUNDATION**
 
 Habbux é uma plataforma multiplayer independente em fase inicial. Não é fork de
-Polaris, Arcturus, Morningstar, Nitro ou Octane. O Core de transporte já abre
-WebSocket binário e conclui handshake anônimo e ping/pong; não há login, gameplay,
-conversor de assets ou engine de quartos. Nenhum código ou asset desses projetos
-foi incorporado.
+Polaris, Arcturus, Morningstar, Nitro ou Octane. O Core abre WebSocket binário,
+autentica a identidade mínima e inclui Room Core para lifecycle, presença, grade
+estática, entrada e saída. Movimento, chat e estado interativo no Client seguem
+nos próximos checkpoints. Furniture Engine, catálogo, economia e conversor de
+assets ainda não existem. Nenhum código ou asset desses projetos foi incorporado.
 
 Princípios: **desempenho, estabilidade, baixa latência, escala e manutenção**.
 Medir antes de otimizar; não prometer capacidade sem ensaio reproduzível.
@@ -19,8 +20,9 @@ opcional para dados efêmeros com limites/expiração. O client usa TypeScript e
 PixiJS em uma única codebase adaptativa para desktop, tablet e mobile.
 
 O protocolo binário próprio possui registro canônico versionado e Core v1 de
-rede. A base Auth/User contém schema, JDBC, hashing e executor limitado, ainda sem
-fluxo de login integrado. O pipeline futuro importa SWF/Nitro e gera HBX nativo; o client não
+rede. Auth/User tem schema, JDBC, hashing e executor limitado. O Room Engine tem
+mailbox e workers limitados, persistência de metadados/grade estática e runtime
+em memória. O pipeline futuro importa SWF/Nitro e gera HBX nativo; o client não
 interpretará esses formatos de importação. Web e futura API dependem de contratos,
 sem acesso ao estado interno do emulador. Não há microserviços adicionais nem
 frameworks de servidor adicionados por conveniência.
@@ -29,12 +31,12 @@ frameworks de servidor adicionados por conveniência.
 
 | Caminho | Responsabilidade |
 | --- | --- |
-| `apps/emulator` | Processo Java 25, listener WebSocket Netty, persistência/Auth foundation e testes |
+| `apps/emulator` | Processo Java 25, listener WebSocket Netty, Auth e Room Core autoritativo |
 | `apps/client` | Bootstrap TypeScript/PixiJS, codec e painel de diagnóstico |
 | `apps/web` | Página mínima do projeto, sem produto definitivo |
 | `packages/protocol` | Registro único de IDs, framing e limites |
 | `asset-engine` | Pipeline conceitual de importação e geração HBX, sem ferramentas implementadas |
-| `database` | Migration Flyway para usuários/credenciais; sem tabelas de gameplay |
+| `database` | Migrations Flyway para Auth/User e metadados estáticos de quartos |
 | `infrastructure` | Compose local opcional, vhost, deploy estático e observabilidade |
 | `tests`, `benchmarks` | Codec, integração, smoke limitado e baseline de codec |
 | `tools` | Validação de contrato e higiene do repositório |
@@ -67,8 +69,8 @@ npm run repository:check
 nice -n 19 env NODE_OPTIONS=--max-old-space-size=512 RAYON_NUM_THREADS=1 npm run build
 ```
 
-`clean verify` compila e executa testes de codec, handshake, timeout, pool/config,
-Argon2id e executor. Integração PostgreSQL só roda com configuração para
+`clean verify` compila e executa testes de codec, handshake, Room Core,
+concorrência, timeout, pool/config, Argon2id e executor. Integração PostgreSQL só roda com configuração para
 `habbux_phase2_test`; sem ela aparece como `SKIPPED`. Typecheck cobre client e web. Para iniciar o Emulator em
 loopback:
 
@@ -113,6 +115,6 @@ busca padrões conhecidos e não substitui revisão do diff antes de commit/push
 Segredos expostos devem ser revogados, não apenas removidos do último commit.
 
 O CI valida os componentes existentes: Java/testes de integração locais,
-client/web/typecheck, vetores de protocolo, higiene e configuração Compose. Não
-afirma gameplay nem capacidade de produção. O fluxo Auth e gameplay ainda estão
-em etapas posteriores.
+client/web/typecheck, vetores de protocolo, higiene e configuração Compose. Os
+testes e smokes de quartos serão curtos e não afirmarão capacidade sustentável de
+produção. Movimento, chat e Furniture Engine ainda não fazem parte do núcleo atual.

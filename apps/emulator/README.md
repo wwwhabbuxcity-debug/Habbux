@@ -1,9 +1,9 @@
 # Habbux Emulator
 
 Emulator Java 25 com servidor Netty WebSocket para o Core v1. O processo fica em
-execução até receber SIGTERM/SIGINT; usa loopback por padrão e não conecta a
-PostgreSQL, Redis ou aos demais projetos deste servidor. O Core não tem login nem
-gameplay.
+execução até receber SIGTERM/SIGINT; usa loopback por padrão, PostgreSQL é
+opcional, e não conecta a Redis ou aos demais projetos deste servidor. Auth e
+Room Core existem; movimento, chat e Furniture Engine ainda não.
 
 Na raiz do repositório, com JDK 25 e Node 22/npm 10:
 
@@ -44,6 +44,14 @@ exigem proxy de borda configurado numa etapa de deploy própria.
 | `HABBUX_MAX_CONNECTIONS` | 256 | 1–10.000 |
 | `HABBUX_MAX_PRE_READY_MESSAGES` | 3 | 1–16 |
 | `HABBUX_ALLOWED_ORIGINS` | localhost Vite | lista separada por vírgula, sem `*` |
+| `HABBUX_ROOM_WORKERS` | 2 | 1–8 workers compartilhados |
+| `HABBUX_MAX_ACTIVE_ROOMS` | 128 | 1–1.024 slots em loading/ativos |
+| `HABBUX_ROOM_MAILBOX_CAPACITY` | 512 | 8–16.384 eventos por quarto |
+| `HABBUX_ROOM_EVENTS_PER_RUN` | 32 | 1–1.024 eventos por lote |
+| `HABBUX_ROOM_MAX_RUN_MS` | 2 | 1–100 ms; verificado entre eventos |
+| `HABBUX_ROOM_IDLE_TIMEOUT_MS` | 30.000 | 100–3.600.000 ms |
+| `HABBUX_MAX_ROOM_CAPACITY` | 100 | 1–100 presenças por quarto |
+| `HABBUX_ROOM_IO_QUEUE_CAPACITY` | 64 | 1–4.096 ativações aguardando JDBC |
 
 Origem ausente é permitida para clientes nativos; uma origem enviada pelo browser
 precisa corresponder exatamente à allowlist. A configuração de produção deve
@@ -61,6 +69,11 @@ O controle de lifecycle espera futures somente na thread principal/teste. O
 event loop não executa I/O de aplicação, banco, filesystem, sleeps ou `.get()`.
 O registry de sessões é concorrente e limitado pela admissão; cada conexão usa
 os event loops partilhados do Netty, sem thread dedicada.
+
+Se PostgreSQL estiver configurado, o Room Core lê quartos sob demanda em um
+executor JDBC separado. Presença e posição de entrada ficam em memória. Com Room
+Core ativo, `HABBUX_MAX_PAYLOAD_BYTES` precisa ser pelo menos 7.308
+bytes para comportar o maior snapshot v1 possível; o default permanece 65.536.
 
 Teste local separado de 100 conexões: depois de `mvn clean verify`, dependências
 Node instaladas e Java 25 ativo, rode `nice -n 19 npm run core:load-smoke`. O

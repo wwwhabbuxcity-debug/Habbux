@@ -24,6 +24,7 @@ proposta e não tratada como contrato.
 | [0013](0013-password-hashing.md) | Armazenamento de senha com Argon2id | Aceita |
 | [0014](0014-persistence-auth-execution.md) | JDBC, pool e executor de Auth limitados | Aceita |
 | [0015](0015-auth-session-policy.md) | Política de sessão e rate limit local de Auth | Aceita |
+| [0016](0016-room-engine-execution.md) | Diretório, lifecycle e execução limitada do Room Engine | Aceita |
 
 Aceito não significa implementação completa: veja os limites de cada decisão e
 os READMEs dos módulos ainda planejados.

@@ -132,7 +132,7 @@ class PostgresUserRepositoryIntegrationTest {
         verifyExpectedDatabase(pool);
         try (Connection connection = pool.dataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "TRUNCATE TABLE user_credentials, users RESTART IDENTITY")) {
+                     "TRUNCATE TABLE rooms, user_credentials, users RESTART IDENTITY")) {
             statement.setQueryTimeout(3);
             statement.execute();
         }
@@ -143,7 +143,7 @@ class PostgresUserRepositoryIntegrationTest {
         try (Connection connection = pool.dataSource().getConnection();
              java.sql.Statement statement = connection.createStatement()) {
             statement.setQueryTimeout(3);
-            statement.execute("REVOKE ALL PRIVILEGES ON TABLE users, user_credentials FROM habbux_phase2_app");
+            statement.execute("REVOKE ALL PRIVILEGES ON TABLE users, user_credentials, rooms FROM habbux_phase2_app");
             statement.execute("REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM habbux_phase2_app");
             statement.execute("ALTER DEFAULT PRIVILEGES FOR ROLE habbux_phase2_migration IN SCHEMA public "
                     + "REVOKE ALL ON TABLES FROM habbux_phase2_app");
@@ -156,6 +156,7 @@ class PostgresUserRepositoryIntegrationTest {
                     + "ON users TO habbux_phase2_app");
             statement.execute("GRANT INSERT (user_id, password_hash) ON user_credentials TO habbux_phase2_app");
             statement.execute("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO habbux_phase2_app");
+            statement.execute("GRANT SELECT, INSERT ON rooms TO habbux_phase2_app");
         }
     }
 

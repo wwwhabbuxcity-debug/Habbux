@@ -5,6 +5,8 @@ import com.habbux.auth.AuthExecutor;
 import com.habbux.auth.AuthService;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.NetworkMetrics;
+import com.habbux.room.RoomManager;
+import com.habbux.room.RoomPayloadCodec;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -36,6 +38,7 @@ public final class HabbuxServer implements AutoCloseable {
     private final ChannelGroup childChannels;
     private final ChannelInitializer<SocketChannel> initializer;
     private final AuthExecutor authExecutor;
+    private final RoomManager roomManager;
     private Channel listener;
 
     public HabbuxServer(AppConfig config) {
@@ -43,14 +46,23 @@ public final class HabbuxServer implements AutoCloseable {
     }
 
     public HabbuxServer(AppConfig config, AuthService authService, AuthExecutor authExecutor) {
+        this(config, authService, authExecutor, null);
+    }
+
+    public HabbuxServer(AppConfig config, AuthService authService, AuthExecutor authExecutor, RoomManager roomManager) {
         this.config = config;
         this.authExecutor = authExecutor;
+        this.roomManager = roomManager;
+        if (roomManager != null && config.maxPayloadBytes() < RoomPayloadCodec.MAX_SNAPSHOT_PAYLOAD_BYTES) {
+            throw new IllegalArgumentException("HABBUX_MAX_PAYLOAD_BYTES must be at least "
+                    + RoomPayloadCodec.MAX_SNAPSHOT_PAYLOAD_BYTES + " when Room Engine is enabled");
+        }
         registry = new ConnectionRegistry(config.maxConnections());
         bossGroup = new MultiThreadIoEventLoopGroup(1, new DefaultThreadFactory("habbux-boss"), NioIoHandler.newFactory());
         workerGroup = new MultiThreadIoEventLoopGroup(
                 config.eventLoopThreads(), new DefaultThreadFactory("habbux-worker"), NioIoHandler.newFactory());
         childChannels = new DefaultChannelGroup("habbux-children", workerGroup.next());
-        initializer = new CoreChannelInitializer(config, registry, childChannels, authService);
+        initializer = new CoreChannelInitializer(config, registry, childChannels, authService, roomManager);
     }
 
     public synchronized void start() throws InterruptedException {
@@ -91,13 +103,14 @@ public final class HabbuxServer implements AutoCloseable {
         long timeout = config.shutdownTimeoutMillis();
         if (listener != null) listener.close().awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
         childChannels.close().awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
+        boolean roomsStopped = roomManager == null || roomManager.close(java.time.Duration.ofMillis(timeout));
         boolean authStopped = authExecutor == null || authExecutor.shutdown(java.time.Duration.ofMillis(timeout));
         AuthExecutor.Metrics authMetrics = authExecutor == null ? null : authExecutor.snapshot();
         boolean bossStopped = bossGroup.shutdownGracefully(0, timeout, TimeUnit.MILLISECONDS)
                 .awaitUninterruptibly(timeout + 1_000L, TimeUnit.MILLISECONDS);
         boolean workersStopped = workerGroup.shutdownGracefully(0, timeout, TimeUnit.MILLISECONDS)
                 .awaitUninterruptibly(timeout + 1_000L, TimeUnit.MILLISECONDS);
-        if (!authStopped || !bossStopped || !workersStopped || registry.activeConnections() != 0) {
+        if (!roomsStopped || !authStopped || !bossStopped || !workersStopped || registry.activeConnections() != 0) {
             throw new IllegalStateException("Habbux server shutdown did not finish cleanly");
         }
         NetworkMetrics metrics = registry.metrics();
@@ -120,6 +133,9 @@ public final class HabbuxServer implements AutoCloseable {
                 .addKeyValue("authExecutorQueued", authMetrics == null ? 0 : authMetrics.queued())
                 .addKeyValue("authExecutorRejected", authMetrics == null ? 0 : authMetrics.rejected())
                 .addKeyValue("authExecutorCompleted", authMetrics == null ? 0 : authMetrics.completed())
+                .addKeyValue("roomActive", roomManager == null ? 0 : roomManager.snapshot().activeRooms())
+                .addKeyValue("roomWorkers", roomManager == null ? 0 : roomManager.snapshot().workerCount())
+                .addKeyValue("roomRejected", roomManager == null ? 0 : roomManager.snapshot().rejectedEvents())
                 .log("Habbux Core server stopped");
         listener = null;
     }

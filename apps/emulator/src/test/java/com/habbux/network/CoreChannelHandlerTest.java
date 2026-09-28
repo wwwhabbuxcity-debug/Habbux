@@ -10,6 +10,11 @@ import com.habbux.protocol.FrameCodec;
 import com.habbux.protocol.HabbuxFrame;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.Session;
+import com.habbux.room.RoomConfig;
+import com.habbux.room.RoomGridDefinition;
+import com.habbux.room.RoomId;
+import com.habbux.room.RoomManager;
+import com.habbux.room.RoomMetadata;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.WriteBufferWaterMark;
@@ -17,6 +22,10 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import java.util.Set;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class CoreChannelHandlerTest {
@@ -94,6 +103,47 @@ class CoreChannelHandlerTest {
     }
 
     @Test
+    @org.junit.jupiter.api.Timeout(8)
+    void authenticatedSessionJoinsReceivesSnapshotAndLeaveRemovesPresence() throws Exception {
+        byte[] cells = new byte[9];
+        Arrays.fill(cells, (byte) 1);
+        Instant now = Instant.now();
+        RoomMetadata room = new RoomMetadata(new RoomId(71), 1, "Wire test", "", 9,
+                new RoomGridDefinition(3, 3, cells, 0, 0), now, now);
+        RoomManager rooms = new RoomManager(id -> java.util.Optional.of(room),
+                new RoomConfig(1, 8, 32, 8, 2, 10_000, 8, 8));
+        ConnectionRegistry registry = new ConnectionRegistry(1);
+        Session session = registry.tryConnect();
+        session.transition(Session.State.CONNECTED, Session.State.HANDSHAKING);
+        session.transition(Session.State.HANDSHAKING, Session.State.READY);
+        session.transition(Session.State.READY, Session.State.AUTHENTICATING);
+        session.authenticate(new com.habbux.user.UserIdentity(9, "alice"));
+        EmbeddedChannel channel = new EmbeddedChannel();
+        channel.attr(CoreChannelInitializer.SESSION).set(session);
+        channel.pipeline().addLast(new CoreChannelHandler(
+                new AppConfig("test", 1, 5_000, "127.0.0.1", 0, 65_536, 10_000, 30, 1, 3, 30, 60, Set.of()),
+                registry, null, rooms));
+        try {
+            channel.writeInbound(roomRequest(CoreMessage.ROOM_JOIN, java.nio.ByteBuffer.allocate(8).putLong(room.id().value()).array()));
+            assertEquals(CoreMessage.ROOM_JOIN_SUCCESS.id(), awaitOutbound(channel).messageId());
+            HabbuxFrame snapshot = awaitOutbound(channel);
+            assertEquals(CoreMessage.ROOM_SNAPSHOT.id(), snapshot.messageId());
+            awaitRoomState(channel, session, Session.RoomState.IN_ROOM);
+            assertEquals(Session.RoomState.IN_ROOM, session.roomState());
+            assertEquals(1, rooms.activeRoom(room.id()).orElseThrow().presenceCount());
+
+            channel.writeInbound(roomRequest(CoreMessage.ROOM_LEAVE, new byte[0]));
+            assertEquals(CoreMessage.ROOM_LEAVE_SUCCESS.id(), awaitOutbound(channel).messageId());
+            awaitRoomState(channel, session, Session.RoomState.NONE);
+            assertEquals(Session.RoomState.NONE, session.roomState());
+            assertEquals(0, rooms.activeRoom(room.id()).orElseThrow().presenceCount());
+        } finally {
+            channel.finishAndReleaseAll();
+            assertTrue(rooms.close(Duration.ofSeconds(5)));
+        }
+    }
+
+    @Test
     void countsNonBinaryFrameAsOneProtocolViolation() {
         AppConfig config = new AppConfig("test", 1, 5_000, "127.0.0.1", 0, 65_536,
                 10_000, 30, 1, 3, 30, 60, Set.of());
@@ -123,5 +173,35 @@ class CoreChannelHandlerTest {
                 new HabbuxFrame(FrameCodec.VERSION, CoreMessage.PING.id(), 0, new byte[] { 0, 0, 0, 1 }),
                 65_536);
         return new BinaryWebSocketFrame(encoded);
+    }
+
+    private static BinaryWebSocketFrame roomRequest(CoreMessage message, byte[] payload) {
+        ByteBuf encoded = new FrameCodec().encode(UnpooledByteBufAllocator.DEFAULT,
+                new HabbuxFrame(FrameCodec.VERSION, message.id(), 0, payload), 65_536);
+        return new BinaryWebSocketFrame(encoded);
+    }
+
+    private static HabbuxFrame awaitOutbound(EmbeddedChannel channel) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+        while (System.nanoTime() < deadline) {
+            channel.runPendingTasks();
+            Object message = channel.readOutbound();
+            if (message instanceof BinaryWebSocketFrame frame) {
+                try { return new FrameCodec().decode(frame.content(), 65_536); }
+                finally { frame.release(); }
+            }
+            Thread.sleep(1);
+        }
+        throw new AssertionError("timed out waiting for room protocol response");
+    }
+
+    private static void awaitRoomState(EmbeddedChannel channel, Session session, Session.RoomState expected) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+        while (System.nanoTime() < deadline) {
+            channel.runPendingTasks();
+            if (session.roomState() == expected) return;
+            Thread.sleep(1);
+        }
+        throw new AssertionError("timed out waiting for session room state " + expected);
     }
 }

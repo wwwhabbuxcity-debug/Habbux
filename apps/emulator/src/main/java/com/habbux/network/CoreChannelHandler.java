@@ -10,6 +10,12 @@ import com.habbux.protocol.HabbuxFrame;
 import com.habbux.protocol.ProtocolException;
 import com.habbux.protocol.AuthPayloadCodec;
 import com.habbux.protocol.ServerErrorCode;
+import com.habbux.room.RoomClient;
+import com.habbux.room.RoomId;
+import com.habbux.room.RoomManager;
+import com.habbux.room.RoomOutbound;
+import com.habbux.room.RoomPayloadCodec;
+import com.habbux.room.RoomRuntime;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.Session;
 import io.netty.buffer.ByteBuf;
@@ -36,6 +42,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private final FrameCodec codec = new FrameCodec();
     private final MessageTokenBucket messageRateLimiter;
     private final AuthService authService;
+    private final RoomManager roomManager;
     private ScheduledFuture<?> handshakeDeadline;
     private ScheduledFuture<?> authDeadline;
     private int messagesBeforeReady;
@@ -50,9 +57,14 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     }
 
     CoreChannelHandler(AppConfig config, ConnectionRegistry registry, AuthService authService) {
+        this(config, registry, authService, null);
+    }
+
+    CoreChannelHandler(AppConfig config, ConnectionRegistry registry, AuthService authService, RoomManager roomManager) {
         this.config = config;
         this.registry = registry;
         this.authService = authService;
+        this.roomManager = roomManager;
         messageRateLimiter = new MessageTokenBucket(
                 config.messageRatePerSecond(), config.messageRateBurst(), System.nanoTime());
     }
@@ -145,6 +157,8 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             case AUTH_LOGIN -> handleLogin(ctx, session, frame);
             case AUTH_REGISTER -> handleRegistration(ctx, session, frame);
             case AUTH_LOGOUT -> handleLogout(ctx, session, frame);
+            case ROOM_JOIN -> handleRoomJoin(ctx, session, frame);
+            case ROOM_LEAVE -> handleRoomLeave(ctx, session, frame);
             default -> {
                 registry.invalidFrame();
                 sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
@@ -308,9 +322,104 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
             return;
         }
+        detachRoom(session, roomClient(ctx), false);
         writeFrame(ctx, new HabbuxFrame(FrameCodec.VERSION, CoreMessage.AUTH_LOGOUT_SUCCESS.id(), 0, new byte[0]));
         LOG.atInfo().addKeyValue("event", "auth.logout").addKeyValue("sessionId", session.id())
                 .log("Habbux user logged out");
+    }
+
+    private void handleRoomJoin(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
+        if (session.state() != Session.State.AUTHENTICATED) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        RoomId roomId;
+        try { roomId = RoomPayloadCodec.decodeJoin(frame.payload()); }
+        catch (RoomPayloadCodec.MalformedRoomPayloadException malformed) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        RoomClient client = roomClient(ctx);
+        if (session.roomState() != Session.RoomState.NONE) {
+            client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.ALREADY_IN_ROOM));
+            return;
+        }
+        if (roomManager == null) {
+            client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.UNAVAILABLE));
+            return;
+        }
+        RoomManager.JoinHandle handle = roomManager.join(roomId, session.id(), session.principal(), client);
+        if (!session.beginRoomJoin(handle)) {
+            handle.cancel();
+            client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.ALREADY_IN_ROOM));
+            handle.result().thenAccept(outcome -> {
+                if (outcome == RoomRuntime.JoinOutcome.JOINED) roomManager.leave(roomId, session.id(), client, false);
+            });
+            return;
+        }
+        handle.result().whenComplete((outcome, failure) -> dispatchToEventLoop(ctx, () -> {
+            boolean joined = failure == null && outcome == RoomRuntime.JoinOutcome.JOINED && ctx.channel().isActive();
+            boolean membershipAccepted = session.completeRoomJoin(handle, joined);
+            if (outcome == RoomRuntime.JoinOutcome.JOINED && !membershipAccepted) {
+                roomManager.leave(roomId, session.id(), client, false);
+            }
+        }));
+    }
+
+    private void handleRoomLeave(ChannelHandlerContext ctx, Session session, HabbuxFrame frame) {
+        if (session.state() != Session.State.AUTHENTICATED) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        try { RoomPayloadCodec.validateLeave(frame.payload()); }
+        catch (RoomPayloadCodec.MalformedRoomPayloadException malformed) {
+            registry.invalidFrame();
+            registry.protocolViolation();
+            sendErrorAndClose(ctx, ServerErrorCode.INVALID_STATE, 1008);
+            return;
+        }
+        Session.RoomMembership membership = session.detachRoom();
+        if (membership.roomId() == null || roomManager == null) {
+            roomClient(ctx).send(new RoomOutbound.Left());
+            return;
+        }
+        if (membership.joinHandle() != null) membership.joinHandle().cancel();
+        roomManager.leave(membership.roomId(), session.id(), roomClient(ctx), true);
+    }
+
+    private void detachRoom(Session session, RoomClient client, boolean acknowledge) {
+        Session.RoomMembership membership = session.detachRoom();
+        if (membership.roomId() != null && roomManager != null) {
+            roomManager.leave(membership.roomId(), session.id(), client, acknowledge);
+        }
+    }
+
+    private RoomClient roomClient(ChannelHandlerContext ctx) {
+        return message -> dispatchToEventLoop(ctx, () -> {
+            if (!ctx.channel().isActive()) return;
+            try { writeFrame(ctx, RoomPayloadCodec.encode(message)); }
+            catch (RuntimeException invalid) {
+                LOG.atError().addKeyValue("event", "room.outbound_invalid")
+                        .addKeyValue("sessionId", session(ctx).id()).setCause(invalid)
+                        .log("Room Engine produced an invalid outbound payload");
+                ctx.close();
+            }
+        });
+    }
+
+    private static void dispatchToEventLoop(ChannelHandlerContext ctx, Runnable action) {
+        if (ctx.executor().inEventLoop()) {
+            action.run();
+            return;
+        }
+        try { ctx.executor().execute(action); }
+        catch (RejectedExecutionException ignored) { /* Channel/EventLoop shutdown owns cleanup. */ }
     }
 
     private void writeAuthFailure(ChannelHandlerContext ctx, AuthFailure failure) {
@@ -402,6 +511,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
         cancelHandshakeDeadline();
         cancelAuthDeadline();
         Session session = session(ctx);
+        detachRoom(session, ignored -> { }, false);
         registry.remove(session.id());
         LOG.atInfo().addKeyValue("event", "connection.closed").addKeyValue("sessionId", session.id())
                 .log("Habbux Core connection closed");

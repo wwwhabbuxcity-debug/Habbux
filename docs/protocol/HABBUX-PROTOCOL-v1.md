@@ -1,7 +1,7 @@
 # Habbux Protocol v1 — Core de rede
 
-Status: **operacional para handshake, ping/pong, autenticação mínima e desconexão**.
-Não há mensagens de gameplay. `packages/protocol/protocol.json` é a
+Status: **operacional para handshake, ping/pong, autenticação e Room Engine v1**.
+`packages/protocol/protocol.json` é a
 fonte única dos IDs, direções, tamanhos de payload e limites; o arquivo de vetores
 compartilhados fica em `packages/protocol/golden-vectors-v1.txt`.
 
@@ -50,6 +50,20 @@ Os IDs e direções abaixo são conferidos contra o registro em CI:
 | 10 | `AUTH_FAILURE` | Servidor → Client | categoria uint8: inválido, rejeitado, limitado ou indisponível |
 | 11 | `AUTH_LOGOUT` | Client → servidor | vazio |
 | 12 | `AUTH_LOGOUT_SUCCESS` | Servidor → Client | vazio |
+| 13 | `ROOM_JOIN` | Client → servidor | uint64 positivo room ID |
+| 14 | `ROOM_JOIN_SUCCESS` | Servidor → Client | uint64 room ID + uint8 x + uint8 y |
+| 15 | `ROOM_JOIN_FAILURE` | Servidor → Client | uint8 categoria: não existe, cheio, já está em quarto, indisponível |
+| 16 | `ROOM_LEAVE` | Client → servidor | vazio |
+| 17 | `ROOM_LEAVE_SUCCESS` | Servidor → Client | vazio |
+| 18 | `ROOM_SNAPSHOT` | Servidor → Client | room ID, width/height/capacity uint8, walkability[width×height], occupant count uint8 e ocupantes `[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]` |
+
+Username de snapshot usa comprimento `uint16` de **bytes UTF-8**, validado antes
+de decodificar/copiar. Room ID e user ID são BIGINT positivo representado por
+`uint64` big-endian. Nome de usuário autenticado é limitado a 20 bytes. O maior
+snapshot permitido ocupa 7.308 bytes: 4.096 de grade, 100 ocupantes de até 32
+bytes cada e 12 bytes fixos. Se Room Engine estiver habilitado, o limite de frame
+configurado precisa comportar esse snapshot; o Core v1 continua limitado a
+65.536 bytes.
 
 `SERVER_ERROR` códigos v1: `1 INVALID_STATE`, `2 HANDSHAKE_TIMEOUT`. Versão
 incompatível ou frame que não possa ser interpretado recebe apenas close `1002`.
@@ -65,7 +79,7 @@ fronteira pública exige WSS na camada de proxy antes de aceitar tráfego extern
 
 ## Handshake e sessão
 
-Após o upgrade WebSocket, a sessão anônima passa por:
+Após o upgrade WebSocket, a sessão passa por:
 
 ```text
 CONNECTED → HANDSHAKING → READY ⇄ AUTHENTICATING → AUTHENTICATED → READY → DISCONNECTED
@@ -76,7 +90,10 @@ O servidor cria uma sessão com UUID v4 aleatório ao aceitar a conexão. Esse U
 login. Após o upgrade WebSocket, a sessão muda para `HANDSHAKING` e inicia o prazo
 configurável (`HABBUX_HANDSHAKE_TIMEOUT_MS`, padrão 10 s). Só aceita
 `CLIENT_HELLO` vazio nesse estado; responde `SERVER_HELLO` com o UUID da sessão e
-conclui o handshake no estado `READY`.
+conclui o handshake no estado `READY`. Login atribui identidade mínima; somente
+`AUTHENTICATED` pode chamar `ROOM_JOIN`. Cada sessão ocupa no máximo um quarto.
+Saída explícita, logout ou disconnect limpa a presença; entrada e saída são
+ordenadas no mailbox daquele quarto.
 
 `PING` é aceito após handshake, inclusive enquanto a operação de autenticação
 aguarda um worker. `PONG` ecoa a sequência e o Client estima RTT com
@@ -97,9 +114,9 @@ conexões autenticadas para o mesmo usuário são permitidas. Logout remove o
 principal da sessão, sem revogar outras conexões.
 
 Disconnect explícito, fechamento remoto, timeout, frame inválido, exceção e
-shutdown removem a sessão do registry. O registry é concorrente, limitado pela
-admissão e não usa lock global para cada frame. Nenhum estado de gameplay ou
-identidade existe nesta etapa.
+shutdown removem a sessão do registry e enfileiram o leave antes de descartar o
+principal. O registry é concorrente, limitado pela admissão e não usa lock global
+para cada frame. Presença, posição e caminhos não são persistidos.
 
 ## Limites e configuração
 
@@ -129,7 +146,7 @@ JVM de testes e não altera o processo de produção.
 ## Vetores e validação
 
 `golden-vectors-v1.txt` é consumido pelos testes Java e TypeScript. Os vetores
-cobrem as mensagens de controle e exemplos das novas mensagens de Auth. Os testes também
+cobrem mensagens de controle, Auth e Room. Os testes também
 verificam round-trip, limite configurado, versões/IDs/flags inválidos, truncamento,
 length divergente e entradas aleatórias determinísticas. O teste de integração
 abre um WebSocket real, faz handshake, ping/pong, desconexão, timeout e 24 conexões

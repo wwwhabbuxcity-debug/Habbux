@@ -30,7 +30,13 @@
     { "id": 9, "name": "AUTH_SUCCESS", "direction": "server-to-client", "payloadBytes": "variable", "payloadFormat": "uint64 userId, uint16 usernameUtf8Bytes (3..20), username UTF-8", "purpose": "Confirma identidade mínima autenticada, sem token ou credenciais." },
     { "id": 10, "name": "AUTH_FAILURE", "direction": "server-to-client", "payloadBytes": 1, "purpose": "Retorna somente categoria segura de rejeição: 1 inválido, 2 rejeitado, 3 limitado, 4 indisponível." },
     { "id": 11, "name": "AUTH_LOGOUT", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Encerra a associação autenticada à sessão atual." },
-    { "id": 12, "name": "AUTH_LOGOUT_SUCCESS", "direction": "server-to-client", "payloadBytes": 0, "purpose": "Confirma logout da sessão atual." }
+    { "id": 12, "name": "AUTH_LOGOUT_SUCCESS", "direction": "server-to-client", "payloadBytes": 0, "purpose": "Confirma logout da sessão atual." },
+    { "id": 13, "name": "ROOM_JOIN", "direction": "client-to-server", "payloadBytes": 8, "payloadFormat": "uint64 roomId", "purpose": "Solicita entrada em um quarto pelo identificador BIGINT." },
+    { "id": 14, "name": "ROOM_JOIN_SUCCESS", "direction": "server-to-client", "payloadBytes": 10, "payloadFormat": "uint64 roomId, uint8 x, uint8 y", "purpose": "Confirma entrada e posição inicial atribuída pelo servidor." },
+    { "id": 15, "name": "ROOM_JOIN_FAILURE", "direction": "server-to-client", "payloadBytes": 1, "purpose": "Recusa entrada por categoria limitada: inexistente, lotado, já associado ou indisponível." },
+    { "id": 16, "name": "ROOM_LEAVE", "direction": "client-to-server", "payloadBytes": 0, "purpose": "Solicita saída do quarto atual." },
+    { "id": 17, "name": "ROOM_LEAVE_SUCCESS", "direction": "server-to-client", "payloadBytes": 0, "purpose": "Confirma a saída do quarto atual." },
+    { "id": 18, "name": "ROOM_SNAPSHOT", "direction": "server-to-client", "payloadBytes": "variable", "payloadFormat": "uint64 roomId, uint8 width, uint8 height, uint8 capacity, walkability[width*height], uint8 occupantCount, occupants[userId:uint64,x:uint8,y:uint8,usernameBytes:uint16,username:utf8]", "purpose": "Entrega um estado inicial limitado com grade estática e ocupantes atuais." }
   ],
   "serverErrors": [
     { "code": 1, "name": "INVALID_STATE" },
