@@ -22,7 +22,9 @@ histórico exigido para rastrear uma transação.
 O Core já mantém contadores agregados em `ConnectionRegistry`: `activeConnections`,
 `activeSessions`, `framesReceived`, `framesSent`, `invalidFrames` e
 `rejectedConnections`. Não são expostos por endpoint HTTP e não têm labels por
-conexão. O evento de shutdown registra os totais após cleanup.
+conexão. O evento de shutdown registra os totais após cleanup e o estado final do
+executor Auth. Quando PostgreSQL está configurado, outro evento registra conexões
+ativas, ociosas e pendentes do pool antes do fechamento.
 
 | Área | Sinais necessários |
 |---|---|

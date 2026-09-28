@@ -1,7 +1,9 @@
 # Orçamento de performance
 
 Status: **nenhuma capacidade de jogadores foi medida neste bootstrap**.
-Os campos TBD serão preenchidos com resultados reproduzíveis e aprovação de metas.
+Foram executados smokes locais curtos com 25 sessões WebSocket e 4 logins
+concorrentes, descritos no [plano de benchmarks](../../benchmarks/README.md). Eles
+não medem capacidade sustentável; metas de capacidade seguem TBD.
 
 | Indicador | Unidade/definição | Meta | Resultado medido |
 |---|---|---|---|

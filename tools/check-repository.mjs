@@ -11,7 +11,8 @@ const secretPatterns = [
   /AKIA[0-9A-Z]{16}/,
   /xox[baprs]-[0-9A-Za-z-]{20,}/,
   /https?:\/\/[^\s/:]+:[^\s/@]+@/,
-  /(?:password|passwd|secret|api[_-]?key|access[_-]?token|client[_-]?secret)\s*(?:=\s*|:\s+)["']?(?!local-development-only\b|\$|<|TBD\b|CHANGE_ME\b)[^\s"'`,;}]{12,}/i,
+  // Match literal-looking values, not code that obtains a credential from a request or environment.
+  /(?:^|[^A-Za-z0-9])(?:password|passwd|secret|api[_-]?key|access[_-]?token|client[_-]?secret)\b\s*(?:=\s*|:\s+)["']?(?!local-development-only\b|\$|<|TBD\b|CHANGE_ME\b|(?:process|document|cursor|login|ui|hasher)\s*(?:\.|\())[^\s"'`,;}]{12,}/i,
 ];
 let problems = 0;
 for (const file of files) {
