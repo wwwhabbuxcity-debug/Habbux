@@ -1,0 +1,65 @@
+:root,
+[data-hbx-theme="default"] {
+  color-scheme: dark;
+  --hbx-color-canvas: #11191f;
+  --hbx-color-surface: #1a242c;
+  --hbx-color-surface-raised: #222f38;
+  --hbx-color-surface-translucent: rgb(26 36 44 / 92%);
+  --hbx-color-glass: rgb(26 36 44 / 86%);
+  --hbx-color-border: #3b4a54;
+  --hbx-color-text: #edf2f4;
+  --hbx-color-text-muted: #b2bdc3;
+  --hbx-color-accent: #b6c8d0;
+  --hbx-color-accent-contrast: #142027;
+  --hbx-color-positive: #91c5ae;
+  --hbx-color-warning: #e1c08a;
+  --hbx-color-danger: #e6a4a4;
+  --hbx-space-1: 0.25rem;
+  --hbx-space-2: 0.5rem;
+  --hbx-space-3: 0.75rem;
+  --hbx-space-4: 1rem;
+  --hbx-space-6: 1.5rem;
+  --hbx-radius-sm: 0.375rem;
+  --hbx-radius-md: 0.625rem;
+  --hbx-radius-lg: 0.875rem;
+  --hbx-radius-pill: 999px;
+  --hbx-border-width: 1px;
+  --hbx-shadow-raised: 0 0.75rem 2rem rgb(0 0 0 / 24%);
+  --hbx-shadow-overlay: 0 1.25rem 3.5rem rgb(0 0 0 / 38%);
+  --hbx-blur-glass: 10px;
+  --hbx-font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --hbx-font-caption: 0.75rem;
+  --hbx-font-body-sm: 0.875rem;
+  --hbx-font-body: 1rem;
+  --hbx-font-label: 0.8125rem;
+  --hbx-font-heading-sm: 1.125rem;
+  --hbx-font-heading: 1.375rem;
+  --hbx-font-title: clamp(1.5rem, 4vw, 2rem);
+  --hbx-motion-fast: 120ms;
+  --hbx-motion-normal: 180ms;
+  --hbx-motion-slow: 260ms;
+  --hbx-touch-target: 44px;
+  --hbx-breakpoint-tablet: 64rem;
+  --hbx-breakpoint-mobile: 42rem;
+  --hbx-layer-game: 0;
+  --hbx-layer-hud: 10;
+  --hbx-layer-windows: 20;
+  --hbx-layer-popovers: 30;
+  --hbx-layer-modal: 40;
+  --hbx-layer-notifications: 50;
+  --hbx-layer-critical: 60;
+}
+
+[data-hbx-quality="reduced"] {
+  --hbx-blur-glass: 0px;
+  --hbx-shadow-raised: 0 0.25rem 0.75rem rgb(0 0 0 / 20%);
+  --hbx-shadow-overlay: 0 0.5rem 1.25rem rgb(0 0 0 / 26%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --hbx-motion-fast: 0ms; --hbx-motion-normal: 0ms; --hbx-motion-slow: 0ms; }
+}
+
+@media (max-width: 56rem), (pointer: coarse) {
+  :root { --hbx-blur-glass: 0px; }
+}
