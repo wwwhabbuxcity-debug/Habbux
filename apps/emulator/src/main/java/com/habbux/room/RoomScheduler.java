@@ -37,7 +37,11 @@ public final class RoomScheduler implements AutoCloseable {
         while (accepting.get() || !ready.isEmpty()) {
             try {
                 RoomMailbox mailbox = ready.poll(100, TimeUnit.MILLISECONDS);
-                if (mailbox != null) mailbox.runBatch();
+                if (mailbox != null) {
+                    metrics.workerStarted();
+                    try { mailbox.runBatch(); }
+                    finally { metrics.workerFinished(); }
+                }
             } catch (InterruptedException interrupted) {
                 if (accepting.get()) Thread.currentThread().interrupt();
                 return;

@@ -17,20 +17,25 @@ class LoadClient {
     this.waiters = [];
     this.closed = false;
     this.sentFrames = 0;
+    this.receivedFrames = 0;
     this.closedPromise = new Promise((resolve) => this.socket.addEventListener('close', () => {
       this.closed = true;
       resolve();
-      while (this.waiters.length) this.waiters.shift().reject(new Error('WebSocket closed before response'));
+      while (this.waiters.length) this.rejectWaiter(this.waiters.shift(), new Error('WebSocket closed before response'));
     }, { once: true }));
     this.socket.addEventListener('message', (event) => {
       try {
         const frame = decodeFrame(event.data);
-        const waiter = this.waiters.shift();
-        if (waiter) waiter.resolve(frame);
-        else this.queue.push(frame);
+        this.receivedFrames++;
+        const waiterIndex = this.waiters.findIndex((waiter) => waiter.predicate(frame));
+        if (waiterIndex >= 0) this.resolveWaiter(this.waiters.splice(waiterIndex, 1)[0], frame);
+        else {
+          this.queue.push(frame);
+          if (this.queue.length > 4_096) this.socket.close(1011, 'load receive queue exceeded its bound');
+        }
       } catch (error) {
         const waiter = this.waiters.shift();
-        if (waiter) waiter.reject(error);
+        if (waiter) this.rejectWaiter(waiter, error);
       }
     });
   }
@@ -85,7 +90,9 @@ class LoadClient {
     const started = performance.now();
     this.send(3, payload);
     payload.fill(0);
-    const response = await this.nextFrame(5_000);
+    const response = await this.waitForMessage((frame) => frame.messageId === 4
+      && frame.payload.byteLength === 4
+      && new DataView(frame.payload.buffer, frame.payload.byteOffset, 4).getUint32(0, false) === sequence, 5_000);
     assert.equal(response.messageId, 4, 'expected PONG');
     assert.equal(new DataView(response.payload.buffer, response.payload.byteOffset, 4).getUint32(0, false), sequence,
       'PONG sequence did not match PING');
@@ -100,10 +107,32 @@ class LoadClient {
   }
 
   nextFrame(milliseconds) {
-    if (this.queue.length) return Promise.resolve(this.queue.shift());
+    return this.waitForMessage(() => true, milliseconds);
+  }
+
+  waitForMessage(predicate, milliseconds) {
+    const queuedIndex = this.queue.findIndex(predicate);
+    if (queuedIndex >= 0) return Promise.resolve(this.queue.splice(queuedIndex, 1)[0]);
     if (this.closed) return Promise.reject(new Error('WebSocket is already closed'));
-    return timeout(new Promise((resolve, reject) => this.waiters.push({ resolve, reject })),
-      milliseconds, 'Core response timed out');
+    return new Promise((resolve, reject) => {
+      const waiter = { predicate, resolve, reject, timer: null };
+      waiter.timer = setTimeout(() => {
+        const index = this.waiters.indexOf(waiter);
+        if (index >= 0) this.waiters.splice(index, 1);
+        reject(new Error('Core response timed out'));
+      }, milliseconds);
+      this.waiters.push(waiter);
+    });
+  }
+
+  resolveWaiter(waiter, frame) {
+    clearTimeout(waiter.timer);
+    waiter.resolve(frame);
+  }
+
+  rejectWaiter(waiter, error) {
+    clearTimeout(waiter.timer);
+    waiter.reject(error);
   }
 
   async close() {
@@ -115,9 +144,11 @@ class LoadClient {
 }
 
 const scenario = process.env.HABBUX_LOAD_SCENARIO ?? 'session';
-assert.ok(['connection', 'session', 'auth'].includes(scenario), 'HABBUX_LOAD_SCENARIO must be connection, session, or auth');
-const count = Number(process.env.HABBUX_SMOKE_CONNECTIONS ?? 25);
-const warmup = Number(process.env.HABBUX_LOAD_WARMUP ?? 2);
+assert.ok(['connection', 'session', 'auth', 'rooms', 'hot-room'].includes(scenario),
+  'HABBUX_LOAD_SCENARIO must be connection, session, auth, rooms, or hot-room');
+const count = Number(process.env.HABBUX_SMOKE_CONNECTIONS
+  ?? (['rooms', 'hot-room'].includes(scenario) ? 20 : 25));
+const warmup = ['rooms', 'hot-room'].includes(scenario) ? 0 : Number(process.env.HABBUX_LOAD_WARMUP ?? 2);
 const pingCount = Number(process.env.HABBUX_LOAD_PINGS ?? 3);
 const maximum = scenario === 'auth' ? 8 : 100;
 assert.ok(Number.isInteger(count) && count > 0 && count <= maximum,
@@ -126,12 +157,13 @@ assert.ok(Number.isInteger(warmup) && warmup >= 0 && warmup <= 5, 'warmup must b
 assert.ok(Number.isInteger(pingCount) && pingCount >= 1 && pingCount <= 10, 'ping count must be from 1 to 10');
 
 const auth = scenario === 'auth' ? validateAuthConfiguration() : null;
+const roomLoad = ['rooms', 'hot-room'].includes(scenario) ? validateRoomLoadConfiguration(scenario, count) : null;
 const javaHome = process.env.JAVA_HOME ?? '/usr/lib/jvm/java-25-openjdk-amd64';
 const javaExecutable = process.env.JAVA ?? join(javaHome, 'bin/java');
 const jar = new URL('../apps/emulator/target/habbux-emulator-0.1.0-SNAPSHOT.jar', import.meta.url);
 await readFile(jar);
 const port = await reserveLoopbackPort();
-const childEnvironment = emulatorEnvironment(auth, port, Math.min(128, count + warmup + 8));
+const childEnvironment = emulatorEnvironment(auth ?? roomLoad, port, Math.min(128, count + warmup + 8));
 const child = spawn(javaExecutable, [
   '-Xms32m', '-Xmx256m', '-XX:ActiveProcessorCount=2', '-jar', jar.pathname,
 ], {
@@ -175,12 +207,17 @@ child.once('exit', (code, signal) => {
 let shutdownForced = false;
 let serverSnapshot = {};
 let databaseSnapshot = {};
+let roomSnapshot = {};
 let measurement;
+let roomMeasurement = null;
 let failures = [];
 let results = [];
 let seededAccountCreated = false;
 let seededAccountCleaned = auth?.seed ? false : null;
 let seededAccountRegistrationMs = null;
+let roomFixtureCreated = false;
+let roomFixtureCleaned = roomLoad ? false : null;
+let roomFixtureSetupMs = null;
 const startupStarted = performance.now();
 try {
   let startupTimer;
@@ -197,6 +234,17 @@ try {
     await registerLoadAccount(port, auth);
     seededAccountCreated = true;
     seededAccountRegistrationMs = performance.now() - seedStarted;
+  }
+
+  if (roomLoad) {
+    const fixtureStarted = performance.now();
+    for (const account of roomLoad.accounts) {
+      await registerLoadAccount(port, account);
+      roomLoad.createdAccounts.push(account);
+    }
+    roomLoad.roomIds = await createRoomLoadFixtures(roomLoad);
+    roomFixtureCreated = roomLoad.createdAccounts.length === count && roomLoad.roomIds.length === roomLoad.roomCount;
+    roomFixtureSetupMs = performance.now() - fixtureStarted;
   }
 
   for (let index = 0; index < warmup; index++) {
@@ -220,11 +268,16 @@ try {
   }, 250);
 
   try {
-    const settled = await Promise.allSettled(Array.from({ length: count }, (_, index) =>
-      exercise({ port, scenario, auth, pingCount, index })));
-    results = settled.filter((entry) => entry.status === 'fulfilled').map((entry) => entry.value);
-    failures = settled.filter((entry) => entry.status === 'rejected')
-      .slice(0, 5).map((entry) => safeError(entry.reason));
+    if (roomLoad) {
+      roomMeasurement = await exerciseRoomScenario({ port, config: roomLoad });
+      results = roomMeasurement.clients;
+    } else {
+      const settled = await Promise.allSettled(Array.from({ length: count }, (_, index) =>
+        exercise({ port, scenario, auth, pingCount, index })));
+      results = settled.filter((entry) => entry.status === 'fulfilled').map((entry) => entry.value);
+      failures = settled.filter((entry) => entry.status === 'rejected')
+        .slice(0, 5).map((entry) => safeError(entry.reason));
+    }
   } finally {
     clearInterval(sampler);
   }
@@ -261,6 +314,7 @@ try {
     const event = parseLogLine(line);
     if (event?.event === 'emulator.server_stopped') serverSnapshot = event;
     if (event?.event === 'emulator.database_pool_stopped') databaseSnapshot = event;
+    if (event?.event === 'room.manager_stopped') roomSnapshot = event;
   }
   if (auth?.seed) {
     try {
@@ -271,6 +325,15 @@ try {
       seededAccountCleaned = false;
     }
   }
+  if (roomLoad) {
+    try {
+      await cleanupRoomLoadFixtures(roomLoad);
+      roomFixtureCleaned = true;
+    } catch {
+      failures.push('temporary room load fixture cleanup failed');
+      roomFixtureCleaned = false;
+    }
+  }
 }
 
 const durationMs = measurement?.elapsedMs ?? Math.round(performance.now() - startupStarted);
@@ -279,6 +342,28 @@ const loginLatencies = results.flatMap((result) => result.loginLatency === null 
 const websocketOpenLatencies = results.map((result) => result.websocketOpenLatency);
 const coreHandshakeLatencies = results.map((result) => result.coreHandshakeLatency);
 const serverCpuMs = measurement?.cpuMs ?? null;
+if (roomMeasurement?.report) {
+  roomMeasurement.report.durationMs = durationMs;
+  roomMeasurement.report.roomEventsPerSecond = rate(roomSnapshot.roomEventsProcessed ?? 0, durationMs);
+  roomMeasurement.report.queueDelayMs = {
+    p50: round((roomSnapshot.queueDelayP50Nanos ?? 0) / 1_000_000, 3),
+    p95: round((roomSnapshot.queueDelayP95Nanos ?? 0) / 1_000_000, 3),
+    p99: round((roomSnapshot.queueDelayP99Nanos ?? 0) / 1_000_000, 3),
+  };
+  roomMeasurement.report.roomJoinLatencyMs = {
+    p50: round((roomSnapshot.joinP50Nanos ?? 0) / 1_000_000, 3),
+    p95: round((roomSnapshot.joinP95Nanos ?? 0) / 1_000_000, 3),
+    p99: round((roomSnapshot.joinP99Nanos ?? 0) / 1_000_000, 3),
+  };
+  roomMeasurement.report.roomMovementLatencyMs = {
+    p50: round((roomSnapshot.movementP50Nanos ?? 0) / 1_000_000, 3),
+    p95: round((roomSnapshot.movementP95Nanos ?? 0) / 1_000_000, 3),
+    p99: round((roomSnapshot.movementP99Nanos ?? 0) / 1_000_000, 3),
+  };
+  roomMeasurement.report.roomEventsProcessed = roomSnapshot.roomEventsProcessed ?? null;
+  roomMeasurement.report.maxMailboxDepth = roomSnapshot.maxMailboxDepth ?? null;
+  roomMeasurement.report.rejectedEvents = roomSnapshot.roomEventsRejected ?? null;
+}
 const report = {
   scenario,
   warmupConnections: warmup,
@@ -312,10 +397,15 @@ const report = {
     gcSeconds: gcDelta(measurement?.gcBefore, measurement?.gcAfter, ['YGCT', 'FGCT', 'CGCT']),
   },
   serverMetrics: serverSnapshot,
+  roomMetrics: roomSnapshot,
   databasePool: databaseSnapshot,
   seededAccountCreated,
   seededAccountRegistrationMs: seededAccountRegistrationMs === null ? null : round(seededAccountRegistrationMs, 2),
   seededAccountCleaned,
+  roomFixtureCreated,
+  roomFixtureSetupMs: roomFixtureSetupMs === null ? null : round(roomFixtureSetupMs, 2),
+  roomFixtureCleaned,
+  roomLoad: roomMeasurement?.report ?? null,
   processExitCode: childClose?.code ?? null,
   processExitSignal: childClose?.signal ?? null,
   processExited: Boolean(childClose && ['SIGTERM', null].includes(childClose.signal)
@@ -327,10 +417,14 @@ const report = {
 console.log(JSON.stringify(report, null, 2));
 
 const noOrphans = serverSnapshot.activeConnections === 0 && serverSnapshot.activeSessions === 0;
-const noDatabaseLeak = scenario !== 'auth'
+const noDatabaseLeak = (scenario !== 'auth' && !roomLoad)
   || (databaseSnapshot.active === 0 && databaseSnapshot.pending === 0);
+const noRoomLeaks = !roomLoad || (roomSnapshot.activeRooms === 0 && roomSnapshot.activeRoomUsers === 0
+  && roomSnapshot.liveWorkers === 0 && (roomSnapshot.clean === true || roomSnapshot.clean === 'true')
+  && roomSnapshot.roomActivations === roomSnapshot.roomUnloads);
 if (report.failed !== 0 || report.disconnectSuccess !== count || !noOrphans || !noDatabaseLeak
     || (auth?.seed && (!seededAccountCreated || !seededAccountCleaned))
+    || (roomLoad && (!roomFixtureCreated || !roomFixtureCleaned || !noRoomLeaks))
     || !report.processExited || shutdownForced) {
   if (logs) console.error(logs.slice(-5_000));
   process.exitCode = 1;
@@ -358,6 +452,119 @@ function validateAuthConfiguration() {
     'AUTH scenario requires a dedicated test account whose username starts with load_');
   assert.ok(password && Buffer.byteLength(password, 'utf8') <= 512, 'AUTH scenario requires a bounded test password');
   return { username, password, seed: false };
+}
+
+function validateRoomLoadConfiguration(testScenario, clients) {
+  const host = process.env.HABBUX_TEST_POSTGRES_HOST;
+  const database = process.env.HABBUX_TEST_POSTGRES_DB;
+  assert.ok(host === '127.0.0.1' || host === 'localhost', 'room load only allows loopback PostgreSQL');
+  assert.equal(database, 'habbux_phase2_test', 'room load only allows the dedicated Habbux test database');
+  assert.equal(process.env.HABBUX_LOAD_AUTH_SEED, '1', 'room load requires disposable seeded test accounts');
+  for (const key of ['HABBUX_TEST_POSTGRES_PORT', 'HABBUX_TEST_POSTGRES_USER',
+    'HABBUX_TEST_POSTGRES_PASSWORD', 'HABBUX_TEST_POSTGRES_MIGRATION_USER',
+    'HABBUX_TEST_POSTGRES_MIGRATION_PASSWORD']) {
+    assert.ok(process.env[key], `room load requires ${key}`);
+  }
+  const defaultRooms = testScenario === 'hot-room' ? 1 : 4;
+  const roomCount = Number(process.env.HABBUX_LOAD_ROOMS ?? defaultRooms);
+  assert.ok(Number.isInteger(roomCount) && roomCount >= 1 && roomCount <= Math.min(25, clients),
+    'HABBUX_LOAD_ROOMS must be from 1 to min(25, clients)');
+  if (testScenario === 'hot-room') assert.equal(roomCount, 1, 'hot-room scenario requires exactly one room');
+  const token = randomBytes(5).toString('hex');
+  const accountPrefix = `load_${token}_`;
+  const roomPrefix = `loadroom_${token}`;
+  const accounts = Array.from({ length: clients }, (_, index) => {
+    const username = `${accountPrefix}${String(index).padStart(2, '0')}`;
+    assert.ok(username.length <= 20);
+    return {
+      username,
+      email: `${username}@example.test`,
+      password: randomBytes(24).toString('base64url'),
+    };
+  });
+  return { host, database, token, accountPrefix, roomPrefix, roomCount, accounts,
+    createdAccounts: [], roomIds: [] };
+}
+
+async function createRoomLoadFixtures(config) {
+  assert.equal(await runRoomLoadSql(config, 'SELECT current_database();'), config.database,
+    'room fixture setup connected to a different database');
+  const ownerUsername = config.accounts[0].username;
+  const insertAndRead = `
+    \\set QUIET 1
+    INSERT INTO rooms (owner_user_id, name, description, capacity, grid_width, grid_height,
+                       grid_walkability, spawn_x, spawn_y)
+    SELECT users.id, :'room_prefix' || '_r' || lpad(room_number::text, 2, '0'), '', 100, 64, 64,
+           decode(repeat('01', 4096), 'hex'), 0, 0
+      FROM users CROSS JOIN generate_series(1, :'room_count'::integer) AS numbers(room_number)
+     WHERE users.username = :'owner_username';
+    SELECT id FROM rooms
+     WHERE left(name, length(:'room_prefix') + 2) = :'room_prefix' || '_r'
+       AND substring(name FROM length(:'room_prefix') + 3) ~ '^[0-9]{2}$'
+     ORDER BY name;
+  `;
+  const output = await runRoomLoadSql(config, insertAndRead, {
+    room_prefix: config.roomPrefix,
+    room_count: String(config.roomCount),
+    owner_username: ownerUsername,
+  });
+  const roomIds = output.split(/\s+/u).filter((value) => /^\d+$/u.test(value)).map(Number);
+  assert.equal(roomIds.length, config.roomCount, 'did not create the requested number of isolated rooms');
+  assert.ok(roomIds.every((id) => Number.isSafeInteger(id) && id > 0));
+  return roomIds;
+}
+
+async function cleanupRoomLoadFixtures(config) {
+  assert.equal(await runRoomLoadSql(config, 'SELECT current_database();'), config.database,
+    'room fixture cleanup connected to a different database');
+  const output = await runRoomLoadSql(config, `
+    \\set QUIET 1
+    DELETE FROM rooms
+     WHERE left(name, length(:'room_prefix') + 2) = :'room_prefix' || '_r'
+       AND substring(name FROM length(:'room_prefix') + 3) ~ '^[0-9]{2}$';
+    DELETE FROM users
+     WHERE left(username, length(:'account_prefix')) = :'account_prefix'
+       AND substring(username FROM length(:'account_prefix') + 1) ~ '^[0-9]{2}$';
+    SELECT (SELECT count(*) FROM rooms
+             WHERE left(name, length(:'room_prefix') + 2) = :'room_prefix' || '_r'
+               AND substring(name FROM length(:'room_prefix') + 3) ~ '^[0-9]{2}$') || ':' ||
+           (SELECT count(*) FROM users
+             WHERE left(username, length(:'account_prefix')) = :'account_prefix'
+               AND substring(username FROM length(:'account_prefix') + 1) ~ '^[0-9]{2}$');
+  `, { room_prefix: config.roomPrefix, account_prefix: config.accountPrefix });
+  assert.match(output, /(?:^|\s)0:0(?:$|\s)/u, 'temporary room load rows remained after cleanup');
+}
+
+async function runRoomLoadSql(config, sql, variables = {}) {
+  const args = ['--no-psqlrc', '--quiet', '--tuples-only', '--no-align', '--set=ON_ERROR_STOP=1',
+    '-h', config.host, '-p', process.env.HABBUX_TEST_POSTGRES_PORT,
+    '-U', process.env.HABBUX_TEST_POSTGRES_MIGRATION_USER, '-d', config.database];
+  for (const [name, value] of Object.entries(variables)) args.push(`--set=${name}=${value}`);
+  const environment = {
+    PATH: '/usr/bin:/bin',
+    PGCONNECT_TIMEOUT: '3',
+    PGPASSWORD: process.env.HABBUX_TEST_POSTGRES_MIGRATION_PASSWORD,
+  };
+  return new Promise((resolve, reject) => {
+    const client = spawn('psql', args, { env: environment, stdio: ['pipe', 'pipe', 'ignore'] });
+    let output = '';
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; client.kill('SIGKILL'); }, 5_000);
+    client.stdout.setEncoding('utf8');
+    client.stdout.on('data', (chunk) => { output += chunk; });
+    client.once('error', () => {
+      clearTimeout(timer);
+      reject(new Error('psql could not start for isolated room load setup/cleanup'));
+    });
+    client.once('close', (code) => {
+      clearTimeout(timer);
+      if (timedOut) reject(new Error('psql timed out during isolated room load setup/cleanup'));
+      else if (code !== 0) reject(new Error('psql failed during isolated room load setup/cleanup'));
+      else resolve(output.trim());
+    });
+    client.stdin.on('error', () => {});
+    client.stdin.end(sql);
+  });
 }
 
 function emulatorEnvironment(authConfig, serverPort, maxConnections) {
@@ -434,6 +641,243 @@ async function exercise({ port: serverPort, scenario: testScenario, auth: authCr
     await client.close();
     throw error;
   }
+}
+
+async function exerciseRoomScenario({ port: serverPort, config }) {
+  const scenarioStartedAt = performance.now();
+  const clients = config.accounts.map(() => new LoadClient(serverPort));
+  const clientRows = clients.map((client, index) => ({
+    client,
+    index,
+    connectLatency: null,
+    handshakeLatency: null,
+    loginLatency: null,
+    userId: null,
+    roomId: null,
+    roomIndex: index % config.roomCount,
+    spawn: null,
+    target: null,
+    movementLatency: null,
+    chatLatency: null,
+    pingLatency: null,
+    joinLatency: null,
+    leaveLatency: null,
+    moved: false,
+    chatted: false,
+    left: false,
+  }));
+  try {
+    const connected = await Promise.all(clientRows.map(async (row) => {
+      const result = await row.client.connect();
+      row.connectLatency = result.websocketOpenLatency;
+      row.handshakeLatency = result.coreHandshakeLatency;
+      return result;
+    }));
+    assert.equal(connected.length, clients.length);
+
+    await mapWithConcurrency(clientRows, 2, async (row) => {
+      const started = performance.now();
+      const authSuccess = await row.client.login(config.accounts[row.index].username,
+        config.accounts[row.index].password);
+      row.loginLatency = performance.now() - started;
+      row.userId = readPositiveUint64(authSuccess.payload, 0, 'AUTH_SUCCESS user id');
+    });
+
+    await Promise.all(clientRows.map(async (row) => {
+      row.roomId = config.roomIds[row.roomIndex];
+      const payload = encodeUint64(row.roomId);
+      const started = performance.now();
+      row.client.send(13, payload);
+      const joined = await row.client.waitForMessage((frame) => frame.messageId === 14 || frame.messageId === 15, 8_000);
+      if (joined.messageId === 15) throw new Error(`room join failed with category ${joined.payload[0] ?? 'missing'}`);
+      assert.equal(joined.payload.byteLength, 10, 'ROOM_JOIN_SUCCESS has an invalid size');
+      assert.equal(readPositiveUint64(joined.payload, 0, 'joined room id'), row.roomId);
+      row.spawn = { x: joined.payload[8], y: joined.payload[9] };
+      const snapshot = await row.client.waitForMessage((frame) => frame.messageId === 18
+        && frame.payload.byteLength >= 8
+        && readPositiveUint64(frame.payload, 0, 'snapshot room id') === row.roomId, 8_000);
+      assert.ok(snapshot.payload.byteLength >= 16, 'room snapshot is truncated');
+      row.joinLatency = performance.now() - started;
+    }));
+
+    const movementGroups = planAdjacentRoomMoves(clientRows);
+    assert.equal(movementGroups.reduce((sum, group) => sum + group.length, 0), clientRows.length,
+      'could not plan one collision-free move for every test client');
+    await Promise.all(movementGroups.map(async (group) => {
+      for (const row of group) {
+        const started = performance.now();
+        row.client.send(19, Uint8Array.of(row.target.x, row.target.y));
+        const update = await row.client.waitForMessage((frame) => frame.messageId === 20
+          && frame.payload.byteLength === 11
+          && readPositiveUint64(frame.payload, 0, 'movement user id') === row.userId, 8_000);
+        assert.equal(update.payload[8], row.target.x, 'authoritative movement X did not match');
+        assert.equal(update.payload[9], row.target.y, 'authoritative movement Y did not match');
+        row.movementLatency = performance.now() - started;
+        row.moved = true;
+      }
+    }));
+
+    await Promise.all(clientRows.map(async (row) => {
+      const message = `load_${config.token}_${String(row.index).padStart(2, '0')}`;
+      const payload = encodeChat(message);
+      const started = performance.now();
+      row.client.send(24, payload);
+      const echoed = await row.client.waitForMessage((frame) => frame.messageId === 25
+        && frame.payload.byteLength >= 10
+        && readPositiveUint64(frame.payload, 0, 'chat user id') === row.userId
+        && decodeChatText(frame.payload) === message, 8_000);
+      assert.equal(decodeChatText(echoed.payload), message);
+      row.chatLatency = performance.now() - started;
+      row.chatted = true;
+    }));
+
+    await Promise.all(clientRows.map(async (row) => {
+      row.pingLatency = await row.client.ping((row.index * 977 + 1) >>> 0);
+      const started = performance.now();
+      row.client.send(16, new Uint8Array());
+      const response = await row.client.waitForMessage((frame) => frame.messageId === 17, 8_000);
+      assert.equal(response.payload.byteLength, 0, 'ROOM_LEAVE_SUCCESS must be empty');
+      row.leaveLatency = performance.now() - started;
+      row.left = true;
+    }));
+
+    const closed = await Promise.all(clientRows.map((row) => row.client.close()));
+    assert.ok(closed.every(Boolean), 'one or more room load clients did not disconnect cleanly');
+    const receivedFrames = clientRows.reduce((sum, row) => sum + row.client.receivedFrames, 0);
+    const sentFrames = clientRows.reduce((sum, row) => sum + row.client.sentFrames, 0);
+    const report = {
+      clients: clients.length,
+      rooms: config.roomCount,
+      usersPerRoom: countUsersPerRoom(clientRows, config.roomCount),
+      connectSuccess: connected.length,
+      authSuccess: clientRows.filter((row) => row.userId !== null).length,
+      joinSuccess: clientRows.filter((row) => row.joinLatency !== null).length,
+      moveAttempted: movementGroups.reduce((sum, group) => sum + group.length, 0),
+      moveSuccess: clientRows.filter((row) => row.moved).length,
+      chatSuccess: clientRows.filter((row) => row.chatted).length,
+      pingSuccess: clientRows.filter((row) => row.pingLatency !== null).length,
+      leaveSuccess: clientRows.filter((row) => row.left).length,
+      disconnectSuccess: closed.filter(Boolean).length,
+      clientMessagesSent: sentFrames,
+      clientMessagesReceived: receivedFrames,
+      clientMessagesPerSecond: null,
+      serverMessagesPerSecond: null,
+      latencyMs: {
+        websocketOpen: percentiles(clientRows.map((row) => row.connectLatency)),
+        coreHandshake: percentiles(clientRows.map((row) => row.handshakeLatency)),
+        login: percentiles(clientRows.map((row) => row.loginLatency)),
+        join: percentiles(clientRows.map((row) => row.joinLatency)),
+        movement: percentiles(clientRows.map((row) => row.movementLatency).filter(Number.isFinite)),
+        chat: percentiles(clientRows.map((row) => row.chatLatency)),
+        pingPong: percentiles(clientRows.map((row) => row.pingLatency)),
+        leave: percentiles(clientRows.map((row) => row.leaveLatency)),
+      },
+    };
+    const durationMs = Math.max(performance.now() - scenarioStartedAt, 1);
+    report.clientMessagesPerSecond = rate(sentFrames, durationMs);
+    report.serverMessagesPerSecond = rate(receivedFrames, durationMs);
+    return {
+      durationMs,
+      report,
+      clients: clientRows.map((row) => ({
+        authenticated: row.userId !== null,
+        disconnected: closed[row.index],
+        websocketOpenLatency: row.connectLatency,
+        coreHandshakeLatency: row.handshakeLatency,
+        loginLatency: row.loginLatency,
+        pingLatencies: row.pingLatency === null ? [] : [row.pingLatency],
+        clientFramesSent: row.client.sentFrames,
+      })),
+    };
+  } catch (error) {
+    await Promise.all(clients.map((client) => client.close()));
+    throw error;
+  }
+}
+
+function planAdjacentRoomMoves(rows) {
+  const grouped = new Map();
+  for (const row of rows) {
+    if (!grouped.has(row.roomId)) grouped.set(row.roomId, []);
+    grouped.get(row.roomId).push(row);
+  }
+  const plannedGroups = [];
+  for (const occupants of grouped.values()) {
+    const occupied = new Set(occupants.map((row) => `${row.spawn.x},${row.spawn.y}`));
+    const pending = new Set(occupants);
+    const planned = [];
+    while (pending.size > 0) {
+      let progressed = false;
+      for (const row of [...pending]) {
+        const candidates = [
+          [row.spawn.x, row.spawn.y - 1], [row.spawn.x - 1, row.spawn.y],
+          [row.spawn.x + 1, row.spawn.y], [row.spawn.x, row.spawn.y + 1],
+        ];
+        const free = candidates.find(([x, y]) => x >= 0 && x < 64 && y >= 0 && y < 64
+          && !occupied.has(`${x},${y}`));
+        if (free) {
+          row.target = { x: free[0], y: free[1] };
+          occupied.delete(`${row.spawn.x},${row.spawn.y}`);
+          occupied.add(`${free[0]},${free[1]}`);
+          pending.delete(row);
+          planned.push(row);
+          progressed = true;
+        }
+      }
+      if (!progressed) break;
+    }
+    if (planned.length > 0) plannedGroups.push(planned);
+  }
+  return plannedGroups;
+}
+
+function countUsersPerRoom(rows, roomCount) {
+  return Array.from({ length: roomCount }, (_, roomIndex) => rows.filter((row) => row.roomIndex === roomIndex).length);
+}
+
+async function mapWithConcurrency(items, concurrency, task) {
+  let nextIndex = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      await task(items[index]);
+    }
+  });
+  await Promise.all(workers);
+}
+
+function encodeUint64(value) {
+  const payload = new Uint8Array(8);
+  new DataView(payload.buffer).setBigUint64(0, BigInt(value), false);
+  return payload;
+}
+
+function readUint64(payload, offset) {
+  return new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getBigUint64(offset, false);
+}
+
+function readPositiveUint64(payload, offset, label) {
+  assert.ok(payload.byteLength >= offset + 8, `${label} is truncated`);
+  const value = readUint64(payload, offset);
+  assert.ok(value > 0n && value <= BigInt(Number.MAX_SAFE_INTEGER), `${label} is outside the safe range`);
+  return Number(value);
+}
+
+function encodeChat(text) {
+  const encoded = new TextEncoder().encode(text);
+  const payload = new Uint8Array(2 + encoded.byteLength);
+  new DataView(payload.buffer).setUint16(0, encoded.byteLength, false);
+  payload.set(encoded, 2);
+  return payload;
+}
+
+function decodeChatText(payload) {
+  if (payload.byteLength < 10) return '';
+  const size = new DataView(payload.buffer, payload.byteOffset, payload.byteLength).getUint16(8, false);
+  if (size !== payload.byteLength - 10) return '';
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(payload.subarray(10)); }
+  catch { return ''; }
 }
 
 async function registerLoadAccount(serverPort, credentials) {

@@ -70,14 +70,15 @@ final class RoomMailbox {
                 QueuedTask task;
                 synchronized (this) { task = tasks.pollFirst(); }
                 if (task == null) break;
-                metrics.queueDelayNanos.add(Math.max(0, System.nanoTime() - task.enqueuedAtNanos));
-                metrics.queueSamples.increment();
+                long taskStartedAtNanos = System.nanoTime();
+                metrics.queueDelay.record(Math.max(0, taskStartedAtNanos - task.enqueuedAtNanos));
                 try {
                     task.action.run();
                 } catch (Throwable failure) {
                     if (failure instanceof VirtualMachineError fatal) throw fatal;
                     metrics.handlerFailures.increment();
                 } finally {
+                    metrics.eventDuration.record(Math.max(0, System.nanoTime() - taskStartedAtNanos));
                     metrics.processedEvents.increment();
                     processed++;
                 }

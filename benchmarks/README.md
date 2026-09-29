@@ -7,19 +7,24 @@ script. Nenhum dos dois é teste de capacidade de jogadores.
 
 ## Core v1: load smoke local
 
-Selecione `HABBUX_LOAD_SCENARIO=connection`, `session` ou `auth`. O padrão é
+Selecione `HABBUX_LOAD_SCENARIO=connection`, `session`, `auth`, `rooms` ou
+`hot-room`. O padrão é
 `session`, com 25 conexões, 2 conexões de aquecimento e 3 PING/PONG por sessão.
 Connection mede upgrade/handshake e fechamento; session mede também RTT; auth
-mede login bem-sucedido seguido de PING/PONG. O smoke para em 100 conexões para os
-dois primeiros cenários e 8 para Auth. Isso é um teto operacional do utilitário,
-não uma meta de capacidade. A duração é curta; não há carga prolongada ou teste de
-Room Engine.
+mede login bem-sucedido seguido de PING/PONG. `rooms` distribui clientes em
+quartos; `hot-room` concentra todos em um. Ambos exercitam connect, handshake,
+Auth, join, movimento, chat, PING, leave e disconnect. O teto é 100 conexões e
+25 quartos; o padrão conservador é 20 clientes e 4 quartos. Esses limites são
+operacionais do utilitário, não metas de capacidade. Não há carga prolongada.
 
 O relatório inclui tentativas, handshakes, logins, erros, fechamento, conexões/s,
 mensagens/s e p50/p95/p99 de handshake, login e PING/PONG. Quando Linux e JDK
 oferecem os dados, coleta RSS/threads via `/proc`, CPU do processo via ticks e
 heap/GC via `jstat`. Ao encerrar, lê contadores do servidor, executor Auth e pool
 PostgreSQL. Campo sem fonte disponível sai como `null`; o script não estima valor.
+Nos cenários de quartos, também reporta usuários por quarto, sucesso de cada ação,
+mensagens/eventos por segundo, percentis de fila, join e movimento, profundidade
+máxima da mailbox, rejeições e limpeza de runtimes/presenças.
 
 Exemplo seguro de sessão:
 
@@ -49,6 +54,27 @@ set +a
 HABBUX_LOAD_SCENARIO=auth HABBUX_LOAD_AUTH_SEED=1 HABBUX_SMOKE_CONNECTIONS=4 \
   nice -n 19 /opt/node22/bin/npm run core:load-smoke
 ```
+
+Para o fluxo distribuído, o script registra contas aleatórias descartáveis pelo
+Auth Core, cria quartos em `habbux_phase2_test`, mede todas as ações, fecha os
+clientes e remove somente as linhas com o prefixo aleatório desta execução. O
+modo `hot-room` usa o mesmo processo e os mesmos limites, mas cria um quarto. A
+limpeza valida novamente `current_database()` e a quantidade final de linhas.
+Comece com a configuração pequena abaixo; `HABBUX_SMOKE_CONNECTIONS` pode chegar
+a 100 e `HABBUX_LOAD_ROOMS` a 25, conforme o recurso disponível no host:
+
+```bash
+set -a
+. /root/.config/habbux/phase2-test.env
+set +a
+HABBUX_LOAD_SCENARIO=rooms HABBUX_LOAD_AUTH_SEED=1 HABBUX_SMOKE_CONNECTIONS=20 HABBUX_LOAD_ROOMS=4 \
+  nice -n 19 /opt/node22/bin/npm run core:load-smoke
+```
+
+Troque o cenário para `hot-room` e `HABBUX_LOAD_ROOMS=1` para medir contenção
+em um único quarto. Não misture esse resultado com o distribuído. O relatório
+mede CPU, RSS, heap, GC, threads e estado do pool; cada execução é curta e não
+afirma capacidade sustentável.
 
 ### Execuções locais de referência
 
@@ -122,6 +148,58 @@ A medição inclui submissão e espera na mailbox; não é tempo puro de BFS. O 
 compartilhado apresentou variação considerável em throughput e caudas de
 latência. São amostras curtas sem intervalo de confiança, úteis como baseline
 local; não representam capacidade sustentável do servidor.
+
+Baseline de checkpoint 4, com a instrumentação de fila ativa, Java 25.0.4.1 e
+grade aberta 64×64. Cada execução mediu 500 comandos depois de 100 warmups; a
+latência inclui mailbox e scheduler:
+
+| Execução | Pedidos/s | p50 | p95 | p99 | Alocação/pedido |
+|---|---:|---:|---:|---:|---:|
+| 1 | 1.163,4 | 466,2 µs | 2.616,6 µs | 8.193,5 µs | 562 B |
+| 2 | 2.599,5 | 265,9 µs | 1.059,9 µs | 1.665,4 µs | 568 B |
+| 3 | 2.944,7 | 247,0 µs | 787,9 µs | 1.901,3 µs | 569 B |
+
+O primeiro resultado mostra a variação do host compartilhado; as três amostras
+são mantidas, sem escolher apenas a melhor.
+
+## Room Engine v1: baseline distribuído e hot room
+
+`RoomSchedulerBenchmarkTest` mede sem rede 5.000 eventos por execução em duas
+distribuições: 100 mailboxes com 50 eventos cada e 1.000 mailboxes com 5 eventos
+cada. Três repetições em Java 25.0.4.1, workers fixos em 2:
+
+| Salas | Execução | Eventos/s | Latência p50/p95/p99 | Eventos por sala min–máx |
+|---:|---:|---:|---:|---:|
+| 100 | 1 | 32.382,3 | 5,34 / 11,26 / 12,72 ms | 50–50 |
+| 100 | 2 | 33.207,2 | 10,82 / 18,97 / 20,06 ms | 50–50 |
+| 100 | 3 | 29.610,1 | 13,82 / 25,70 / 27,23 ms | 50–50 |
+| 1.000 | 1 | 43.778,1 | 3,48 / 5,41 / 5,44 ms | 5–5 |
+| 1.000 | 2 | 39.855,8 | 1,11 / 2,55 / 5,18 ms | 5–5 |
+| 1.000 | 3 | 40.042,8 | 1,02 / 4,46 / 4,84 ms | 5–5 |
+
+O benchmark confirma distribuição igual por mailbox nesses lotes e registra
+variação de latência; throughput sintético do scheduler não equivale a eventos
+de gameplay por segundo.
+
+Smoke WebSocket real, cada cenário executado uma vez no host compartilhado de 4
+CPUs lógicas, JDK 25.0.4.1, Emulator limitado a 2 CPUs ativas e heap máximo de
+256 MiB. Vinte contas aleatórias foram registradas no banco isolado antes da
+janela medida; as contas e salas foram removidas depois. O setup levou 10,26 s
+no cenário distribuído e 6,43 s no hot room, fora da janela reportada.
+
+| Cenário | Clientes/salas | Connect/Auth/Join/Move/Chat/Ping/Leave | Eventos/s | Mensagens servidor/s | Fila p50/p95/p99 | Mailbox máx. | CPU de 1 core | Pico RSS | Heap/GC | Threads |
+|---|---|---|---:|---:|---|---:|---:|---:|---|---:|
+| Distribuído | 20 / 4, 5 por sala | 20/20 em cada etapa | 16,15 | 62,12 | 0,524 / 8,389 / 16,777 ms | 5 | 143,1% | 320,63 MiB | 98 MiB; 28 coleções / 1,092 s | 33 |
+| Hot room | 20 / 1 sala | 20/20 em cada etapa | 17,29 | 222,63 | 1,049 / 33,554 / 67,109 ms | 9 | 147,6% | 311,59 MiB | 92 MiB; 30 coleções / 0,468 s | 31 |
+
+Latência de join medida pelos clientes (p50/p95/p99): distribuído **410/425/428
+ms**, hot room **123/187/187 ms**. Movimento autoritativo por passo: distribuído
+**96/163/164 ms**, hot room **103/179/188 ms**. As taxas e percentis representam
+uma execução curta com autenticação real; não são SLOs nem capacidade sustentável.
+Em ambos os cenários houve 0 eventos rejeitados, 0 falhas de handler, 0 conexões
+de banco ativas/pendentes ao encerrar, 0 salas/usuários/sessões e igualdade entre
+ativações e unloads. Não avançamos para 100 clientes porque este host também
+executa serviços de produção; maior escala deve usar máquina dedicada.
 
 ## Progressão
 

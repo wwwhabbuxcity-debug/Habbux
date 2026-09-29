@@ -105,8 +105,12 @@ sem exceder sua capacidade total.
 
 ## Observabilidade e teste
 
-O snapshot de métricas conta quartos ativos, workers vivos, eventos aceitos,
-rejeitados/processados, handler failures, maior mailbox e atraso médio de fila.
+O snapshot de métricas conta quartos ativos/usuários, profundidade atual e máxima
+de mailbox, workers vivos/ativos, eventos aceitos/rejeitados/processados,
+handler failures, joins/falhas, saídas, pedidos e resultados de pathfinding,
+chats, ativações/unloads e latência média de processamento. Histogramas fixos
+com buckets logarítmicos estimam p50/p95/p99 de fila, join e movimento com custo
+limitado por evento. Esses percentis são aproximados e servem para diagnóstico.
 Testes do checkpoint atual cobrem 10 mil eventos ordenados, paralelo entre
 quartos, justiça por quantidade e tempo de lote, mailbox cheia, handler
 exception, 100 entradas no mesmo quarto, activation race, unload/rejoin,
@@ -118,6 +122,8 @@ limit e integração com WebSocket; cenários de carga e a auditoria final ficam
 checkpoint 4.
 
 Essas garantias de teste não definem capacidade sustentável. Use o relatório de
-load smoke para limites, percentis e condições da máquina observada. Furniture,
+load smoke distribuído e de hot room para resultados, percentis e condições da
+máquina observada. Benchmarks do scheduler sem rede cobrem 100 e 1.000 mailboxes;
+isso também não define capacidade sustentável. Furniture,
 economia, bots, direitos de quarto e transferência entre quartos continuam fora
 do Room Engine v1.

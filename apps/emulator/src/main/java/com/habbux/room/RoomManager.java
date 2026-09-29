@@ -59,6 +59,11 @@ public final class RoomManager implements AutoCloseable {
         java.util.Objects.requireNonNull(user, "user");
         java.util.Objects.requireNonNull(client, "client");
         JoinHandle handle = new JoinHandle(roomId, sessionId);
+        handle.result.whenComplete((outcome, failure) -> {
+            metrics.joinLatency.record(Math.max(0, System.nanoTime() - handle.startedAtNanos));
+            if (failure == null && outcome == RoomRuntime.JoinOutcome.JOINED) metrics.joinSuccess.increment();
+            else metrics.joinFailure.increment();
+        });
         if (!accepting.get()) {
             failJoin(handle, client, RoomOutbound.JoinFailure.UNAVAILABLE, RoomRuntime.JoinOutcome.UNAVAILABLE);
             return handle;
@@ -104,6 +109,7 @@ public final class RoomManager implements AutoCloseable {
     }
 
     public CompletableFuture<Void> leave(RoomId roomId, UUID sessionId, RoomClient client, boolean acknowledge) {
+        metrics.leaveCount.increment();
         Slot slot = active.get(roomId);
         if (slot == null) return CompletableFuture.completedFuture(null);
         synchronized (slot.gate) { slot.lastAccessNanos = System.nanoTime(); }
@@ -112,9 +118,12 @@ public final class RoomManager implements AutoCloseable {
 
     public CompletableFuture<RoomRuntime.MoveOutcome> move(RoomId roomId, UUID sessionId,
                                                            int x, int y, RoomClient client) {
+        metrics.movementRequests.increment();
+        long startedAtNanos = System.nanoTime();
         Slot slot = active.get(roomId);
         if (slot == null) {
             client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.NOT_IN_ROOM));
+            metrics.movementLatency.record(Math.max(0, System.nanoTime() - startedAtNanos));
             return CompletableFuture.completedFuture(RoomRuntime.MoveOutcome.NOT_IN_ROOM);
         }
         synchronized (slot.gate) { slot.lastAccessNanos = System.nanoTime(); }
@@ -125,6 +134,14 @@ public final class RoomManager implements AutoCloseable {
                 client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.UNAVAILABLE));
             }
             return outcome;
+        }).whenComplete((outcome, failure) -> {
+            metrics.movementLatency.record(Math.max(0, System.nanoTime() - startedAtNanos));
+            if (failure == null && (outcome == RoomRuntime.MoveOutcome.MOVING || outcome == RoomRuntime.MoveOutcome.ARRIVED)) {
+                metrics.pathfindingSuccess.increment();
+            } else if (outcome == RoomRuntime.MoveOutcome.INVALID_DESTINATION
+                    || outcome == RoomRuntime.MoveOutcome.UNREACHABLE || outcome == RoomRuntime.MoveOutcome.PATH_LIMIT) {
+                metrics.pathfindingFailure.increment();
+            }
         });
     }
 
@@ -143,6 +160,8 @@ public final class RoomManager implements AutoCloseable {
                         RoomOutbound.ActionFailure.UNAVAILABLE));
             }
             return outcome;
+        }).whenComplete((outcome, failure) -> {
+            if (failure == null && outcome == RoomRuntime.ChatOutcome.SENT) metrics.chatMessages.increment();
         });
     }
 
@@ -156,9 +175,23 @@ public final class RoomManager implements AutoCloseable {
 
     public MetricsSnapshot snapshot() {
         RoomMetrics.Snapshot room = metrics.snapshot();
-        return new MetricsSnapshot(active.size(), room.acceptedEvents(), room.rejectedEvents(), room.processedEvents(),
-                room.handlerFailures(), room.averageQueueDelayNanos(), room.maxMailboxDepth(), scheduler.workerCount(),
-                scheduler.liveWorkerCount());
+        int users = 0;
+        int mailboxDepth = 0;
+        for (Slot slot : active.values()) {
+            RoomRuntime runtime = slot.runtime;
+            if (runtime != null) {
+                users += runtime.presenceCount();
+                mailboxDepth += runtime.mailboxDepth();
+            }
+        }
+        return new MetricsSnapshot(active.size(), users, mailboxDepth, room.acceptedEvents(), room.rejectedEvents(),
+                room.processedEvents(), room.handlerFailures(), room.averageQueueDelayNanos(), room.maxMailboxDepth(),
+                room.queueDelayP50Nanos(), room.queueDelayP95Nanos(), room.queueDelayP99Nanos(),
+                room.averageEventDurationNanos(), room.joinSuccess(), room.joinFailure(), room.leaveCount(),
+                room.movementRequests(), room.pathfindingSuccess(), room.pathfindingFailure(), room.chatMessages(),
+                room.roomActivations(), room.roomUnloads(), room.activeWorkers(), room.maxActiveWorkers(),
+                room.joinP50Nanos(), room.joinP95Nanos(), room.joinP99Nanos(), room.movementP50Nanos(),
+                room.movementP95Nanos(), room.movementP99Nanos(), scheduler.workerCount(), scheduler.liveWorkerCount());
     }
 
     private CompletableFuture<Slot> slotForJoin(RoomId id) {
@@ -187,6 +220,7 @@ public final class RoomManager implements AutoCloseable {
                             config.maxExploredNodes(), config.maxPathLength(), config.maxChatBytes(),
                             config.maxChatCodePoints(), config.chatRateLimitMillis());
                     slot.runtime = runtime;
+                    metrics.roomActivations.increment();
                     slot.loaded.complete(runtime);
                 } catch (Throwable failure) {
                     removeSlot(id, slot);
@@ -203,6 +237,7 @@ public final class RoomManager implements AutoCloseable {
     private void removeSlot(RoomId id, Slot slot) {
         if (active.remove(id, slot)) {
             roomSlots.release();
+            if (slot.runtime != null) metrics.roomUnloads.increment();
         }
     }
 
@@ -293,14 +328,42 @@ public final class RoomManager implements AutoCloseable {
         boolean schedulerStopped = scheduler.close(Duration.ofNanos(Math.max(1, deadline - System.nanoTime())));
         clean &= schedulerStopped;
         if (!active.isEmpty()) clean = false;
+        MetricsSnapshot roomSnapshot = snapshot();
         LOG.atInfo().addKeyValue("event", "room.manager_stopped")
                 .addKeyValue("activeRooms", active.size())
+                .addKeyValue("activeRoomUsers", roomSnapshot.activeRoomUsers())
+                .addKeyValue("mailboxDepth", roomSnapshot.mailboxDepth())
+                .addKeyValue("roomEventsQueued", roomSnapshot.acceptedEvents())
+                .addKeyValue("roomEventsProcessed", roomSnapshot.processedEvents())
+                .addKeyValue("maxMailboxDepth", roomSnapshot.maxMailboxDepth())
                 .addKeyValue("workerCount", scheduler.workerCount())
                 .addKeyValue("liveWorkers", scheduler.liveWorkerCount())
                 .addKeyValue("roomIoTerminated", roomIo.isTerminated())
                 .addKeyValue("schedulerStopped", schedulerStopped)
                 .addKeyValue("clean", clean)
-                .addKeyValue("rejectedEvents", metrics.snapshot().rejectedEvents())
+                .addKeyValue("roomEventsRejected", roomSnapshot.rejectedEvents())
+                .addKeyValue("handlerFailures", roomSnapshot.handlerFailures())
+                .addKeyValue("queueDelayP50Nanos", roomSnapshot.queueDelayP50Nanos())
+                .addKeyValue("queueDelayP95Nanos", roomSnapshot.queueDelayP95Nanos())
+                .addKeyValue("queueDelayP99Nanos", roomSnapshot.queueDelayP99Nanos())
+                .addKeyValue("averageEventDurationNanos", roomSnapshot.averageEventDurationNanos())
+                .addKeyValue("joinP50Nanos", roomSnapshot.joinP50Nanos())
+                .addKeyValue("joinP95Nanos", roomSnapshot.joinP95Nanos())
+                .addKeyValue("joinP99Nanos", roomSnapshot.joinP99Nanos())
+                .addKeyValue("movementP50Nanos", roomSnapshot.movementP50Nanos())
+                .addKeyValue("movementP95Nanos", roomSnapshot.movementP95Nanos())
+                .addKeyValue("movementP99Nanos", roomSnapshot.movementP99Nanos())
+                .addKeyValue("joinSuccess", roomSnapshot.joinSuccess())
+                .addKeyValue("joinFailure", roomSnapshot.joinFailure())
+                .addKeyValue("leaveCount", roomSnapshot.leaveCount())
+                .addKeyValue("movementRequests", roomSnapshot.movementRequests())
+                .addKeyValue("pathfindingSuccess", roomSnapshot.pathfindingSuccess())
+                .addKeyValue("pathfindingFailure", roomSnapshot.pathfindingFailure())
+                .addKeyValue("chatMessages", roomSnapshot.chatMessages())
+                .addKeyValue("roomActivations", roomSnapshot.roomActivations())
+                .addKeyValue("roomUnloads", roomSnapshot.roomUnloads())
+                .addKeyValue("activeWorkers", roomSnapshot.activeWorkers())
+                .addKeyValue("maxActiveWorkers", roomSnapshot.maxActiveWorkers())
                 .log("Habbux Room Manager stopped");
         return clean;
     }
@@ -326,6 +389,7 @@ public final class RoomManager implements AutoCloseable {
     public final class JoinHandle {
         private final RoomId roomId;
         private final UUID sessionId;
+        private final long startedAtNanos = System.nanoTime();
         private final AtomicBoolean cancelled = new AtomicBoolean();
         private final CompletableFuture<RoomRuntime.JoinOutcome> result = new CompletableFuture<>();
         private JoinHandle(RoomId roomId, UUID sessionId) { this.roomId = roomId; this.sessionId = sessionId; }
@@ -335,8 +399,15 @@ public final class RoomManager implements AutoCloseable {
         public void cancel() { cancelled.set(true); }
     }
 
-    public record MetricsSnapshot(int activeRooms, long acceptedEvents, long rejectedEvents, long processedEvents,
-                                  long handlerFailures, long averageQueueDelayNanos, long maxMailboxDepth,
+    public record MetricsSnapshot(int activeRooms, int activeRoomUsers, int mailboxDepth, long acceptedEvents,
+                                  long rejectedEvents, long processedEvents, long handlerFailures,
+                                  long averageQueueDelayNanos, long maxMailboxDepth, long queueDelayP50Nanos,
+                                  long queueDelayP95Nanos, long queueDelayP99Nanos,
+                                  long averageEventDurationNanos, long joinSuccess, long joinFailure, long leaveCount,
+                                  long movementRequests, long pathfindingSuccess, long pathfindingFailure,
+                                  long chatMessages, long roomActivations, long roomUnloads, int activeWorkers,
+                                  int maxActiveWorkers, long joinP50Nanos, long joinP95Nanos, long joinP99Nanos,
+                                  long movementP50Nanos, long movementP95Nanos, long movementP99Nanos,
                                   int workerCount, int liveWorkers) { }
 
     private static final class Slot {

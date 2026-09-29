@@ -87,8 +87,10 @@ broadcast pela mesma mailbox. Com Room Engine ativo, `HABBUX_MAX_PAYLOAD_BYTES`
 precisa ser pelo menos 7.438 bytes para comportar o maior snapshot v1 possível;
 o default permanece 65.536.
 
-Teste local separado de 100 conexões: depois de `mvn clean verify`, dependências
-Node instaladas e Java 25 ativo, rode `nice -n 19 npm run core:load-smoke`. O
-script inicia um processo local em loopback, faz handshake/ping/pong/disconnect
-em cada WebSocket e confere counters zerados no shutdown. O ensaio não estima
-capacidade de produção.
+O smoke padrão de conexão/session continua limitado a 100 clientes loopback e
+confere fechamento e ausência de sessões órfãs. Os cenários `rooms` e `hot-room`
+exercitam Auth e gameplay pelo WebSocket contra fixtures descartáveis somente em
+`habbux_phase2_test`; veja [o plano e os comandos](../../benchmarks/README.md).
+Eles removem as contas e os quartos temporários no fim e falham se detectar
+presenças/runtimes ou conexões de banco órfãs. Nenhum cenário estima capacidade
+de produção.

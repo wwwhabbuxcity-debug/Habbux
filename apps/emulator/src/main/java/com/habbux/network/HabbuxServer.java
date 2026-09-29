@@ -114,6 +114,7 @@ public final class HabbuxServer implements AutoCloseable {
             throw new IllegalStateException("Habbux server shutdown did not finish cleanly");
         }
         NetworkMetrics metrics = registry.metrics();
+        RoomManager.MetricsSnapshot roomMetrics = roomManager == null ? null : roomManager.snapshot();
         LOG.atInfo().addKeyValue("event", "emulator.server_stopped")
                 .addKeyValue("activeConnections", metrics.activeConnections())
                 .addKeyValue("activeSessions", metrics.activeSessions())
@@ -133,9 +134,29 @@ public final class HabbuxServer implements AutoCloseable {
                 .addKeyValue("authExecutorQueued", authMetrics == null ? 0 : authMetrics.queued())
                 .addKeyValue("authExecutorRejected", authMetrics == null ? 0 : authMetrics.rejected())
                 .addKeyValue("authExecutorCompleted", authMetrics == null ? 0 : authMetrics.completed())
-                .addKeyValue("roomActive", roomManager == null ? 0 : roomManager.snapshot().activeRooms())
-                .addKeyValue("roomWorkers", roomManager == null ? 0 : roomManager.snapshot().workerCount())
-                .addKeyValue("roomRejected", roomManager == null ? 0 : roomManager.snapshot().rejectedEvents())
+                .addKeyValue("roomActive", roomMetrics == null ? 0 : roomMetrics.activeRooms())
+                .addKeyValue("roomActiveUsers", roomMetrics == null ? 0 : roomMetrics.activeRoomUsers())
+                .addKeyValue("roomMailboxDepth", roomMetrics == null ? 0 : roomMetrics.mailboxDepth())
+                .addKeyValue("roomEventsQueued", roomMetrics == null ? 0 : roomMetrics.acceptedEvents())
+                .addKeyValue("roomEventsProcessed", roomMetrics == null ? 0 : roomMetrics.processedEvents())
+                .addKeyValue("roomRejected", roomMetrics == null ? 0 : roomMetrics.rejectedEvents())
+                .addKeyValue("roomHandlerFailures", roomMetrics == null ? 0 : roomMetrics.handlerFailures())
+                .addKeyValue("roomQueueDelayP50Nanos", roomMetrics == null ? 0 : roomMetrics.queueDelayP50Nanos())
+                .addKeyValue("roomQueueDelayP95Nanos", roomMetrics == null ? 0 : roomMetrics.queueDelayP95Nanos())
+                .addKeyValue("roomQueueDelayP99Nanos", roomMetrics == null ? 0 : roomMetrics.queueDelayP99Nanos())
+                .addKeyValue("roomAverageEventDurationNanos", roomMetrics == null ? 0 : roomMetrics.averageEventDurationNanos())
+                .addKeyValue("roomJoinSuccess", roomMetrics == null ? 0 : roomMetrics.joinSuccess())
+                .addKeyValue("roomJoinFailure", roomMetrics == null ? 0 : roomMetrics.joinFailure())
+                .addKeyValue("roomLeave", roomMetrics == null ? 0 : roomMetrics.leaveCount())
+                .addKeyValue("roomMovementRequests", roomMetrics == null ? 0 : roomMetrics.movementRequests())
+                .addKeyValue("roomPathfindingSuccess", roomMetrics == null ? 0 : roomMetrics.pathfindingSuccess())
+                .addKeyValue("roomPathfindingFailure", roomMetrics == null ? 0 : roomMetrics.pathfindingFailure())
+                .addKeyValue("roomChatMessages", roomMetrics == null ? 0 : roomMetrics.chatMessages())
+                .addKeyValue("roomActivations", roomMetrics == null ? 0 : roomMetrics.roomActivations())
+                .addKeyValue("roomUnloads", roomMetrics == null ? 0 : roomMetrics.roomUnloads())
+                .addKeyValue("roomWorkers", roomMetrics == null ? 0 : roomMetrics.workerCount())
+                .addKeyValue("roomWorkerActive", roomMetrics == null ? 0 : roomMetrics.activeWorkers())
+                .addKeyValue("roomWorkerPeakActive", roomMetrics == null ? 0 : roomMetrics.maxActiveWorkers())
                 .log("Habbux Core server stopped");
         listener = null;
     }
