@@ -1,4 +1,4 @@
-import { Application, Graphics, Rectangle } from 'pixi.js';
+import { Application, Container, Graphics, Rectangle } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { AvatarView } from './avatar-view';
@@ -22,7 +22,7 @@ export class RoomRenderer {
   private readonly floorLayer = new Graphics();
   private readonly entityLayer = new Graphics();
   private readonly debugLayer = new Graphics();
-  private readonly worldRoot = new Graphics();
+  private readonly worldRoot = new Container();
   private readonly avatars = new Map<string, AvatarView>();
   private readonly onCanvasPointer = (event: PointerEvent): void => this.handlePointer(event);
   private app: Application | null = null;
