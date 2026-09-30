@@ -6,7 +6,8 @@ const iterations = Number(process.env.HABBUX_BENCH_ITERATIONS ?? 250_000);
 if (!Number.isSafeInteger(iterations) || iterations < 1_000 || iterations > 2_000_000) {
   throw new Error('HABBUX_BENCH_ITERATIONS must be between 1000 and 2000000');
 }
-const source = await readFile(new URL('../apps/client/src/communication/core.ts', import.meta.url), 'utf8');
+const source = (await readFile(new URL('../apps/client/src/communication/core.ts', import.meta.url), 'utf8'))
+  .replace(/^import\s+\{[\s\S]*?\}\s+from '..\/room\/room-state';\n/u, '');
 const compiled = ts.transpileModule(source, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;

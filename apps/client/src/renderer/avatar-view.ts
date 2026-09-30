@@ -160,7 +160,8 @@ export class AvatarView {
         sprite.texture = resolved.texture;
       }
       const width = resolved.texture.width;
-      sprite.position.set(resolved.frame.offset.x + width / 2, -resolved.frame.offset.y);
+      const height = resolved.texture.height;
+      sprite.position.set(resolved.frame.offset.x + width / 2, height - resolved.frame.offset.y);
       sprite.scale.x = resolved.mirrored ? -1 : 1;
       sprite.visible = true;
     }
