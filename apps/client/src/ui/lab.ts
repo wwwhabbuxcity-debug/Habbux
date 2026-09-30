@@ -3,6 +3,8 @@ import { ChatHistory } from './chat-history';
 import { ContextMenu, createOverlayLayers, Modal, openModal, Popover, ToastQueue } from './overlays';
 import { WindowView } from './window-view';
 import { UI_BREAKPOINTS, WindowManager } from './window-manager';
+import { CoreConnection, type CoreConnectionSnapshot } from '../communication/core';
+import { mountPreview } from '../renderer/preview';
 import './components.css';
 
 document.title = 'Habbux · UI Lab (desenvolvimento)';
@@ -20,14 +22,30 @@ const subtitle = document.createElement('p');
 subtitle.className = 'hbx-muted';
 subtitle.textContent = 'Laboratório de desenvolvimento · conteúdo técnico e temporário';
 heading.append(title, subtitle);
+const gameStage = document.createElement('section');
+gameStage.className = 'hbx-game-stage hbx-surface';
+const gameCanvasHost = document.createElement('div');
+gameCanvasHost.className = 'hbx-game-stage__canvas';
+const rendererStatus = document.createElement('p');
+rendererStatus.className = 'hbx-game-stage__status';
+rendererStatus.setAttribute('role', 'status');
+rendererStatus.textContent = 'Preparando PixiJS…';
+gameStage.append(gameCanvasHost, rendererStatus);
 const grid = document.createElement('div');
 grid.className = 'hbx-lab__grid';
-lab.append(heading, grid);
+lab.append(heading, gameStage, grid);
+let disposePreview = (): void => undefined;
+try {
+  disposePreview = await mountPreview(gameCanvasHost, rendererStatus);
+} catch {
+  rendererStatus.textContent = 'Prévia PixiJS indisponível neste navegador.';
+  gameCanvasHost.hidden = true;
+}
 
 const overlays = createOverlayLayers(lab);
 const manager = new WindowManager({ width: lab.clientWidth, height: lab.clientHeight });
 const chatHistory = new ChatHistory(50, 45_000);
-let bubbleTimer: ReturnType<typeof setTimeout> | undefined;
+const liveChatHistory = new ChatHistory(50, 45_000);
 let selectedQuality: 'high' | 'reduced' = 'high';
 let disposePopover: (() => void) | undefined;
 let disposeContextMenu: (() => void) | undefined;
@@ -40,7 +58,7 @@ overlays.root.append(toolbar);
 const stats = document.createElement('p');
 stats.className = 'hbx-muted';
 const updateStats = (): void => {
-  stats.textContent = `Janelas: ${manager.list().length} · Notificações: ${toastQueue.list().length} · Mensagens: ${chatHistory.list().length} · Nós DOM: ${lab.querySelectorAll('*').length} · Qualidade: ${selectedQuality.toUpperCase()} · ${viewportLabel()}`;
+  stats.textContent = `Janelas: ${manager.list().length} · Notificações: ${toastQueue.list().length} · Mensagens: ${chatHistory.list().length + liveChatHistory.list().length} · Nós DOM: ${lab.querySelectorAll('*').length} · Qualidade: ${selectedQuality.toUpperCase()} · ${viewportLabel()}`;
 };
 
 const card = (label: string): HTMLElement => {
@@ -79,7 +97,7 @@ const surfaceSamples: readonly [string, string][] = [['Sólida', 'solid'], ['Tra
 for (const [name, type] of surfaceSamples) {
   const sample = Surface();
   sample.dataset.surface = type;
-  sample.style.padding = 'var(--hbx-space-4)';
+  sample.classList.add('hbx-lab__surface-sample');
   sample.textContent = name;
   surfaceRow.append(sample);
 }
@@ -99,13 +117,94 @@ const demoWindows: readonly [string, string][] = [['navigator-demo', 'Janela de 
 for (const [id, label] of demoWindows) {
   windowActions.append(Button({ label: `Abrir: ${label}`, onClick: () => openWindow(id, label) }));
 }
-windowsCard.append(windowActions, document.createTextNode(' Arraste pela barra; Alt + setas move com teclado. Redimensione a janela para validar apresentação adaptativa.'));
+windowsCard.append(windowActions, document.createTextNode(' Arraste pela barra; Alt + setas move com teclado. A janela adapta a apresentação ao tamanho da tela.'));
+
+const liveRoomCard = card('Chat real · Room Core');
+const connection = new CoreConnection(__HABBUX_WS_URL__);
+const coreStatus = document.createElement('p');
+coreStatus.className = 'hbx-muted';
+coreStatus.setAttribute('role', 'status');
+const authForm = document.createElement('form');
+authForm.className = 'hbx-lab__row';
+const identity = Input({ id: 'hbx-live-identity', label: 'Usuário ou email' });
+identity.input.autocomplete = 'username';
+const password = Input({ id: 'hbx-live-password', label: 'Senha', type: 'password' });
+password.input.autocomplete = 'current-password';
+const login = Button({ label: 'Entrar' });
+login.type = 'submit';
+const logout = Button({ label: 'Sair' });
+const connect = Button({ label: 'Conectar ao Core' });
+const roomForm = document.createElement('form');
+roomForm.className = 'hbx-lab__row';
+const roomId = Input({ id: 'hbx-live-room', label: 'ID do quarto' });
+roomId.input.inputMode = 'numeric';
+roomId.input.value = '1';
+const joinRoom = Button({ label: 'Entrar no quarto' });
+joinRoom.type = 'submit';
+const leaveRoom = Button({ label: 'Sair do quarto' });
+const liveChatForm = document.createElement('form');
+liveChatForm.className = 'hbx-lab__row';
+const liveChatText = document.createElement('input');
+liveChatText.className = 'hbx-input';
+liveChatText.setAttribute('aria-label', 'Mensagem para o quarto');
+liveChatText.placeholder = 'Mensagem do quarto';
+liveChatText.maxLength = 128;
+liveChatText.autocomplete = 'off';
+liveChatText.classList.add('hbx-lab__chat-input');
+const liveChatSend = Button({ label: 'Enviar' });
+liveChatSend.type = 'submit';
+liveChatForm.append(liveChatText, liveChatSend);
+const liveChatLog = document.createElement('ol');
+liveChatLog.className = 'hbx-chat-list';
+liveChatLog.setAttribute('aria-live', 'polite');
+liveRoomCard.append(coreStatus, connect, authForm, roomForm, liveChatLog, liveChatForm);
+let previousRoomChat: CoreConnectionSnapshot['roomChat'] = [];
+let bubbleTimer: ReturnType<typeof setTimeout> | undefined;
+authForm.append(identity.element, password.element, login, logout);
+roomForm.append(roomId.element, joinRoom, leaveRoom);
+connect.addEventListener('click', () => {
+  const state = connect.dataset.state;
+  if (state === 'connected') connection.disconnect();
+  else connection.connect();
+});
+authForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const credential = password.input.value;
+  password.input.value = '';
+  void connection.login(identity.input.value, credential).catch((error: unknown) => {
+    coreStatus.textContent = error instanceof Error ? error.message : 'Falha ao iniciar login.';
+  });
+});
+logout.addEventListener('click', () => {
+  void connection.logout().catch((error: unknown) => { coreStatus.textContent = error instanceof Error ? error.message : 'Falha ao sair da conta.'; });
+});
+roomForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  try { connection.joinRoom(roomId.input.value); }
+  catch (error) { coreStatus.textContent = error instanceof Error ? error.message : 'Falha ao entrar no quarto.'; }
+});
+leaveRoom.addEventListener('click', () => {
+  try { connection.leaveRoom(); }
+  catch (error) { coreStatus.textContent = error instanceof Error ? error.message : 'Falha ao sair do quarto.'; }
+});
+liveChatForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  try {
+    connection.chatRoom(liveChatText.value);
+    liveChatText.value = '';
+  } catch (error) { coreStatus.textContent = error instanceof Error ? error.message : 'Falha ao enviar mensagem.'; }
+});
+const unsubscribeConnection = connection.subscribe((snapshot) => renderCore(snapshot));
 
 const overlayCard = card('Overlays e avisos');
 const overlayActions = document.createElement('div');
 overlayActions.className = 'hbx-lab__row';
 const popoverTrigger = Button({ label: 'Popover', onClick: () => {
-  disposePopover?.();
+  if (disposePopover) {
+    disposePopover();
+    disposePopover = undefined;
+    return;
+  }
   const body = document.createElement('p');
   body.textContent = 'Conteúdo de popover em camada central.';
   disposePopover = Popover(overlays.popovers, popoverTrigger, body);
@@ -132,7 +231,7 @@ overlayCard.append(overlayActions);
 const chatCard = card('Chat protótipo local');
 const chatHelp = document.createElement('p');
 chatHelp.className = 'hbx-muted';
-chatHelp.textContent = 'Demonstra limite e renderização como texto; o envio fica apenas nesta sessão de desenvolvimento.';
+chatHelp.textContent = 'Demonstra limite e renderização como texto. O envio real continua no Room Core da tela de diagnóstico.';
 const chatList = document.createElement('ol');
 chatList.className = 'hbx-chat-list';
 chatList.setAttribute('aria-label', 'Mensagens de demonstração');
@@ -143,7 +242,7 @@ chatInput.className = 'hbx-input';
 chatInput.maxLength = 128;
 chatInput.setAttribute('aria-label', 'Mensagem de demonstração');
 chatInput.placeholder = 'Escreva uma mensagem local';
-chatInput.style.flex = '1 1 12rem';
+chatInput.classList.add('hbx-lab__chat-input');
 const chatSubmit = Button({ label: 'Enviar', tone: 'primary' });
 chatSubmit.type = 'submit';
 chatForm.append(chatInput, chatSubmit);
@@ -201,8 +300,11 @@ const dispose = (): void => {
   lab.removeEventListener('contextmenu', onContextMenu);
   unsubscribeManager();
   windowView.dispose();
+  disposePreview();
   toastQueue.dispose();
   if (bubbleTimer !== undefined) clearTimeout(bubbleTimer);
+  unsubscribeConnection();
+  connection.dispose();
   disposePopover?.();
   disposeContextMenu?.();
   overlays.dispose();
@@ -213,6 +315,51 @@ import.meta.hot?.dispose(dispose);
 function viewportLabel(): string {
   const width = window.innerWidth;
   return width <= UI_BREAKPOINTS.mobile ? 'mobile' : width <= UI_BREAKPOINTS.tablet ? 'tablet' : 'desktop';
+}
+
+function renderCore(snapshot: CoreConnectionSnapshot): void {
+  coreStatus.textContent = `${snapshot.state} · ${snapshot.authState} · ${snapshot.roomStatus}${snapshot.error ? ` · ${snapshot.error}` : ''}`;
+  connect.dataset.state = snapshot.state === 'READY' ? 'connected' : 'disconnected';
+  connect.textContent = snapshot.state === 'READY' ? 'Desconectar' : 'Conectar ao Core';
+  const canLogin = snapshot.state === 'READY' && snapshot.authState === 'ANONYMOUS';
+  identity.input.disabled = !canLogin;
+  password.input.disabled = !canLogin;
+  login.disabled = !canLogin;
+  logout.hidden = snapshot.authState !== 'AUTHENTICATED';
+  const canJoin = snapshot.state === 'READY' && snapshot.authState === 'AUTHENTICATED' && snapshot.roomStatus === 'NONE';
+  roomId.input.disabled = !canJoin;
+  joinRoom.disabled = !canJoin;
+  leaveRoom.hidden = snapshot.roomStatus === 'NONE' || snapshot.roomStatus === 'JOINING';
+  liveChatText.disabled = snapshot.roomStatus !== 'IN_ROOM';
+  liveChatSend.disabled = snapshot.roomStatus !== 'IN_ROOM';
+  if (snapshot.roomChat !== previousRoomChat) {
+    const samePrefix = snapshot.roomChat.length >= previousRoomChat.length
+      && previousRoomChat.every((item, index) => sameChat(item, snapshot.roomChat[index]));
+    const rolledFullHistory = snapshot.room !== null && snapshot.roomChat.length === 50 && previousRoomChat.length === 50
+      && previousRoomChat.slice(1).every((item, index) => sameChat(item, snapshot.roomChat[index]));
+    if ((!samePrefix && !rolledFullHistory) || snapshot.room === null) liveChatHistory.clear();
+    const start = samePrefix ? previousRoomChat.length : rolledFullHistory ? snapshot.roomChat.length - 1 : 0;
+    for (const message of snapshot.roomChat.slice(start)) liveChatHistory.add({ userId: message.userId, username: message.username, message: message.text });
+    previousRoomChat = snapshot.roomChat;
+    renderLiveChat();
+    scheduleBubbleCleanup();
+  }
+}
+
+function sameChat(left: CoreConnectionSnapshot['roomChat'][number], right: CoreConnectionSnapshot['roomChat'][number] | undefined): boolean {
+  return right !== undefined && left.userId === right.userId && left.text === right.text;
+}
+
+function renderLiveChat(): void {
+  liveChatLog.replaceChildren(...liveChatHistory.list().map((bubble) => {
+    const item = document.createElement('li');
+    item.textContent = `${bubble.username}: ${bubble.message}`;
+    item.dataset.userId = bubble.userId;
+    item.dataset.timestamp = String(bubble.timestamp);
+    item.dataset.expiresAt = String(bubble.expiresAt);
+    return item;
+  }));
+  liveChatLog.scrollTop = liveChatLog.scrollHeight;
 }
 
 function renderPrototypeChat(): void {
@@ -229,9 +376,11 @@ function renderPrototypeChat(): void {
 function scheduleBubbleCleanup(): void {
   if (bubbleTimer !== undefined) clearTimeout(bubbleTimer);
   bubbleTimer = undefined;
-  const earliest = chatHistory.list().reduce((time, bubble) => Math.min(time, bubble.expiresAt), Infinity);
+  const bubbles = [...chatHistory.list(), ...liveChatHistory.list()];
+  const earliest = bubbles.reduce((time, bubble) => Math.min(time, bubble.expiresAt), Infinity);
   if (Number.isFinite(earliest)) bubbleTimer = setTimeout(() => {
     bubbleTimer = undefined;
+    renderLiveChat();
     renderPrototypeChat();
     updateStats();
     scheduleBubbleCleanup();

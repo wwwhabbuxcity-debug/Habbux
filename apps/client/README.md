@@ -1,14 +1,15 @@
 # Habbux Client
 
 Bootstrap TypeScript estrito + PixiJS 8 com codec binário e conexão WebSocket
-para o Core v1. A interface de diagnóstico mostra estado, sessão anônima e RTT;
-não há login nem gameplay. Uma única codebase atende desktop, tablet e mobile.
+para o Core v1. A interface de diagnóstico cobre conexão, autenticação e Room
+Core. Uma única codebase atende desktop, tablet e mobile.
 
 Na raiz do repositório, com Node 22 e npm 10:
 
 ```sh
 npm ci
 npm run client:dev
+npm run client:test
 npm run client:typecheck
 npm run protocol:test
 nice -n 19 env NODE_OPTIONS=--max-old-space-size=512 RAYON_NUM_THREADS=1 npm run client:build
@@ -26,6 +27,12 @@ exponencial e limitada a oito tentativas; pode ser desativada pela API da
 conexão, e o botão manual permite iniciar novamente. Timeout de resposta de ping
 encerra a conexão para que o backoff atue. `npm run protocol:test` e os testes Java
 consomem os mesmos vetores binários de `packages/protocol`.
+
+O UI Lab está disponível somente no Vite de desenvolvimento em
+`/client/?ui-lab`; a rota de produção não inclui seu módulo de demonstração. Ele
+mostra primitives, janelas e camadas adaptativas e pode conectar ao Core para
+validar autenticação e chat real do Room Engine. Sem a query string, o painel de
+diagnóstico segue disponível.
 
 O bootstrap desenha uma forma original para validar o renderer. Usa WebGL
 preferencialmente, DPR limitado a 2, indicação de GPU de baixo consumo e nenhum

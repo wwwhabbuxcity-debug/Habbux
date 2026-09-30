@@ -56,9 +56,11 @@ export function openModal(layerHost: HTMLElement, dialog: HTMLDialogElement): ()
 }
 
 export function Popover(layerHost: HTMLElement, anchor: HTMLElement, content: HTMLElement): () => void {
+  const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : anchor;
   const popover = document.createElement('div');
   popover.className = 'hbx-popover hbx-surface';
   popover.setAttribute('role', 'group');
+  popover.tabIndex = -1;
   popover.append(content);
   layerHost.append(popover);
   const anchorRect = anchor.getBoundingClientRect();
@@ -66,10 +68,12 @@ export function Popover(layerHost: HTMLElement, anchor: HTMLElement, content: HT
   const left = Math.max(8, Math.min(anchorRect.left - parentRect.left, parentRect.width - 280));
   const top = Math.max(8, Math.min(anchorRect.bottom - parentRect.top + 8, parentRect.height - popover.offsetHeight - 8));
   popover.style.transform = `translate3d(${left}px, ${top}px, 0)`;
-  return () => popover.remove();
+  popover.focus({ preventScroll: true });
+  return () => { popover.remove(); if (returnFocus?.isConnected) returnFocus.focus(); };
 }
 
 export function ContextMenu(layerHost: HTMLElement, x: number, y: number, labels: readonly string[], onSelect: (index: number) => void): () => void {
+  const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const menu = document.createElement('div');
   menu.className = 'hbx-context-menu hbx-surface';
   menu.setAttribute('role', 'menu');
@@ -79,13 +83,25 @@ export function ContextMenu(layerHost: HTMLElement, x: number, y: number, labels
     button.className = 'hbx-context-menu__item';
     button.textContent = label;
     button.setAttribute('role', 'menuitem');
-    button.addEventListener('click', () => { onSelect(index); menu.remove(); });
+    button.addEventListener('click', () => { onSelect(index); dispose(); });
     menu.append(button);
   }
   layerHost.append(menu);
+  menu.querySelector<HTMLButtonElement>('button')?.focus();
   const rect = layerHost.getBoundingClientRect();
   menu.style.transform = `translate3d(${Math.max(8, Math.min(x - rect.left, rect.width - 200))}px, ${Math.max(8, Math.min(y - rect.top, rect.height - menu.offsetHeight - 8))}px, 0)`;
-  return () => menu.remove();
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    dispose();
+  };
+  menu.addEventListener('keydown', onKeyDown);
+  function dispose(): void {
+    menu.removeEventListener('keydown', onKeyDown);
+    menu.remove();
+    if (returnFocus?.isConnected) returnFocus.focus();
+  }
+  return dispose;
 }
 
 export interface ToastMessage {
@@ -99,7 +115,9 @@ export class NotificationQueue {
   private nextId = 1;
   private readonly limit: number;
 
-  constructor(limit = 5) { this.limit = limit; }
+  constructor(limit = 5) {
+    this.limit = Number.isSafeInteger(limit) && limit > 0 ? limit : 5;
+  }
 
   push(text: string, lifetimeMs = 4000, now = Date.now()): ToastMessage | null {
     if (!text.trim()) return null;

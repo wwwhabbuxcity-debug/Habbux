@@ -98,6 +98,7 @@ e [persistência](database/README.md).
 
 - [Arquitetura v1](docs/architecture/ARCHITECTURE-v1.md)
 - [Client multiplataforma](docs/architecture/CLIENT-MULTIPLATFORM.md)
+- [Client UI Core v1](docs/architecture/CLIENT-UI-CORE.md)
 - [Concorrência dos quartos](docs/architecture/ROOM-CONCURRENCY.md)
 - [Dados e economia](docs/architecture/DATA-ARCHITECTURE.md)
 - [Habbux Protocol](docs/protocol/HABBUX-PROTOCOL-v1.md)

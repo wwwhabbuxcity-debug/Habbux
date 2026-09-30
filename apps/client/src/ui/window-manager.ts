@@ -159,7 +159,14 @@ export function presentationFor(bounds: ViewportBounds): WindowPresentation {
 }
 
 function validBounds(bounds: ViewportBounds): ViewportBounds {
-  return { width: Math.max(1, Math.floor(bounds.width)), height: Math.max(1, Math.floor(bounds.height)) };
+  return {
+    width: boundedDimension(bounds.width),
+    height: boundedDimension(bounds.height),
+  };
+}
+
+function boundedDimension(value: number): number {
+  return Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 1;
 }
 
 function nextInstanceId(windows: Map<string, MutableWindow>, base: string): number {

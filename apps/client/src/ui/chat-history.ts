@@ -13,8 +13,8 @@ export class ChatHistory {
   private readonly lifetimeMs: number;
 
   constructor(capacity = 50, lifetimeMs = 45_000) {
-    this.capacity = capacity;
-    this.lifetimeMs = lifetimeMs;
+    this.capacity = boundedPositiveInteger(capacity, 50);
+    this.lifetimeMs = boundedPositiveInteger(lifetimeMs, 45_000);
   }
 
   add(message: { readonly userId: string; readonly username: string; readonly message: string }, now = Date.now()): readonly ChatBubble[] {
@@ -39,4 +39,8 @@ export class ChatHistory {
     const retained = this.bubbles.filter((bubble) => bubble.expiresAt > now);
     if (retained.length !== this.bubbles.length) this.bubbles = retained;
   }
+}
+
+function boundedPositiveInteger(value: number, fallback: number): number {
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
 }

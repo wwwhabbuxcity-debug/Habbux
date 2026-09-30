@@ -117,7 +117,10 @@ export function Checkbox(labelText: string, checked = false): HTMLLabelElement {
 export function Toggle(labelText: string, checked = false): HTMLLabelElement {
   const label = Checkbox(labelText, checked);
   label.classList.add('hbx-toggle');
-  label.firstElementChild?.setAttribute('role', 'switch');
+  const input = label.querySelector<HTMLInputElement>('input');
+  input?.setAttribute('role', 'switch');
+  input?.setAttribute('aria-checked', String(input.checked));
+  input?.addEventListener('change', () => input.setAttribute('aria-checked', String(input.checked)));
   return label;
 }
 
@@ -149,7 +152,17 @@ export function ScrollArea(className = ''): HTMLDivElement {
 export function Tooltip(element: HTMLElement, text: string): HTMLElement {
   const wrapper = document.createElement('span');
   wrapper.className = 'hbx-tooltip';
-  wrapper.dataset.tooltip = text;
+  const tooltipId = `hbx-tooltip-${nextTooltipId++}`;
+  const descriptions = element.getAttribute('aria-describedby');
+  element.setAttribute('aria-describedby', descriptions ? `${descriptions} ${tooltipId}` : tooltipId);
+  const content = document.createElement('span');
+  content.id = tooltipId;
+  content.className = 'hbx-tooltip__content';
+  content.setAttribute('role', 'tooltip');
+  content.textContent = text;
   wrapper.append(element);
+  wrapper.append(content);
   return wrapper;
 }
+
+let nextTooltipId = 1;

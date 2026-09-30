@@ -25,6 +25,7 @@ proposta e não tratada como contrato.
 | [0014](0014-persistence-auth-execution.md) | JDBC, pool e executor de Auth limitados | Aceita |
 | [0015](0015-auth-session-policy.md) | Política de sessão e rate limit local de Auth | Aceita |
 | [0016](0016-room-engine-execution.md) | Diretório, lifecycle e execução limitada do Room Engine | Aceita |
+| [0017](0017-dom-ui-pixi-renderer.md) | DOM para interface convencional e PixiJS para o mundo | Aceita |
 
 Aceito não significa implementação completa: veja os limites de cada decisão e
 os READMEs dos módulos ainda planejados.

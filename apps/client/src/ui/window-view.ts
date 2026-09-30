@@ -34,6 +34,7 @@ export class WindowView {
         node = this.createWindow(item);
         this.nodes.set(item.id, node);
         this.host.append(node);
+        node.focus({ preventScroll: true });
       }
       node.dataset.presentation = item.presentation;
       node.style.width = `${item.width}px`;
@@ -49,6 +50,7 @@ export class WindowView {
     node.dataset.windowId = item.id;
     node.setAttribute('role', 'region');
     node.setAttribute('aria-labelledby', `${node.id}-title`);
+    node.tabIndex = -1;
     const header = document.createElement('header');
     header.className = 'hbx-window__header';
     header.tabIndex = 0;
@@ -65,7 +67,11 @@ export class WindowView {
     title.className = 'hbx-window__title';
     title.id = `${node.id}-title`;
     title.textContent = item.title;
-    const close = IconButton('Fechar janela', 'close', () => this.manager.close(item.id));
+    const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const close = IconButton('Fechar janela', 'close', () => {
+      this.manager.close(item.id);
+      if (returnFocus?.isConnected) returnFocus.focus();
+    });
     header.append(title, close);
     const body = document.createElement('div');
     body.className = 'hbx-window__body hbx-scroll-area';

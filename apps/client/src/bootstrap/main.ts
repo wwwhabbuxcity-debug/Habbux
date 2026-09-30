@@ -132,18 +132,33 @@ function renderRoom(snapshot: CoreConnectionSnapshot): void {
   ui.roomError.textContent = snapshot.roomError ?? '';
   ui.roomLeaveButton.hidden = snapshot.roomStatus === 'NONE' || snapshot.roomStatus === 'JOINING';
   ui.roomView.hidden = snapshot.room === null;
-  if (!snapshot.room) {
-    ui.roomName.textContent = '—';
-    ui.roomCurrentId.textContent = '—';
-    ui.roomOccupantsCount.textContent = '0';
-    ui.roomGridSize.textContent = '—';
-    ui.roomOccupants.replaceChildren();
-    ui.roomGrid.replaceChildren();
-    ui.roomChatLog.replaceChildren();
-    return;
+  if (snapshot.room !== renderedRoom) {
+    renderedRoom = snapshot.room;
+    if (!snapshot.room) {
+      ui.roomName.textContent = '—';
+      ui.roomCurrentId.textContent = '—';
+      ui.roomOccupantsCount.textContent = '0';
+      ui.roomGridSize.textContent = '—';
+      ui.roomOccupants.replaceChildren();
+      ui.roomGrid.replaceChildren();
+    } else {
+      renderRoomState(snapshot, snapshot.room);
+    }
   }
+  if (snapshot.roomChat !== renderedRoomChat) {
+    renderedRoomChat = snapshot.roomChat;
+    ui.roomChatLog.replaceChildren(...snapshot.roomChat.map((message) => {
+      const item = document.createElement('li');
+      item.textContent = `${message.username}: ${message.text}`;
+      return item;
+    }));
+  }
+}
 
-  const room = snapshot.room;
+let renderedRoom: CoreConnectionSnapshot['room'] | undefined;
+let renderedRoomChat: CoreConnectionSnapshot['roomChat'] | undefined;
+
+function renderRoomState(snapshot: CoreConnectionSnapshot, room: NonNullable<CoreConnectionSnapshot['room']>): void {
   ui.roomName.textContent = room.name;
   ui.roomCurrentId.textContent = room.roomId;
   ui.roomOccupantsCount.textContent = `${room.occupants.length} / ${room.capacity}`;
@@ -179,11 +194,6 @@ function renderRoom(snapshot: CoreConnectionSnapshot): void {
     }
   }
   ui.roomGrid.replaceChildren(...tiles);
-  ui.roomChatLog.replaceChildren(...snapshot.roomChat.map((message) => {
-    const item = document.createElement('li');
-    item.textContent = `${message.username}: ${message.text}`;
-    return item;
-  }));
 }
 
 const unsubscribe = connection.subscribe(renderConnection);
