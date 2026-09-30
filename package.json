@@ -16,6 +16,7 @@
   ],
   "scripts": {
     "client:dev": "npm run dev --workspace @habbux/client",
+    "client:test": "node --experimental-strip-types --test apps/client/tests/*.test.ts",
     "client:typecheck": "npm run typecheck --workspace @habbux/client",
     "client:build": "npm run build --workspace @habbux/client",
     "web:dev": "npm run dev --workspace @habbux/web",

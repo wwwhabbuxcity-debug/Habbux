@@ -105,6 +105,7 @@ e [persistência](database/README.md).
 - [HBX v1](docs/hbx/HBX-SPEC-v1.md)
 - [Princípios de performance](docs/performance/PERFORMANCE-PRINCIPLES.md)
 - [Orçamentos a medir](docs/performance/PERFORMANCE-BUDGET.md)
+- [Baseline do UI Core](docs/performance/UI-CORE-v1-BASELINE.md)
 - [Segurança](docs/security/SECURITY-BASELINE.md)
 - [Decisões arquiteturais](docs/adr/README.md)
 - [Testes](tests/README.md) e [plano de benchmarks](benchmarks/README.md)
