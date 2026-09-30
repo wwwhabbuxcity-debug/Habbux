@@ -2,6 +2,7 @@ import {
   decodeRoomActionFailure,
   decodeRoomChat,
   decodeRoomPosition,
+  decodeRoomModelSnapshot,
   decodeRoomSnapshot,
   decodeRoomUserJoined,
   decodeRoomUserLeft,
@@ -40,6 +41,7 @@ export const CORE_MESSAGE = {
   ROOM_USER_LEAVE: 23,
   ROOM_CHAT: 24,
   ROOM_USER_CHAT: 25,
+  ROOM_MODEL_SNAPSHOT: 26,
 } as const;
 export const AUTH_FAILURE_CATEGORY = {
   INVALID_REQUEST: 1,
@@ -51,7 +53,7 @@ const CORE_MESSAGE_IDS = new Set<number>(Object.values(CORE_MESSAGE));
 const ROOM_SERVER_MESSAGE_IDS: ReadonlySet<number> = new Set([
   CORE_MESSAGE.ROOM_JOIN_SUCCESS, CORE_MESSAGE.ROOM_JOIN_FAILURE, CORE_MESSAGE.ROOM_LEAVE_SUCCESS,
   CORE_MESSAGE.ROOM_SNAPSHOT, CORE_MESSAGE.ROOM_USER_JOIN, CORE_MESSAGE.ROOM_USER_LEAVE,
-  CORE_MESSAGE.ROOM_USER_POSITION, CORE_MESSAGE.ROOM_USER_CHAT, CORE_MESSAGE.ROOM_ACTION_FAILURE,
+  CORE_MESSAGE.ROOM_MODEL_SNAPSHOT, CORE_MESSAGE.ROOM_USER_POSITION, CORE_MESSAGE.ROOM_USER_CHAT, CORE_MESSAGE.ROOM_ACTION_FAILURE,
 ]);
 
 export type CoreMessageId = (typeof CORE_MESSAGE)[keyof typeof CORE_MESSAGE];
@@ -399,8 +401,8 @@ export class CoreConnection {
         this.setSnapshot({ ...this.snapshot, roomStatus: 'NONE', room: null, roomError: message });
         return;
       }
-      if (messageId === CORE_MESSAGE.ROOM_SNAPSHOT) {
-        const room = decodeRoomSnapshot(payload);
+      if (messageId === CORE_MESSAGE.ROOM_SNAPSHOT || messageId === CORE_MESSAGE.ROOM_MODEL_SNAPSHOT) {
+        const room = messageId === CORE_MESSAGE.ROOM_MODEL_SNAPSHOT ? decodeRoomModelSnapshot(payload) : decodeRoomSnapshot(payload);
         const start = this.pendingRoomJoinPosition;
         const self = room.occupants.find((occupant) => occupant.userId === this.snapshot.userId);
         if (this.snapshot.roomStatus !== 'JOINING' || this.pendingRoomJoinId !== room.roomId || !start || !self
@@ -446,7 +448,9 @@ export class CoreConnection {
               || (current.x === occupant.x && current.y === occupant.y))) {
           throw new Error('Ocupante recebido não cabe no estado atual do quarto.');
         }
-        const updated = Object.freeze({ ...room, occupants: Object.freeze([...room.occupants, occupant]) });
+        const updated = Object.freeze({ ...room, occupants: Object.freeze([...room.occupants, {
+          ...occupant, z: room.elevations[cell] ?? 0,
+        }]) });
         this.setSnapshot({ ...this.snapshot, room: updated });
         return;
       }
@@ -462,12 +466,13 @@ export class CoreConnection {
         const index = room.occupants.findIndex((occupant) => occupant.userId === position.userId);
         const cell = position.y * room.width + position.x;
         if (index < 0 || position.x >= room.width || position.y >= room.height || !room.walkability[cell]
+            || position.z !== room.elevations[cell]
             || room.occupants.some((occupant, other) => other !== index
               && occupant.x === position.x && occupant.y === position.y)) {
           throw new Error('Posição recebida inválida para o quarto.');
         }
         const occupants = room.occupants.map((occupant, other) => other === index
-          ? Object.freeze({ ...occupant, x: position.x, y: position.y }) : occupant);
+          ? Object.freeze({ ...occupant, x: position.x, y: position.y, z: position.z }) : occupant);
         this.setSnapshot({ ...this.snapshot, room: Object.freeze({ ...room, occupants: Object.freeze(occupants) }) });
         return;
       }

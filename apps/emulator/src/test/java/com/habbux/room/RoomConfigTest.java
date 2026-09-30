@@ -35,7 +35,7 @@ class RoomConfigTest {
         assertThrows(IllegalArgumentException.class,
                 () -> RoomConfig.from(Map.of("HABBUX_ROOM_WORKERS", "many")));
         assertThrows(IllegalArgumentException.class,
-                () -> new RoomConfig(1, 1, 16, 1, 1, 100, 1, 1, 4_097, 1, 100));
+                () -> new RoomConfig(1, 1, 16, 1, 1, 100, 1, 1, 9_217, 1, 100));
         assertThrows(IllegalArgumentException.class,
                 () -> new RoomConfig(1, 1, 16, 1, 1, 100, 1, 1, 1, 1, 9));
         assertThrows(IllegalArgumentException.class,

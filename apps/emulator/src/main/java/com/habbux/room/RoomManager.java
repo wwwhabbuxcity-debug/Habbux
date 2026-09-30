@@ -53,6 +53,11 @@ public final class RoomManager implements AutoCloseable {
         return new RoomManager(repository::findById, config);
     }
 
+    public static RoomManager backedBy(com.habbux.persistence.RoomRepository repository,
+                                      RoomModelRegistry registry, RoomConfig config) {
+        return new RoomManager(new RoomModelRuntime(repository::findById, registry), config);
+    }
+
     public JoinHandle join(RoomId roomId, UUID sessionId, UserIdentity user, RoomClient client) {
         java.util.Objects.requireNonNull(roomId, "roomId");
         java.util.Objects.requireNonNull(sessionId, "sessionId");

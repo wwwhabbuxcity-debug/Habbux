@@ -259,7 +259,8 @@ public final class RoomRuntime {
                 presence.x = nextCell % metadata.grid().width();
                 presence.y = nextCell / metadata.grid().width();
                 occupantByCell[nextCell] = presence;
-                RoomOutbound.Position update = new RoomOutbound.Position(presence.userId, presence.x, presence.y, 0);
+                RoomOutbound.Position update = new RoomOutbound.Position(presence.userId, presence.x, presence.y,
+                        metadata.grid().elevationAt(presence.x, presence.y));
                 for (Presence recipient : presences.values()) recipient.client.send(update);
                 presence.pathIndex++;
                 lastActivityNanos = System.nanoTime();
@@ -344,7 +345,7 @@ public final class RoomRuntime {
             for (int direction = 0; direction < DX.length; direction++) {
                 int nx = x + DX[direction];
                 int ny = y + DY[direction];
-                if (!grid.isWalkable(nx, ny)) continue;
+                if (!grid.canTraverse(x, y, nx, ny)) continue;
                 int next = ny * grid.width() + nx;
                 if (searchGenerationByCell[next] == generation) continue;
                 Presence blocker = occupantByCell[next];
@@ -389,7 +390,7 @@ public final class RoomRuntime {
             for (int direction = 0; direction < DX.length; direction++) {
                 int nx = x + DX[direction];
                 int ny = y + DY[direction];
-                if (!grid.isWalkable(nx, ny)) continue;
+                if (!grid.canTraverse(x, y, nx, ny)) continue;
                 int next = ny * grid.width() + nx;
                 if (searchGenerationByCell[next] != generation) {
                     searchGenerationByCell[next] = generation;
@@ -407,7 +408,8 @@ public final class RoomRuntime {
         }
         RoomGridDefinition grid = metadata.grid();
         return new RoomSnapshot(metadata.id(), metadata.name(), grid.width(), grid.height(), metadata.capacity(),
-                grid.walkability(), occupants);
+                grid.walkability(), grid.elevations(), grid.modelId(), grid.spawnX(), grid.spawnY(),
+                grid.doorX(), grid.doorY(), grid.doorDirection(), occupants);
     }
 
     private record PathResult(int[] cells, RoomOutbound.ActionFailure failure) {

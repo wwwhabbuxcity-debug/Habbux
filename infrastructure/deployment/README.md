@@ -1,7 +1,9 @@
 # Publicação estática do bootstrap
 
-O deploy atual entrega somente web em `/` e bootstrap do client em `/client/`.
-Não há processo Java, gameplay, API, conexão PostgreSQL/Redis nem systemd novo.
+O deploy entrega web em `/`, o bootstrap do client em `/client/` e, nesta etapa
+DEV explicitamente aprovada, o Emulator Java persistente em loopback para
+`wss://tyvo.online/ws`. O serviço usa exclusivamente o banco PostgreSQL DEV
+`habbux_phase2_test`; não é uma configuração de produção.
 O diretório público é `.deploy/current`, jamais a raiz do Git; fontes, registro,
 segredos, node_modules e histórico não ficam acessíveis.
 
@@ -11,7 +13,9 @@ copia dist para uma nova release e troca um symlink atomicamente; preserva
 releases anteriores e não reinicia nada. Não executa remoções automáticas.
 Rollback: inspecionar o destino anterior em `.deploy/releases/`, criar um
 symlink temporário e usar `mv -Tf` para trocar `.deploy/current`. Não apontar para
-caminhos externos ou fontes.
+caminhos externos ou fontes. O serviço systemd correspondente está em
+`habbux-tyvo.service`; as credenciais ficam fora do repositório em
+`/etc/habbux/tyvo-online.env`.
 
 Vhost específico: `infrastructure/nginx/tyvo.online.conf`. Instalação é manual:
 salvar cópia do vhost Tyvo antes de substituir, testar `nginx -t`, então recarregar.

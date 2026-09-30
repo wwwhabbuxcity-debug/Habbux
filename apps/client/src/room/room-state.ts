@@ -3,6 +3,7 @@ export interface RoomOccupant {
   readonly username: string;
   readonly x: number;
   readonly y: number;
+  readonly z?: number;
 }
 
 export interface RoomState {
@@ -12,6 +13,10 @@ export interface RoomState {
   readonly height: number;
   readonly capacity: number;
   readonly walkability: readonly boolean[];
+  readonly elevations: readonly number[];
+  readonly modelId: string | null;
+  readonly spawn: { readonly x: number; readonly y: number };
+  readonly door: { readonly x: number; readonly y: number; readonly direction: number };
   readonly occupants: readonly RoomOccupant[];
 }
 
@@ -30,6 +35,14 @@ const MAX_CHAT_CODE_POINTS = 128;
 const MAX_U64 = 0xffff_ffff_ffff_ffffn;
 
 export function decodeRoomSnapshot(payload: Uint8Array): RoomState {
+  return decodeRoomSnapshotPayload(payload, false);
+}
+
+export function decodeRoomModelSnapshot(payload: Uint8Array): RoomState {
+  return decodeRoomSnapshotPayload(payload, true);
+}
+
+function decodeRoomSnapshotPayload(payload: Uint8Array, hasModel: boolean): RoomState {
   const reader = new PayloadReader(payload);
   const roomId = readUserId(reader, 'room ID');
   const nameLength = reader.readUint16();
@@ -38,7 +51,7 @@ export function decodeRoomSnapshot(payload: Uint8Array): RoomState {
   const width = reader.readUint8();
   const height = reader.readUint8();
   const capacity = reader.readUint8();
-  if (width < 1 || width > 64 || height < 1 || height > 64 || capacity < 1 || capacity > 100) {
+  if (width < 1 || width > 96 || height < 1 || height > 96 || capacity < 1 || capacity > 100) {
     throw new Error('Dimensões ou capacidade do quarto inválidas.');
   }
   const walkability = [...reader.readBytes(width * height)].map((cell) => {
@@ -67,7 +80,27 @@ export function decodeRoomSnapshot(payload: Uint8Array): RoomState {
     cells.add(cell);
     occupants.push(Object.freeze({ userId, username, x, y }));
   }
+  let modelId: string | null = null;
+  let elevations: number[] = walkability.map((walkable) => walkable ? 0 : -1);
+  let spawn = { x: 0, y: 0 };
+  let door = { x: 0, y: 0, direction: 0 };
+  if (hasModel) {
+    const modelIdLength = reader.readUint16();
+    if (modelIdLength < 1 || modelIdLength > 64) throw new Error('Identificador de modelo inválido.');
+    modelId = readUtf8(reader.readBytes(modelIdLength), 'Identificador de modelo inválido.');
+    elevations = [...reader.readBytes(width * height)].map((value): number => value === 255 ? -1 : value);
+    if (elevations.some((elevation, index) => (walkability[index] && elevation < 0) || (!walkability[index] && elevation >= 0) || elevation > 35)) {
+      throw new Error('Elevação do modelo inválida.');
+    }
+    spawn = { x: reader.readUint8(), y: reader.readUint8() };
+    door = { x: reader.readUint8(), y: reader.readUint8(), direction: reader.readUint8() };
+    if (spawn.x >= width || spawn.y >= height || !walkability[spawn.y * width + spawn.x]
+        || door.x >= width || door.y >= height || door.direction > 7) throw new Error('Porta ou spawn do modelo inválido.');
+  }
   reader.finish();
+  const resolvedOccupants = occupants.map((occupant) => Object.freeze({
+    ...occupant, z: elevations[occupant.y * width + occupant.x] ?? 0,
+  }));
   return Object.freeze({
     roomId,
     name,
@@ -75,7 +108,11 @@ export function decodeRoomSnapshot(payload: Uint8Array): RoomState {
     height,
     capacity,
     walkability: Object.freeze(walkability),
-    occupants: Object.freeze(occupants),
+    elevations: Object.freeze(elevations),
+    modelId,
+    spawn: Object.freeze(spawn),
+    door: Object.freeze(door),
+    occupants: Object.freeze(resolvedOccupants),
   });
 }
 
@@ -98,14 +135,14 @@ export function decodeRoomUserLeft(payload: Uint8Array): string {
   return userId;
 }
 
-export function decodeRoomPosition(payload: Uint8Array): { readonly userId: string; readonly x: number; readonly y: number } {
+export function decodeRoomPosition(payload: Uint8Array): { readonly userId: string; readonly x: number; readonly y: number; readonly z: number } {
   const reader = new PayloadReader(payload);
   const userId = readUserId(reader, 'usuário');
   const x = reader.readUint8();
   const y = reader.readUint8();
-  if (reader.readUint8() !== 0) throw new Error('Altura inválida para posição v1.');
+  const z = reader.readUint8();
   reader.finish();
-  return Object.freeze({ userId, x, y });
+  return Object.freeze({ userId, x, y, z });
 }
 
 export function decodeRoomChat(payload: Uint8Array): RoomChatMessage {

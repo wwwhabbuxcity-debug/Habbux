@@ -59,6 +59,24 @@
               <button id="room-join" type="submit">Entrar no quarto</button>
               <button id="room-leave" type="button" hidden>Sair do quarto</button>
             </form>
+            <div id="room-model-selector" class="room-model-selector" hidden>
+              <label for="room-model-select">Modelo DEV</label>
+              <select id="room-model-select">
+                <option value="">Escolha um modelo estrutural…</option>
+                <option value="9000000000000000038">Pequeno · model_s</option>
+                <option value="9000000000000000041">Médio · model_v</option>
+                <option value="9000000000000000058">Grande · star_lounge</option>
+                <option value="9000000000000000033">Irregular · model_oscar</option>
+                <option value="9000000000000000037">Múltiplas alturas · model_room_15</option>
+                <option value="9000000000000000052">Complexo · picnic</option>
+              </select>
+            </div>
+            <section id="avatar-lab" class="avatar-lab" hidden aria-labelledby="avatar-lab-title">
+              <p class="eyebrow">Ferramenta DEV</p>
+              <h3 id="avatar-lab-title">Avatar Engine · oito direções × quatro frames de walk</h3>
+              <p id="avatar-lab-status" class="status" role="status">Carregando matriz visual…</p>
+              <div id="avatar-lab-viewport" class="avatar-lab-viewport"></div>
+            </section>
             <p id="room-error" class="room-error" role="status" aria-live="polite"></p>
             <div id="room-view" class="room-view" hidden>
               <dl class="core-grid room-summary">

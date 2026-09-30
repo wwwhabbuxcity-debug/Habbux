@@ -28,10 +28,13 @@ export class AvatarView {
   private isoConfig: IsoConfig;
   private logicalX = 0;
   private logicalY = 0;
+  private logicalZ = 0;
   private renderX = 0;
   private renderY = 0;
+  private renderZ = 0;
   private targetX = 0;
   private targetY = 0;
+  private targetZ = 0;
   private moveStartX = 0;
   private moveStartY = 0;
   private moveElapsedMs = 0;
@@ -54,7 +57,7 @@ export class AvatarView {
     this.bubble.zIndex = 10_000;
     this.bubble.addChild(this.bubbleBackground, this.bubbleText);
     this.container.addChild(this.bubble);
-    this.setPosition(occupant.x, occupant.y, true);
+    this.setPosition(occupant.x, occupant.y, occupant.z ?? 0, true);
     void this.prepare();
   }
 
@@ -63,18 +66,21 @@ export class AvatarView {
     this.positionContainer();
   }
 
-  setPosition(x: number, y: number, snap = false): void {
-    if (x === this.logicalX && y === this.logicalY && !snap) return;
+  setPosition(x: number, y: number, z = 0, snap = false): void {
+    if (x === this.logicalX && y === this.logicalY && z === this.logicalZ && !snap) return;
     const deltaX = x - this.logicalX;
     const deltaY = y - this.logicalY;
     if (!snap) this.direction = resolveAvatarDirection(deltaX, deltaY, this.direction);
     this.logicalX = x;
     this.logicalY = y;
+    this.logicalZ = z;
     this.targetX = x;
     this.targetY = y;
+    this.targetZ = z;
     if (snap || Math.abs(deltaX) + Math.abs(deltaY) > 1.5) {
       this.renderX = x;
       this.renderY = y;
+      this.renderZ = z;
       this.moveStartX = x;
       this.moveStartY = y;
       this.moveElapsedMs = WALK_DURATION_MS;
@@ -96,6 +102,7 @@ export class AvatarView {
       const interpolated = interpolateAvatarPosition(this.moveStartX, this.moveStartY, this.targetX, this.targetY, progress);
       this.renderX = interpolated.x;
       this.renderY = interpolated.y;
+      this.renderZ = this.renderZ + (this.targetZ - this.renderZ) * Math.min(1, deltaMs / WALK_DURATION_MS);
       if (progress >= 1) this.moving = false;
       this.positionContainer();
     }
@@ -169,9 +176,9 @@ export class AvatarView {
   }
 
   private positionContainer(): void {
-    const point = roomToScreen(this.renderX, this.renderY, 0, this.isoConfig);
+    const point = roomToScreen(this.renderX, this.renderY, this.renderZ, this.isoConfig);
     this.container.position.set(point.x, point.y);
-    this.container.zIndex = isoDepth(this.renderY, this.renderX);
+    this.container.zIndex = isoDepth(this.renderY, this.renderX, this.renderZ);
   }
 }
 

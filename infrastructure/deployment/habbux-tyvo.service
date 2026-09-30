@@ -1,0 +1,25 @@
+[Unit]
+Description=Habbux DEV Emulator for tyvo.online
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=habbux
+Group=habbux
+WorkingDirectory=/var/lib/habbux-tyvo
+EnvironmentFile=/etc/habbux/tyvo-online.env
+ExecStart=/usr/lib/jvm/java-25-openjdk-amd64/bin/java -Xms64m -Xmx256m -XX:ActiveProcessorCount=2 -jar /var/lib/habbux-tyvo/habbux-emulator.jar
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+MemoryDenyWriteExecute=false
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

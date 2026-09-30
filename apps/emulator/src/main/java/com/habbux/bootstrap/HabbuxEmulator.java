@@ -10,6 +10,7 @@ import com.habbux.security.Argon2idPasswordHasher;
 import com.habbux.user.UserRepository;
 import com.habbux.room.RoomConfig;
 import com.habbux.room.RoomManager;
+import com.habbux.room.RoomModelRegistry;
 import com.habbux.persistence.RoomRepository;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -41,7 +42,8 @@ public final class HabbuxEmulator {
                     AuthService authService = new AuthService(database == null ? null : new UserRepository(database.dataSource()),
                             authExecutor, new Argon2idPasswordHasher());
                     RoomManager roomManager = database == null ? null
-                            : RoomManager.backedBy(new RoomRepository(database.dataSource()), RoomConfig.from(environment));
+                            : RoomManager.backedBy(new RoomRepository(database.dataSource()), RoomModelRegistry.loadDefault(),
+                            RoomConfig.from(environment));
                     if (database == null) {
                         LOG.atWarn().addKeyValue("event", "auth.database_unconfigured")
                                 .log("Habbux auth is unavailable until PostgreSQL is configured");

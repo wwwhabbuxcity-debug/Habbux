@@ -28,6 +28,8 @@ const roomJoinForm = document.querySelector<HTMLFormElement>('#room-join-form');
 const roomIdInput = document.querySelector<HTMLInputElement>('#room-id');
 const roomJoinButton = document.querySelector<HTMLButtonElement>('#room-join');
 const roomLeaveButton = document.querySelector<HTMLButtonElement>('#room-leave');
+const roomModelSelector = document.querySelector<HTMLElement>('#room-model-selector');
+const roomModelSelect = document.querySelector<HTMLSelectElement>('#room-model-select');
 const roomStatus = document.querySelector<HTMLElement>('#room-status');
 const roomError = document.querySelector<HTMLElement>('#room-error');
 const roomView = document.querySelector<HTMLElement>('#room-view');
@@ -43,12 +45,16 @@ const roomChatLog = document.querySelector<HTMLOListElement>('#room-chat-log');
 const roomChatForm = document.querySelector<HTMLFormElement>('#room-chat-form');
 const roomChatText = document.querySelector<HTMLInputElement>('#room-chat-text');
 const roomChatSend = document.querySelector<HTMLButtonElement>('#room-chat-send');
+const avatarLab = document.querySelector<HTMLElement>('#avatar-lab');
+const avatarLabStatus = document.querySelector<HTMLElement>('#avatar-lab-status');
+const avatarLabViewport = document.querySelector<HTMLElement>('#avatar-lab-viewport');
 
 if (!viewport || !status || !connectionState || !sessionId || !rtt || !emulatorStatus || !connectionError || !toggle || !endpoint
     || !authState || !userId || !authenticatedUsername || !authForm || !authIdentifier || !registerUsername
     || !registerEmail || !authPassword || !loginButton || !registerButton || !logoutButton || !authStatus
     || !roomJoinForm || !roomIdInput || !roomJoinButton || !roomLeaveButton || !roomStatus || !roomError || !roomView
     || !roomName || !roomCurrentId || !roomOccupantsCount || !roomGridSize || !roomOccupants || !roomViewport || !roomRendererStatus || !roomGrid
+    || !roomModelSelector || !roomModelSelect
     || !roomChatLog || !roomChatForm || !roomChatText || !roomChatSend) {
   throw new Error('Client bootstrap: required elements were not found.');
 }
@@ -76,6 +82,8 @@ const ui = {
   roomIdInput: roomIdInput!,
   roomJoinButton: roomJoinButton!,
   roomLeaveButton: roomLeaveButton!,
+  roomModelSelector: roomModelSelector!,
+  roomModelSelect: roomModelSelect!,
   roomStatus: roomStatus!,
   roomError: roomError!,
   roomView: roomView!,
@@ -94,6 +102,7 @@ const ui = {
 };
 
 ui.endpoint.textContent = __HABBUX_WS_URL__;
+if (new URLSearchParams(window.location.search).get('dev') === '1') ui.roomModelSelector.hidden = false;
 const connection = new CoreConnection(__HABBUX_WS_URL__);
 const roomRenderer = new RoomRenderer(ui.roomViewport, ui.roomRendererStatus, (x, y) => {
   try { connection.moveRoom(x, y); }
@@ -241,6 +250,9 @@ ui.roomLeaveButton.addEventListener('click', () => {
   try { connection.leaveRoom(); }
   catch (error) { ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao sair do quarto.'; }
 });
+ui.roomModelSelect.addEventListener('change', () => {
+  if (ui.roomModelSelect.value) ui.roomIdInput.value = ui.roomModelSelect.value;
+});
 ui.roomChatForm.addEventListener('submit', (event) => {
   event.preventDefault();
   try {
@@ -252,20 +264,35 @@ ui.roomChatForm.addEventListener('submit', (event) => {
 });
 
 let disposePreview = (): void => undefined;
+let disposeAvatarLab = (): void => undefined;
 window.addEventListener('pagehide', (event) => {
-  if (!event.persisted) { unsubscribe(); connection.dispose(); roomRenderer.dispose(); disposePreview(); }
+  if (!event.persisted) { unsubscribe(); connection.dispose(); roomRenderer.dispose(); disposePreview(); disposeAvatarLab(); }
 });
-import.meta.hot?.dispose(() => { unsubscribe(); connection.dispose(); roomRenderer.dispose(); disposePreview(); });
+import.meta.hot?.dispose(() => { unsubscribe(); connection.dispose(); roomRenderer.dispose(); disposePreview(); disposeAvatarLab(); });
 
 try {
   disposePreview = await mountPreview(viewport, status);
   void mountRoomRenderer();
+  void mountAvatarDirectionLab();
   connection.connect();
 } catch {
   status.textContent = 'A prévia gráfica não está disponível neste dispositivo. Você pode continuar pelo site.';
   viewport.hidden = true;
   void mountRoomRenderer();
+  void mountAvatarDirectionLab();
   connection.connect();
+}
+
+async function mountAvatarDirectionLab(): Promise<void> {
+  if (new URLSearchParams(window.location.search).get('avatar-lab') !== '1') return;
+  if (!avatarLab || !avatarLabStatus || !avatarLabViewport) return;
+  avatarLab.hidden = false;
+  try {
+    const { mountAvatarLab } = await import('../renderer/avatar-lab');
+    disposeAvatarLab = await mountAvatarLab(avatarLabViewport, avatarLabStatus);
+  } catch (error) {
+    avatarLabStatus.textContent = error instanceof Error ? `Avatar lab indisponível: ${error.message}` : 'Avatar lab indisponível.';
+  }
 }
 
 async function mountRoomRenderer(): Promise<void> {

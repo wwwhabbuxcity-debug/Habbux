@@ -52,6 +52,19 @@ class RoomPayloadCodecTest {
     }
 
     @Test
+    void encodesModelSnapshotWithElevationAndDoorMetadataOnVersionedMessage() {
+        byte[] walkability = {1, 1, 0, 1};
+        byte[] elevations = {2, 3, -1, 2};
+        RoomSnapshot snapshot = new RoomSnapshot(new RoomId(9_000_000_000_000_000_001L), "model_s", 2, 2, 10,
+                walkability, elevations, "model_s", 0, 0, 0, 0, 2,
+                List.of(new RoomSnapshot.Occupant(42, "alice", 0, 0)));
+        var frame = RoomPayloadCodec.encode(new RoomOutbound.Snapshot(snapshot));
+        assertEquals(26, frame.messageId());
+        assertTrue(frame.payload().length > 30);
+        assertEquals(2, frame.payload()[frame.payload().length - 1]);
+    }
+
+    @Test
     void encodesPresenceAndChatDeltasAndDecodesBoundedStrictUtf8Chat() {
         var joined = RoomPayloadCodec.encode(new RoomOutbound.UserJoined(42, "alice", 1, 2));
         assertEquals(22, joined.messageId());

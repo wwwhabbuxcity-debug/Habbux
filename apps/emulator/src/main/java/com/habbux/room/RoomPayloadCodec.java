@@ -13,8 +13,8 @@ import java.util.List;
 
 /** Bounded room payload codecs for Core Protocol v1. All integers are big-endian. */
 public final class RoomPayloadCodec {
-    /** 128-byte room name, 4096 walkability bytes and 100 bounded occupants. */
-    public static final int MAX_SNAPSHOT_PAYLOAD_BYTES = 7_438;
+    /** 128-byte room name, 4096 walkability/elevation bytes and 100 bounded occupants. */
+    public static final int MAX_SNAPSHOT_PAYLOAD_BYTES = 32_000;
     public static final int MAX_CHAT_BYTES = 256;
     public static final int MAX_CHAT_CODE_POINTS = 128;
     private static final int MAX_PAYLOAD_BYTES = 65_536;
@@ -148,6 +148,8 @@ public final class RoomPayloadCodec {
     private static HabbuxFrame encodeSnapshot(RoomSnapshot snapshot) {
         byte[] roomName = encodeText(snapshot.name(), 1, RoomMetadata.MAX_NAME_UTF8_BYTES, "room name");
         byte[] walkability = snapshot.walkability();
+        byte[] modelId = snapshot.modelId() == null ? new byte[0] : encodeText(snapshot.modelId(), 1, 64, "room model id");
+        byte[] elevations = snapshot.elevations();
         List<byte[]> usernames = new ArrayList<>(snapshot.occupants().size());
         long length = 8 + 2L + roomName.length + 3L + walkability.length + 1;
         for (RoomSnapshot.Occupant occupant : snapshot.occupants()) {
@@ -155,8 +157,10 @@ public final class RoomPayloadCodec {
             usernames.add(username);
             length += 8 + 2 + 2L + username.length;
         }
-        if (snapshot.width() < 1 || snapshot.width() > 64 || snapshot.height() < 1 || snapshot.height() > 64
+        if (modelId.length != 0) length += 2L + modelId.length + elevations.length + 5;
+        if (snapshot.width() < 1 || snapshot.width() > 96 || snapshot.height() < 1 || snapshot.height() > 96
                 || walkability.length != snapshot.width() * snapshot.height()
+                || (modelId.length != 0 && elevations.length != snapshot.width() * snapshot.height())
                 || snapshot.capacity() < 1 || snapshot.capacity() > RoomMetadata.MAX_CAPACITY
                 || snapshot.occupants().size() > snapshot.capacity() || snapshot.occupants().size() > 255
                 || length > MAX_SNAPSHOT_PAYLOAD_BYTES || length > MAX_PAYLOAD_BYTES) {
@@ -171,7 +175,12 @@ public final class RoomPayloadCodec {
             payload.putLong(occupant.userId()).put((byte) occupant.x()).put((byte) occupant.y());
             putShortText(payload, usernames.get(index));
         }
-        return frame(CoreMessage.ROOM_SNAPSHOT, payload.array());
+        if (modelId.length != 0) {
+            payload.putShort((short) modelId.length).put(modelId).put(elevations)
+                    .put((byte) snapshot.spawnX()).put((byte) snapshot.spawnY())
+                    .put((byte) snapshot.doorX()).put((byte) snapshot.doorY()).put((byte) snapshot.doorDirection());
+        }
+        return frame(modelId.length == 0 ? CoreMessage.ROOM_SNAPSHOT : CoreMessage.ROOM_MODEL_SNAPSHOT, payload.array());
     }
 
     private static ByteBuffer allocate(long length) {

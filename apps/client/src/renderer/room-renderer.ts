@@ -137,7 +137,7 @@ export class RoomRenderer {
       return;
     }
     this.resize();
-    const signature = `${room.width}x${room.height}:${room.walkability.join('')}`;
+    const signature = `${room.width}x${room.height}:${room.walkability.join('')}:${room.elevations.join(',')}`;
     if (signature !== this.floorSignature) {
       this.floorSignature = signature;
       this.drawFloor(room);
@@ -157,7 +157,7 @@ export class RoomRenderer {
         this.entityLayer.addChild(avatar.container);
       } else {
         avatar.setIsoConfig(this.config);
-        avatar.setPosition(occupant.x, occupant.y);
+        avatar.setPosition(occupant.x, occupant.y, occupant.z ?? room.elevations[occupant.y * room.width + occupant.x] ?? 0);
       }
     }
     const removedIds = reconcileEntityIds([...this.avatars.keys()], [...activeIds]).removed;
@@ -173,10 +173,12 @@ export class RoomRenderer {
     this.floorLayer.clear();
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
-        const center = roomToScreen(x, y, 0, this.config);
+        const elevation = room.elevations[y * room.width + x] ?? 0;
+        const center = roomToScreen(x, y, elevation, this.config);
         const polygon = tilePolygon(center, this.config).flatMap((point) => [point.x, point.y]);
         const walkable = room.walkability[y * room.width + x] === true;
-        this.floorLayer.poly(polygon).fill({ color: walkable ? 0x315462 : 0x1e303c, alpha: walkable ? 0.95 : 0.75 });
+        const color = !walkable ? 0x1e303c : elevation === 0 ? 0x315462 : elevation < 3 ? 0x42677a : 0x5b7d72;
+        this.floorLayer.poly(polygon).fill({ color, alpha: walkable ? 0.95 : 0.75 });
         this.floorLayer.poly(polygon).stroke({ color: walkable ? 0x5b8790 : 0x304a55, width: 1, alpha: 0.8 });
       }
     }
@@ -202,14 +204,15 @@ export class RoomRenderer {
     if (!this.currentRoom) return;
     const room = this.currentRoom;
     const rawCorners = [
-      roomToScreen(0, 0),
-      roomToScreen(room.width - 1, 0),
-      roomToScreen(0, room.height - 1),
-      roomToScreen(room.width - 1, room.height - 1),
+      roomToScreen(0, 0, room.elevations[0] ?? 0),
+      roomToScreen(room.width - 1, 0, room.elevations[room.width - 1] ?? 0),
+      roomToScreen(0, room.height - 1, room.elevations[(room.height - 1) * room.width] ?? 0),
+      roomToScreen(room.width - 1, room.height - 1, room.elevations.at(-1) ?? 0),
     ];
     const minX = Math.min(...rawCorners.map((point) => point.x));
     const maxX = Math.max(...rawCorners.map((point) => point.x));
-    const minY = Math.min(...rawCorners.map((point) => point.y)) - 96;
+    const maxElevation = Math.max(0, ...room.elevations);
+    const minY = Math.min(...rawCorners.map((point) => point.y)) - 96 - maxElevation * 16;
     const maxY = Math.max(...rawCorners.map((point) => point.y));
     const scale = Math.max(0.55, Math.min(1.2, Math.min(width / Math.max(1, maxX - minX + 120), height / Math.max(1, maxY - minY + 80))));
     const scaledWidth = (maxX - minX) * scale;
