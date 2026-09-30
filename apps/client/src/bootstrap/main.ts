@@ -1,4 +1,5 @@
 import { mountPreview } from '../renderer/preview';
+import { RoomRenderer } from '../renderer/room-renderer';
 import { CoreConnection, type CoreConnectionSnapshot } from '../communication/core';
 import '../styles/main.css';
 
@@ -35,6 +36,8 @@ const roomCurrentId = document.querySelector<HTMLElement>('#room-current-id');
 const roomOccupantsCount = document.querySelector<HTMLElement>('#room-occupants-count');
 const roomGridSize = document.querySelector<HTMLElement>('#room-grid-size');
 const roomOccupants = document.querySelector<HTMLUListElement>('#room-occupants');
+const roomViewport = document.querySelector<HTMLDivElement>('#room-viewport');
+const roomRendererStatus = document.querySelector<HTMLElement>('#room-renderer-status');
 const roomGrid = document.querySelector<HTMLDivElement>('#room-grid');
 const roomChatLog = document.querySelector<HTMLOListElement>('#room-chat-log');
 const roomChatForm = document.querySelector<HTMLFormElement>('#room-chat-form');
@@ -45,7 +48,7 @@ if (!viewport || !status || !connectionState || !sessionId || !rtt || !emulatorS
     || !authState || !userId || !authenticatedUsername || !authForm || !authIdentifier || !registerUsername
     || !registerEmail || !authPassword || !loginButton || !registerButton || !logoutButton || !authStatus
     || !roomJoinForm || !roomIdInput || !roomJoinButton || !roomLeaveButton || !roomStatus || !roomError || !roomView
-    || !roomName || !roomCurrentId || !roomOccupantsCount || !roomGridSize || !roomOccupants || !roomGrid
+    || !roomName || !roomCurrentId || !roomOccupantsCount || !roomGridSize || !roomOccupants || !roomViewport || !roomRendererStatus || !roomGrid
     || !roomChatLog || !roomChatForm || !roomChatText || !roomChatSend) {
   throw new Error('Client bootstrap: required elements were not found.');
 }
@@ -81,6 +84,8 @@ const ui = {
   roomOccupantsCount: roomOccupantsCount!,
   roomGridSize: roomGridSize!,
   roomOccupants: roomOccupants!,
+  roomViewport: roomViewport!,
+  roomRendererStatus: roomRendererStatus!,
   roomGrid: roomGrid!,
   roomChatLog: roomChatLog!,
   roomChatForm: roomChatForm!,
@@ -90,6 +95,10 @@ const ui = {
 
 ui.endpoint.textContent = __HABBUX_WS_URL__;
 const connection = new CoreConnection(__HABBUX_WS_URL__);
+const roomRenderer = new RoomRenderer(ui.roomViewport, ui.roomRendererStatus, (x, y) => {
+  try { connection.moveRoom(x, y); }
+  catch (error) { ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao pedir movimento.'; }
+});
 
 function renderConnection(snapshot: CoreConnectionSnapshot): void {
   ui.connectionState.textContent = snapshot.state;
@@ -126,6 +135,8 @@ function renderConnection(snapshot: CoreConnectionSnapshot): void {
 }
 
 function renderRoom(snapshot: CoreConnectionSnapshot): void {
+  roomRenderer.setRoom(snapshot.room);
+  roomRenderer.setChat(snapshot.roomChat);
   const labels = { NONE: 'Sem quarto', JOINING: 'Entrando…', IN_ROOM: 'Dentro do quarto', LEAVING: 'Saindo…' } as const;
   ui.roomStatus.textContent = snapshot.room ? `${labels[snapshot.roomStatus]} · ${snapshot.room.occupants.length} usuário(s)`
     : labels[snapshot.roomStatus];
@@ -242,17 +253,30 @@ ui.roomChatForm.addEventListener('submit', (event) => {
 
 let disposePreview = (): void => undefined;
 window.addEventListener('pagehide', (event) => {
-  if (!event.persisted) { unsubscribe(); connection.dispose(); disposePreview(); }
+  if (!event.persisted) { unsubscribe(); connection.dispose(); roomRenderer.dispose(); disposePreview(); }
 });
-import.meta.hot?.dispose(() => { unsubscribe(); connection.dispose(); disposePreview(); });
+import.meta.hot?.dispose(() => { unsubscribe(); connection.dispose(); roomRenderer.dispose(); disposePreview(); });
 
 try {
   disposePreview = await mountPreview(viewport, status);
+  void mountRoomRenderer();
   connection.connect();
 } catch {
   status.textContent = 'A prévia gráfica não está disponível neste dispositivo. Você pode continuar pelo site.';
   viewport.hidden = true;
+  void mountRoomRenderer();
   connection.connect();
+}
+
+async function mountRoomRenderer(): Promise<void> {
+  try {
+    await roomRenderer.mount();
+  } catch (error: unknown) {
+    ui.roomViewport.hidden = true;
+    ui.roomRendererStatus.textContent = error instanceof Error
+      ? `Renderer da sala indisponível: ${error.message}`
+      : 'Renderer da sala indisponível.';
+  }
 }
 
 function formatSessionId(value: string): string {
