@@ -19,7 +19,7 @@
     <maven.compiler.release>25</maven.compiler.release>
     <netty.version>4.2.18.Final</netty.version>
     <slf4j.version>2.0.20</slf4j.version>
-    <logback.version>1.6.4</logback.version>
+    <logback.version>1.6.5</logback.version>
     <junit.version>6.1.3</junit.version>
     <hikari.version>7.1.0</hikari.version>
     <postgresql.version>42.7.13</postgresql.version>
