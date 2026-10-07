@@ -1,3 +1,5 @@
+// Adaptador oficial do PixiJS 8 para ambientes sem unsafe-eval no CSP.
+import 'pixi.js/unsafe-eval';
 import { Application, Container, Graphics, Rectangle } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
