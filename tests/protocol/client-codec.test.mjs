@@ -208,6 +208,7 @@ test('client maps generic authentication failures and rejects malformed Unicode 
 
 test('reconnect uses bounded attempts and can be disabled', async () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'WebSocket');
+  let finalSnapshot;
   class FailingSocket {
     static created = 0;
     static OPEN = 1;
@@ -236,6 +237,7 @@ test('reconnect uses bounded attempts and can be disabled', async () => {
     const complete = new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('bounded retry test timed out')), 2_000);
       const unsubscribe = connection.subscribe((snapshot) => {
+        finalSnapshot = snapshot;
         states.push(snapshot.state);
         if (snapshot.state === 'DISCONNECTED' && FailingSocket.created === 2) {
           clearTimeout(timer);
@@ -249,6 +251,7 @@ test('reconnect uses bounded attempts and can be disabled', async () => {
     assert.equal(FailingSocket.created, 2);
     assert.ok(states.includes('CONNECTING'));
     assert.ok(states.includes('RECONNECTING'));
+    assert.match(finalSnapshot.error, /Não foi possível conectar/u);
     connection.dispose();
 
     FailingSocket.created = 0;

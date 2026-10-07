@@ -22,11 +22,22 @@ export interface AvatarAssetProvider {
 }
 
 export async function loadAvatarManifest(url: string): Promise<AvatarManifest> {
-  const response = await fetch(url, { cache: 'force-cache' });
-  if (!response.ok) throw new Error(`Manifesto de avatar indisponível (${response.status}).`);
-  const value: unknown = await response.json();
-  const { parseAvatarManifest } = await import('./avatar-manifest');
-  return parseAvatarManifest(value);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8_000);
+  try {
+    const response = await fetch(url, { cache: 'force-cache', signal: controller.signal });
+    if (!response.ok) throw new Error(`Manifesto de avatar indisponível (${response.status}).`);
+    const value: unknown = await response.json();
+    const { parseAvatarManifest } = await import('./avatar-manifest');
+    return parseAvatarManifest(value);
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') {
+      throw new Error('O manifesto de avatar excedeu o tempo limite.');
+    }
+    throw cause;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function createAvatarAssetProvider(manifest: AvatarManifest, assetBaseUrl: string): AvatarAssetProvider {

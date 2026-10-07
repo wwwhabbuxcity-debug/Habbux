@@ -50,11 +50,19 @@ export const AUTH_FAILURE_CATEGORY = {
   UNAVAILABLE: 4,
 } as const;
 const CORE_MESSAGE_IDS = new Set<number>(Object.values(CORE_MESSAGE));
+const SOCKET_TIMEOUT_MS = 12_000;
 const ROOM_SERVER_MESSAGE_IDS: ReadonlySet<number> = new Set([
   CORE_MESSAGE.ROOM_JOIN_SUCCESS, CORE_MESSAGE.ROOM_JOIN_FAILURE, CORE_MESSAGE.ROOM_LEAVE_SUCCESS,
   CORE_MESSAGE.ROOM_SNAPSHOT, CORE_MESSAGE.ROOM_USER_JOIN, CORE_MESSAGE.ROOM_USER_LEAVE,
   CORE_MESSAGE.ROOM_MODEL_SNAPSHOT, CORE_MESSAGE.ROOM_USER_POSITION, CORE_MESSAGE.ROOM_USER_CHAT, CORE_MESSAGE.ROOM_ACTION_FAILURE,
 ]);
+
+type DebugFields = Record<string, boolean | number | string | null>;
+const DEV_LOGGING = import.meta.env?.DEV === true;
+
+function debugLog(event: string, fields: DebugFields = {}): void {
+  if (DEV_LOGGING) console.debug('[Habbux][core]', { event, ...fields });
+}
 
 export type CoreMessageId = (typeof CORE_MESSAGE)[keyof typeof CORE_MESSAGE];
 export type CoreConnectionState = 'DISCONNECTED' | 'CONNECTING' | 'HANDSHAKING' | 'READY' | 'RECONNECTING';
@@ -131,6 +139,7 @@ export class CoreConnection {
   private disposed = false;
   private reconnectAttempts = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private socketDeadline: ReturnType<typeof setTimeout> | null = null;
   private pingTimer: ReturnType<typeof setInterval> | null = null;
   private pingDeadline: ReturnType<typeof setTimeout> | null = null;
   private pendingPing: { sequence: number; sentAt: number } | null = null;
@@ -159,6 +168,7 @@ export class CoreConnection {
 
   connect(): void {
     if (this.disposed || this.socket) return;
+    debugLog('connect.requested');
     this.reconnectEnabled = true;
     this.reconnectAttempts = 0;
     this.clearReconnectTimer();
@@ -257,6 +267,7 @@ export class CoreConnection {
   disconnect(): void {
     this.reconnectEnabled = false;
     this.clearReconnectTimer();
+    this.clearSocketDeadline();
     this.stopPings();
     this.finishPendingOperations();
     const socket = this.socket;
@@ -290,20 +301,43 @@ export class CoreConnection {
   private openSocket(reconnecting: boolean): void {
     if (this.disposed) return;
     this.clearRoomCommand();
+    this.clearSocketDeadline();
     this.setSnapshot({ ...this.snapshot, state: reconnecting ? 'RECONNECTING' : 'CONNECTING', sessionId: null,
       error: null, authState: 'ANONYMOUS', userId: null, username: null,
       roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
-    const socket = new WebSocket(this.url);
+    let socket: WebSocket;
+    try { socket = new WebSocket(this.url); }
+    catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível iniciar o WebSocket.';
+      debugLog('ws.constructor_failed', { cause: message });
+      this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', error: `Falha ao iniciar conexão: ${message}` });
+      return;
+    }
     socket.binaryType = 'arraybuffer';
     this.socket = socket;
+    this.socketDeadline = setTimeout(() => {
+      if (socket !== this.socket) return;
+      const phase = this.snapshot.state === 'HANDSHAKING' ? 'handshake' : 'connection';
+      const message = phase === 'handshake'
+        ? 'O servidor não respondeu ao handshake.'
+        : 'Não foi possível conectar ao servidor.';
+      debugLog('ws.timeout', { phase });
+      this.setSnapshot({ ...this.snapshot, error: message });
+      socket.close(1001, `${phase} timeout`);
+    }, SOCKET_TIMEOUT_MS);
     socket.onopen = () => {
       if (socket !== this.socket) return;
+      this.clearSocketDeadline();
       this.setSnapshot({ ...this.snapshot, state: 'HANDSHAKING' });
-      socket.send(encodeFrame(CORE_MESSAGE.CLIENT_HELLO));
+      try { socket.send(encodeFrame(CORE_MESSAGE.CLIENT_HELLO)); }
+      catch (error) {
+        debugLog('ws.hello_failed', { cause: error instanceof Error ? error.message : 'send failed' });
+        socket.close(1001, 'hello send failed');
+      }
     };
     socket.onmessage = (event: MessageEvent<unknown>) => this.onMessage(socket, event.data);
-    socket.onerror = () => { /* onclose owns recovery and bounded retry behavior */ };
-    socket.onclose = () => this.onClose(socket);
+    socket.onerror = () => debugLog('ws.error');
+    socket.onclose = (event) => this.onClose(socket, event);
   }
 
   private onMessage(socket: WebSocket, data: unknown): void {
@@ -520,9 +554,12 @@ export class CoreConnection {
     this.pendingRoomJoinPosition = null;
   }
 
-  private onClose(socket: WebSocket): void {
+  private onClose(socket: WebSocket, event?: CloseEvent): void {
     if (socket !== this.socket) return;
     this.socket = null;
+    this.clearSocketDeadline();
+    const wasAuthenticating = this.snapshot.authState === 'AUTHENTICATING' || this.pendingAuth !== null;
+    debugLog('ws.closed', { code: event?.code ?? null, authenticating: wasAuthenticating });
     this.stopPings();
     this.finishPendingOperations();
     this.clearRoomCommand();
@@ -530,6 +567,7 @@ export class CoreConnection {
       const delay = Math.min(500 * (2 ** this.reconnectAttempts), 10_000);
       this.reconnectAttempts++;
       this.setSnapshot({ ...this.snapshot, state: 'RECONNECTING', sessionId: null,
+        error: this.snapshot.error ?? (wasAuthenticating ? 'A conexão foi interrompida durante a autenticação.' : 'Conexão perdida. Tentando novamente…'),
         authState: 'ANONYMOUS', userId: null, username: null,
         roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
       this.reconnectTimer = setTimeout(() => {
@@ -539,7 +577,8 @@ export class CoreConnection {
       return;
     }
     this.setSnapshot({ ...this.snapshot, state: 'DISCONNECTED', sessionId: null,
-      authState: 'ANONYMOUS', userId: null, username: null,
+      error: this.snapshot.error ?? (wasAuthenticating ? 'A conexão foi interrompida durante a autenticação.' : 'Não foi possível conectar ao servidor.'),
+        authState: 'ANONYMOUS', userId: null, username: null,
       roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
   }
 
@@ -675,7 +714,25 @@ export class CoreConnection {
     this.reconnectTimer = null;
   }
 
+  private clearSocketDeadline(): void {
+    if (this.socketDeadline !== null) clearTimeout(this.socketDeadline);
+    this.socketDeadline = null;
+  }
+
   private setSnapshot(snapshot: CoreConnectionSnapshot): void {
+    if (this.snapshot.state !== snapshot.state) {
+      const events: Partial<Record<CoreConnectionState, string>> = {
+        CONNECTING: 'WS_CONNECTING', HANDSHAKING: 'WS_HANDSHAKING', READY: 'WS_READY',
+        RECONNECTING: 'WS_RECONNECTING', DISCONNECTED: 'WS_DISCONNECTED',
+      };
+      debugLog('state.transition', { event: events[snapshot.state] ?? snapshot.state, from: this.snapshot.state, to: snapshot.state });
+    }
+    if (this.snapshot.authState !== snapshot.authState) {
+      const events: Partial<Record<CoreAuthState, string>> = {
+        AUTHENTICATING: 'AUTHENTICATING', AUTHENTICATED: 'AUTH_SUCCESS', ANONYMOUS: 'AUTH_ANONYMOUS',
+      };
+      debugLog('auth.transition', { event: events[snapshot.authState] ?? snapshot.authState, from: this.snapshot.authState, to: snapshot.authState });
+    }
     this.snapshot = snapshot;
     for (const listener of this.listeners) listener(snapshot);
   }
