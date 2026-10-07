@@ -21,11 +21,25 @@ document.body.innerHTML = `
       <div id="room-cards" class="room-cards"></div>
     </section>
     <section id="player-room" class="player-room" hidden>
-      <div class="room-topbar"><div><p class="player-kicker">Você está em</p><h1 id="room-title">Carregando quarto…</h1></div><button id="room-leave" class="player-button secondary" type="button">Voltar para Home</button></div>
-      <p id="room-error" class="player-error" role="status" aria-live="polite"></p>
       <div id="room-viewport" class="player-viewport"><p id="room-renderer-status" class="room-renderer-status" role="status">Carregando cenário…</p></div>
-      <div class="room-footer"><span id="room-occupants">0 habitantes</span><form id="room-chat-form"><label class="sr-only" for="room-chat-text">Mensagem</label><input id="room-chat-text" maxlength="128" autocomplete="off" placeholder="Diga alguma coisa…" /><button class="player-button" type="submit">Enviar</button></form></div>
-      <ol id="room-chat-log" class="room-chat-log" aria-label="Mensagens do quarto" aria-live="polite"></ol>
+      <div class="room-hud" aria-label="Interface do quarto">
+        <div class="room-hud-info"><strong id="room-title">Carregando quarto…</strong><span id="room-occupants">0 habitantes</span></div>
+        <p id="room-error" class="player-error" role="status" aria-live="polite"></p>
+        <ol id="room-chat-log" class="room-chat-log" aria-label="Mensagens do quarto" aria-live="polite"></ol>
+        <div class="room-hud-dock">
+          <div class="room-menu-wrap">
+            <button id="room-menu-toggle" class="room-icon-button" type="button" aria-label="Abrir menu do quarto" aria-expanded="false" aria-controls="room-menu">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+            </button>
+            <div id="room-menu" class="room-menu" hidden>
+              <button id="room-menu-home" class="room-menu-item" type="button">Voltar para Home</button>
+              <button id="room-menu-logout" class="room-menu-item danger" type="button">Sair da conta</button>
+            </div>
+          </div>
+          <form id="room-chat-form" class="room-chat-form"><label class="sr-only" for="room-chat-text">Mensagem</label><input id="room-chat-text" maxlength="128" autocomplete="off" placeholder="Fale aqui..." /><button class="room-send-button" type="submit" aria-label="Enviar mensagem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 5 16 7-16 7 3-7-3-7Zm3 7h13" /></svg></button></form>
+        </div>
+      </div>
+      <button id="room-leave" class="player-button secondary" type="button" hidden>Voltar para Home</button>
     </section>
     <p id="player-expired" class="player-expired" hidden>Sua sessão expirou. <a href="/">Voltar para o login</a></p>
   </main>`;
@@ -40,6 +54,10 @@ const title = document.querySelector<HTMLElement>('#room-title')!;
 const error = document.querySelector<HTMLElement>('#room-error')!;
 const logout = document.querySelector<HTMLButtonElement>('#player-logout')!;
 const leave = document.querySelector<HTMLButtonElement>('#room-leave')!;
+const roomMenuToggle = document.querySelector<HTMLButtonElement>('#room-menu-toggle')!;
+const roomMenu = document.querySelector<HTMLDivElement>('#room-menu')!;
+const roomMenuHome = document.querySelector<HTMLButtonElement>('#room-menu-home')!;
+const roomMenuLogout = document.querySelector<HTMLButtonElement>('#room-menu-logout')!;
 const viewport = document.querySelector<HTMLDivElement>('#room-viewport')!;
 const rendererStatus = document.querySelector<HTMLElement>('#room-renderer-status')!;
 const occupants = document.querySelector<HTMLElement>('#room-occupants')!;
@@ -55,6 +73,16 @@ let ssoTimer: ReturnType<typeof setTimeout> | null = null;
 function debugLog(stage: string, fields: Record<string, string | null> = {}): void {
   if (DEV_LOGGING && stage !== lastStage) console.debug('[Habbux][game]', { stage, ...fields });
   lastStage = stage;
+}
+
+function closeRoomMenu(): void {
+  roomMenu.hidden = true;
+  roomMenuToggle.setAttribute('aria-expanded', 'false');
+}
+
+function toggleRoomMenu(): void {
+  roomMenu.hidden = !roomMenu.hidden;
+  roomMenuToggle.setAttribute('aria-expanded', String(!roomMenu.hidden));
 }
 
 for (const [id, name, description] of MODELS) {
@@ -105,6 +133,7 @@ let lastRoom: CoreConnectionSnapshot['room'] | undefined;
 let lastChat: CoreConnectionSnapshot['roomChat'] | undefined;
 
 function render(snapshot: CoreConnectionSnapshot): void {
+  document.body.classList.toggle('in-room', snapshot.authState === 'AUTHENTICATED' && snapshot.roomStatus !== 'NONE');
   if (ssoChannel && !ssoReadySent && snapshot.state === 'READY' && snapshot.authState === 'ANONYMOUS') {
     ssoReadySent = true;
     ssoChannel.postMessage({ type: 'ready' });
@@ -160,6 +189,7 @@ function render(snapshot: CoreConnectionSnapshot): void {
   logout.hidden = false; expired.hidden = true; status.hidden = true; retry.hidden = true;
   welcome.textContent = `Você entrou como ${snapshot.username ?? 'jogador'}. Onde vamos hoje?`;
   const inRoom = snapshot.roomStatus !== 'NONE'; home.hidden = inRoom; room.hidden = !inRoom;
+  if (!inRoom) closeRoomMenu();
   error.textContent = snapshot.roomError ?? '';
   if (snapshot.roomStatus === 'JOINING') title.textContent = 'Entrando no quarto…';
   if (snapshot.roomStatus === 'LEAVING') title.textContent = 'Saindo…';
@@ -185,6 +215,11 @@ cards.addEventListener('click', (event) => {
   try { error.textContent = ''; connection.joinRoom(button.dataset.roomId!); } catch (cause) { error.textContent = cause instanceof Error ? cause.message : 'Não foi possível entrar no quarto.'; }
 });
 retry.addEventListener('click', () => { retry.hidden = true; connection.connect(); });
+roomMenuToggle.addEventListener('click', toggleRoomMenu);
+roomMenuHome.addEventListener('click', () => { closeRoomMenu(); leave.click(); });
+roomMenuLogout.addEventListener('click', () => { closeRoomMenu(); logout.click(); });
+document.addEventListener('pointerdown', (event) => { if (!roomMenu.contains(event.target as Node) && !roomMenuToggle.contains(event.target as Node)) closeRoomMenu(); });
+document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeRoomMenu(); });
 leave.addEventListener('click', () => { try { connection.leaveRoom(); } catch (cause) { error.textContent = cause instanceof Error ? cause.message : 'Não foi possível sair do quarto.'; } });
 logout.addEventListener('click', () => { void connection.logout().then(() => window.location.assign('/')).catch((cause) => { error.textContent = cause instanceof Error ? cause.message : 'Não foi possível sair.'; }); });
 chatForm.addEventListener('submit', (event) => { event.preventDefault(); try { connection.chatRoom(chatText.value); chatText.value = ''; } catch (cause) { error.textContent = cause instanceof Error ? cause.message : 'Não foi possível enviar a mensagem.'; } });
