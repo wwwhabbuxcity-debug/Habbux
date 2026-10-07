@@ -10,6 +10,26 @@ const title = $<HTMLElement>('#auth-title'); const subtitle = $<HTMLElement>('#a
 const connection = new CoreConnection(__HABBUX_WS_URL__, 0); let mode: AuthMode = 'LOGIN';
 function setFeedback(message: string, kind: 'error' | 'success' = 'error'): void { feedback.textContent = message; feedback.dataset.kind = kind; }
 function setBusy(button: HTMLButtonElement, busy: boolean, label: string): void { button.disabled = busy; button.textContent = busy ? 'AGUARDE…' : label; loginSubmit.disabled = busy; registerSubmit.disabled = busy; }
+function waitForCoreReady(timeoutMs = 12_000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let unsubscribe = (): void => undefined;
+    const finish = (callback: () => void): void => {
+      if (finished) return;
+      finished = true;
+      if (timer !== null) clearTimeout(timer);
+      unsubscribe();
+      callback();
+    };
+    unsubscribe = connection.subscribe((snapshot) => {
+      if (snapshot.state === 'READY') finish(resolve);
+      else if (snapshot.state === 'DISCONNECTED' && snapshot.error) finish(() => reject(new Error(snapshot.error!)));
+    });
+    if (finished) unsubscribe();
+    else timer = setTimeout(() => finish(() => reject(new Error('A conexão com o Habbux demorou para ficar pronta. Tente novamente.'))), timeoutMs);
+  });
+}
 function renderMode(next: AuthMode): void { mode = next; const login = next === 'LOGIN'; loginForm.hidden = !login; registerForm.hidden = login; title.textContent = login ? 'Bem-vindo de volta' : 'Crie sua conta'; subtitle.textContent = login ? 'Entre na sua conta para continuar' : 'Comece sua jornada no Habbux'; switchCopy.textContent = login ? 'Novo no Habbux?' : 'Já possui uma conta?'; switchMode.textContent = login ? 'CRIAR UMA CONTA' : 'ENTRAR'; setFeedback(''); (login ? identifier : registerUsername).focus(); }
 function errorMessage(category: string): string { return ({ INVALID_REQUEST: 'Confira os dados informados.', REJECTED: 'Não foi possível autenticar com esses dados.', RATE_LIMITED: 'Muitas tentativas. Aguarde e tente novamente.', UNAVAILABLE: 'O serviço está temporariamente indisponível.' } as Record<string, string>)[category] ?? 'Não foi possível concluir a operação.'; }
 function createGameHandoff(): { channel: BroadcastChannel; gameWindow: Window | null; send: (username: string, password: string) => void; close: () => void } | null {
@@ -19,6 +39,6 @@ function createGameHandoff(): { channel: BroadcastChannel; gameWindow: Window | 
   channel.onmessage = (event: MessageEvent<{ type?: string }>): void => { if (event.data?.type === 'ready') { ready = true; if (credentials) { channel.postMessage({ type: 'credentials', ...credentials }); credentials.password = ''; credentials = null; } } };
   return { channel, gameWindow, send, close: () => { credentials = null; channel.close(); } };
 }
-loginForm.addEventListener('submit', (event) => { event.preventDefault(); if (!identifier.value.trim() || !loginPassword.value) { setFeedback('Informe seu usuário e senha.'); return; } const handoff = createGameHandoff(); if (!handoff) { setFeedback('Permita a abertura de uma nova aba para entrar no jogo.'); return; } setBusy(loginSubmit, true, 'ENTRAR'); const credentialText = loginPassword.value; loginPassword.value = ''; void connection.login(identifier.value.trim(), credentialText).then((result) => { if (!result.ok) { handoff.gameWindow?.close(); handoff.close(); setFeedback(errorMessage(result.category)); return; } handoff.send(result.username, credentialText); setFeedback('Login aprovado. O jogo foi aberto em uma nova aba.', 'success'); }).catch(() => { handoff.gameWindow?.close(); handoff.close(); setFeedback('Não foi possível conectar ao Habbux.'); }).finally(() => setBusy(loginSubmit, false, 'ENTRAR')); });
+loginForm.addEventListener('submit', (event) => { event.preventDefault(); if (!identifier.value.trim() || !loginPassword.value) { setFeedback('Informe seu usuário e senha.'); return; } const handoff = createGameHandoff(); if (!handoff) { setFeedback('Permita a abertura de uma nova aba para entrar no jogo.'); return; } setBusy(loginSubmit, true, 'ENTRAR'); const credentialText = loginPassword.value; loginPassword.value = ''; void (async () => { try { await waitForCoreReady(); const result = await connection.login(identifier.value.trim(), credentialText); if (!result.ok) { handoff.gameWindow?.close(); handoff.close(); setFeedback(errorMessage(result.category)); return; } handoff.send(result.username, credentialText); setFeedback('Login aprovado. O jogo foi aberto em uma nova aba.', 'success'); } catch (cause) { handoff.gameWindow?.close(); handoff.close(); setFeedback(cause instanceof Error ? cause.message : 'Não foi possível conectar ao Habbux.'); } finally { setBusy(loginSubmit, false, 'ENTRAR'); } })(); });
 registerForm.addEventListener('submit', (event) => { event.preventDefault(); if (!registerForm.reportValidity()) return; if (registerPassword.value !== registerConfirm.value) { setFeedback('As senhas não coincidem.'); registerConfirm.focus(); return; } setBusy(registerSubmit, true, 'CRIAR CONTA'); const credentialText = registerPassword.value; void connection.register(registerUsername.value.trim(), registerEmail.value.trim(), credentialText).then((result) => { if (!result.ok) { setFeedback(errorMessage(result.category)); return; } return connection.logout().then(() => { identifier.value = registerUsername.value.trim(); registerPassword.value = ''; registerConfirm.value = ''; renderMode('LOGIN'); setFeedback('Conta criada com sucesso. Agora entre para jogar.', 'success'); }); }).catch(() => setFeedback('Não foi possível criar sua conta.')).finally(() => setBusy(registerSubmit, false, 'CRIAR CONTA')); });
 switchMode.addEventListener('click', () => renderMode(mode === 'LOGIN' ? 'REGISTER' : 'LOGIN')); connection.connect(); window.addEventListener('pagehide', () => connection.dispose());
