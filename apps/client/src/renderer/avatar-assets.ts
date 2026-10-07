@@ -21,6 +21,37 @@ export interface AvatarAssetProvider {
   dispose(): void;
 }
 
+export interface AvatarFrameSelection {
+  readonly frame: AvatarFrameDefinition;
+  readonly mirrored: boolean;
+}
+
+export function resolveAvatarFrameSelection(
+  manifest: AvatarManifest,
+  gender: AvatarGender,
+  part: AvatarPart,
+  action: AvatarAction,
+  direction: number,
+  frame: number,
+): AvatarFrameSelection | undefined {
+  const partDefinition = manifest.parts[part];
+  const actionDefinition = partDefinition.actions[action] ?? partDefinition.actions.std;
+  if (!actionDefinition) return undefined;
+  const genderDefinition = actionDefinition.genders[gender];
+  const directDirection = genderDefinition.directions[String(direction)];
+  const renderDirection = manifest.directions.mirrorForRender[String(direction)];
+  const directionDefinition = directDirection
+    ?? (renderDirection === undefined ? undefined : genderDefinition.directions[String(renderDirection)]);
+  if (!directionDefinition) return undefined;
+  const frameIndex = actionDefinition.frameCount === 1 ? 0 : frame % actionDefinition.frameCount;
+  const frameDefinition = directionDefinition.frames[String(frameIndex)];
+  if (!frameDefinition) return undefined;
+  return {
+    frame: frameDefinition,
+    mirrored: directionDefinition.mirrored || (!directDirection && manifest.directions.flipped[String(direction)] === true),
+  };
+}
+
 export async function loadAvatarManifest(url: string): Promise<AvatarManifest> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
@@ -78,15 +109,11 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
   }
 
   getFrame(gender: AvatarGender, part: AvatarPart, action: AvatarAction, direction: number, frame: number): AvatarResolvedFrame | undefined {
-    const partDefinition = this.manifest.parts[part];
-    const actionDefinition = partDefinition.actions[action];
-    const genderDefinition = actionDefinition?.genders[gender];
-    const directionDefinition = genderDefinition?.directions[String(direction)];
-    const frameDefinition = directionDefinition?.frames[String(frame)];
-    if (!actionDefinition || !directionDefinition || !frameDefinition) return undefined;
-    const texture = this.resolvedRegions.get(frameDefinition.region);
+    const selection = resolveAvatarFrameSelection(this.manifest, gender, part, action, direction, frame);
+    if (!selection) return undefined;
+    const texture = this.resolvedRegions.get(selection.frame.region);
     if (!texture) return undefined;
-    return { texture, frame: frameDefinition, mirrored: directionDefinition.mirrored };
+    return { texture, frame: selection.frame, mirrored: selection.mirrored };
   }
 
   dispose(): void {

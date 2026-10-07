@@ -5,9 +5,10 @@ import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './a
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { resolveAvatarDirection } from './avatar-direction';
-import { interpolateAvatarPosition } from './renderer-model';
+import { interpolateAvatarElevation, interpolateAvatarPosition } from './renderer-model';
 
 const WALK_DURATION_MS = 260;
+const WALK_FRAME_DURATION_MS = WALK_DURATION_MS / 4;
 const BUBBLE_DURATION_MS = 4_500;
 
 export interface AvatarViewOptions {
@@ -20,7 +21,7 @@ export class AvatarView {
   readonly userId: string;
   readonly gender: AvatarGender;
   private readonly provider: AvatarAssetProvider;
-  private readonly animation = new AvatarAnimationController();
+  private readonly animation = new AvatarAnimationController(WALK_FRAME_DURATION_MS);
   private readonly sprites = new Map<AvatarPart, Sprite>();
   private readonly bubble = new Container();
   private readonly bubbleBackground = new Graphics();
@@ -37,6 +38,7 @@ export class AvatarView {
   private targetZ = 0;
   private moveStartX = 0;
   private moveStartY = 0;
+  private moveStartZ = 0;
   private moveElapsedMs = 0;
   private moving = false;
   private direction = 0;
@@ -83,11 +85,13 @@ export class AvatarView {
       this.renderZ = z;
       this.moveStartX = x;
       this.moveStartY = y;
+      this.moveStartZ = z;
       this.moveElapsedMs = WALK_DURATION_MS;
       this.moving = false;
     } else {
       this.moveStartX = this.renderX;
       this.moveStartY = this.renderY;
+      this.moveStartZ = this.renderZ;
       this.moveElapsedMs = 0;
       this.moving = true;
     }
@@ -102,8 +106,13 @@ export class AvatarView {
       const interpolated = interpolateAvatarPosition(this.moveStartX, this.moveStartY, this.targetX, this.targetY, progress);
       this.renderX = interpolated.x;
       this.renderY = interpolated.y;
-      this.renderZ = this.renderZ + (this.targetZ - this.renderZ) * Math.min(1, deltaMs / WALK_DURATION_MS);
-      if (progress >= 1) this.moving = false;
+      this.renderZ = interpolateAvatarElevation(this.moveStartZ, this.targetZ, progress);
+      if (progress >= 1) {
+        this.renderX = this.targetX;
+        this.renderY = this.targetY;
+        this.renderZ = this.targetZ;
+        this.moving = false;
+      }
       this.positionContainer();
     }
     this.animation.setMoving(this.moving);

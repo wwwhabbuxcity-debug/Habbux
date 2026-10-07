@@ -3,6 +3,11 @@ export function interpolateAvatarPosition(startX: number, startY: number, target
   return { x: startX + (targetX - startX) * clamped, y: startY + (targetY - startY) * clamped };
 }
 
+export function interpolateAvatarElevation(startZ: number, targetZ: number, progress: number): number {
+  const clamped = Math.max(0, Math.min(1, progress));
+  return startZ + (targetZ - startZ) * clamped;
+}
+
 export function reconcileEntityIds(existing: readonly string[], incoming: readonly string[]): { readonly added: readonly string[]; readonly removed: readonly string[] } {
   const existingSet = new Set(existing);
   const incomingSet = new Set(incoming);

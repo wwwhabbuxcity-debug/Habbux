@@ -4,8 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { resolveAvatarDirection, resolveMirroring } from '../src/renderer/avatar-direction.ts';
 import { AvatarAnimationController } from '../src/renderer/avatar-animation.ts';
+import { resolveAvatarFrameSelection } from '../src/renderer/avatar-assets.ts';
 import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
-import { interpolateAvatarPosition, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
+import { interpolateAvatarElevation, interpolateAvatarPosition, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
 import { roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
 
 test('projeção isométrica volta ao tile original e gera losango fechado', () => {
@@ -53,6 +54,18 @@ test('interpolação termina exatamente no destino e respeita os limites', () =>
   assert.equal(typeof interpolateAvatarPosition(0, 0, 1, 1, 0.5).x, 'number');
   assert.deepEqual(interpolateAvatarPosition(2, 4, 3, 5, 1), { x: 3, y: 5 });
   assert.equal(interpolateAvatarPosition(2, 4, 3, 5, -1).x, 2);
+  assert.equal(interpolateAvatarElevation(0, 3, 0.5), 1.5);
+  assert.equal(interpolateAvatarElevation(0, 3, 1), 3);
+});
+
+test('partes sem WALK permanecem visíveis e respeitam direções frontais do manifesto', async () => {
+  const file = resolve(process.cwd(), 'apps/client/public/assets/avatar/v1/manifest/avatar-manifest-v1.json');
+  const manifest = parseAvatarManifest(JSON.parse(await readFile(file, 'utf8')));
+  const head = resolveAvatarFrameSelection(manifest, 'male', 'hd', 'wlk', 1, 3);
+  const faceBack = resolveAvatarFrameSelection(manifest, 'male', 'fc', 'std', 7, 0);
+  assert.ok(head, 'hd deve usar o frame std durante wlk');
+  assert.equal(head?.frame.region.includes(':h_std_hd_'), true);
+  assert.equal(faceBack, undefined, 'face não deve ser inventada em direção traseira');
 });
 
 test('reconciliação remove entidades que saíram e preserva as que continuam na sala', () => {
