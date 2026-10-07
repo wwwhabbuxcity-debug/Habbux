@@ -104,6 +104,20 @@ const ui = {
 ui.endpoint.textContent = __HABBUX_WS_URL__;
 if (new URLSearchParams(window.location.search).get('dev') === '1') ui.roomModelSelector.hidden = false;
 const connection = new CoreConnection(__HABBUX_WS_URL__);
+const ssoId = new URLSearchParams(window.location.search).get('sso');
+const ssoChannel = ssoId && /^[a-f0-9]{32}$/.test(ssoId) ? new BroadcastChannel(`habbux-sso-${ssoId}`) : null;
+let ssoUsed = false;
+if (ssoChannel) {
+  const channel = ssoChannel;
+  channel.onmessage = (event: MessageEvent<{ type?: string; username?: string; password?: string }>) => {
+    if (ssoUsed || event.data?.type !== 'credentials' || !event.data.username || !event.data.password) return;
+    ssoUsed = true;
+    let credentialText = event.data.password;
+    void connection.login(event.data.username, credentialText)
+      .then((result) => channel.postMessage({ type: 'auth-result', ok: result.ok }))
+      .finally(() => { credentialText = ''; channel.close(); });
+  };
+}
 const roomRenderer = new RoomRenderer(ui.roomViewport, ui.roomRendererStatus, (x, y) => {
   try { connection.moveRoom(x, y); }
   catch (error) { ui.roomError.textContent = error instanceof Error ? error.message : 'Falha ao pedir movimento.'; }
@@ -275,6 +289,7 @@ try {
   void mountRoomRenderer();
   void mountAvatarDirectionLab();
   connection.connect();
+  ssoChannel?.postMessage({ type: 'ready' });
 } catch {
   status.textContent = 'A prévia gráfica não está disponível neste dispositivo. Você pode continuar pelo site.';
   viewport.hidden = true;
