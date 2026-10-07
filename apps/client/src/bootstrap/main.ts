@@ -107,6 +107,7 @@ const connection = new CoreConnection(__HABBUX_WS_URL__);
 const ssoId = new URLSearchParams(window.location.search).get('sso');
 const ssoChannel = ssoId && /^[a-f0-9]{32}$/.test(ssoId) ? new BroadcastChannel(`habbux-sso-${ssoId}`) : null;
 let ssoUsed = false;
+let ssoReadySent = false;
 if (ssoChannel) {
   const channel = ssoChannel;
   channel.onmessage = (event: MessageEvent<{ type?: string; username?: string; password?: string }>) => {
@@ -124,6 +125,10 @@ const roomRenderer = new RoomRenderer(ui.roomViewport, ui.roomRendererStatus, (x
 });
 
 function renderConnection(snapshot: CoreConnectionSnapshot): void {
+  if (ssoChannel && !ssoReadySent && snapshot.state === 'READY' && snapshot.authState === 'ANONYMOUS') {
+    ssoReadySent = true;
+    ssoChannel.postMessage({ type: 'ready' });
+  }
   ui.connectionState.textContent = snapshot.state;
   ui.sessionId.textContent = snapshot.sessionId ? formatSessionId(snapshot.sessionId) : '—';
   ui.rtt.textContent = snapshot.rttMs === null ? 'Aguardando primeiro PING…' : `${snapshot.rttMs} ms`;
@@ -289,7 +294,6 @@ try {
   void mountRoomRenderer();
   void mountAvatarDirectionLab();
   connection.connect();
-  ssoChannel?.postMessage({ type: 'ready' });
 } catch {
   status.textContent = 'A prévia gráfica não está disponível neste dispositivo. Você pode continuar pelo site.';
   viewport.hidden = true;
