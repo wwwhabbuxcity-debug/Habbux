@@ -1,6 +1,6 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { RoomOccupant } from '../room/room-state';
-import { AvatarAnimationController } from './avatar-animation';
+import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from './avatar-animation';
 import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './avatar-manifest';
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { isoDepth, roomToScreen, type IsoConfig } from './isometric';
@@ -9,8 +9,8 @@ import { interpolateAvatarElevation, interpolateAvatarPosition } from './rendere
 
 // RoomConfig.defaults() emits one authoritative position every 100 ms.
 // The visual step must finish before the next authoritative tile arrives.
-const WALK_DURATION_MS = 100;
-const WALK_FRAME_DURATION_MS = WALK_DURATION_MS / 4;
+const ROOM_MOVEMENT_TICK_MS = 100;
+const WALK_DURATION_MS = ROOM_MOVEMENT_TICK_MS;
 const BUBBLE_DURATION_MS = 4_500;
 
 export interface AvatarViewOptions {

@@ -51,12 +51,13 @@ class RoomMovementTest {
 
             int x = 0;
             int y = 0;
-            for (int step = 0; step < 8; step++) {
+            for (int step = 0; step < 4; step++) {
                 manager.tickMovingRooms();
                 String[] coordinates = awaitPosition(output).split(",");
                 int nextX = Integer.parseInt(coordinates[0]);
                 int nextY = Integer.parseInt(coordinates[1]);
-                assertEquals(1, Math.abs(nextX - x) + Math.abs(nextY - y), "movement stays cardinal");
+                assertEquals(1, Math.max(Math.abs(nextX - x), Math.abs(nextY - y)),
+                        "movement stays adjacent");
                 x = nextX;
                 y = nextY;
             }
@@ -90,7 +91,7 @@ class RoomMovementTest {
 
     @Test
     @Timeout(8)
-    void fourDirectionSearchRoutesAroundWallsAndEmitsOneAuthoritativeTilePerTick() throws Exception {
+    void eightDirectionSearchUsesSafeDiagonalsAndEmitsOneAuthoritativeTilePerTick() throws Exception {
         byte[] cells = {1, 0, 1, 1, 1, 1};
         RoomMetadata room = metadata(91, 2, 3, 2, cells);
         RoomManager manager = manager(id -> java.util.Optional.of(room), room.capacity(), 128, 100);
@@ -100,9 +101,8 @@ class RoomMovementTest {
             join(manager, room, sessionId, 1, output);
             assertEquals(RoomRuntime.MoveOutcome.MOVING,
                     manager.move(room.id(), sessionId, 2, 0, output::add).get(1, TimeUnit.SECONDS));
-            List<String> positions = List.of(awaitPosition(output), awaitPosition(output),
-                    awaitPosition(output), awaitPosition(output));
-            assertEquals(List.of("0,1", "1,1", "2,1", "2,0"), positions);
+            List<String> positions = List.of(awaitPosition(output), awaitPosition(output));
+            assertEquals(List.of("1,1", "2,0"), positions);
             assertEquals(0, manager.activeRoom(room.id()).orElseThrow().movingCount());
         } finally {
             assertTrue(manager.close(Duration.ofSeconds(3)));

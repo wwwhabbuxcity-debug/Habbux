@@ -17,8 +17,10 @@ public final class RoomRuntime {
     public enum MoveOutcome { MOVING, ARRIVED, NOT_IN_ROOM, INVALID_DESTINATION, UNREACHABLE, PATH_LIMIT, UNAVAILABLE }
     public enum ChatOutcome { SENT, NOT_IN_ROOM, INVALID_MESSAGE, RATE_LIMITED, UNAVAILABLE }
 
-    private static final int[] DX = {0, -1, 1, 0};
-    private static final int[] DY = {-1, 0, 0, 1};
+    // Polaris considers the four cardinal and four diagonal adjacent tiles.
+    // The order matches the client's eight direction sectors.
+    private static final int[] DX = {1, 1, 1, 0, -1, -1, -1, 0};
+    private static final int[] DY = {-1, 0, 1, 1, 1, 0, -1, -1};
     private static final int MAX_MOVERS_PER_TICK = 16;
     private final RoomMetadata metadata;
     private final RoomMailbox mailbox;

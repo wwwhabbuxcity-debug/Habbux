@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { resolveAvatarDirection, resolveMirroring } from '../src/renderer/avatar-direction.ts';
-import { AvatarAnimationController } from '../src/renderer/avatar-animation.ts';
+import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from '../src/renderer/avatar-animation.ts';
 import { resolveAvatarFrameSelection } from '../src/renderer/avatar-assets.ts';
 import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
 import { interpolateAvatarElevation, interpolateAvatarPosition, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
@@ -40,12 +40,22 @@ test('animação de caminhada usa clock compartilhado e não cria timer por avat
 });
 
 test('animação percorre os quatro frames durante um passo autoritativo', () => {
-  const animation = new AvatarAnimationController(25);
+  const animation = new AvatarAnimationController(WALK_FRAME_DURATION_MS);
   animation.setMoving(true);
-  assert.equal(animation.update(24, 4).frame, 0);
+  assert.equal(animation.update(WALK_FRAME_DURATION_MS - 1, 4).frame, 0);
   assert.equal(animation.update(1, 4).frame, 1);
-  assert.equal(animation.update(50, 4).frame, 3);
-  assert.equal(animation.update(25, 4).frame, 0);
+  assert.equal(animation.update(WALK_FRAME_DURATION_MS * 2, 4).frame, 3);
+  assert.equal(animation.update(WALK_FRAME_DURATION_MS, 4).frame, 0);
+});
+
+test('ciclo WALK continua após uma atualização de posição sem reiniciar no frame 0', () => {
+  const animation = new AvatarAnimationController(WALK_FRAME_DURATION_MS);
+  animation.setMoving(true);
+  animation.update(WALK_FRAME_DURATION_MS * 2, 4);
+  assert.equal(animation.snapshot().frame, 2);
+  animation.setMoving(false);
+  animation.setMoving(true);
+  assert.equal(animation.snapshot().frame, 2);
 });
 
 test('manifest normalizado valida sheets, regiões, layers, direções e frames sem /tmp em runtime', async () => {
