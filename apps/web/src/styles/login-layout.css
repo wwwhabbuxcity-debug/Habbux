@@ -38,7 +38,7 @@ html[data-theme="arcade-district"] .login-card,html[data-theme="carnival-night"]
 }
 
 @media (max-width:720px) {
-  .login-page { display:grid; grid-template-rows:minmax(118px,24dvh) minmax(0,1fr); }
+  .login-page { display:grid; grid-template-rows:minmax(118px,24dvh) minmax(0,1fr); padding-top:0; }
   .theme-art { height:100%; object-position:center top; }
   .scene-shade { background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(18,9,31,.7) 100%); height:100%; }
   .hero { grid-row:1; height:auto; min-height:0; position:relative; width:auto; }
