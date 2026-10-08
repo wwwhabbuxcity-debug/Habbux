@@ -90,3 +90,6 @@ body > .shell > footer { padding: 24px 0; border-top: 1px solid var(--hbx-color-
   .room-controls input { flex: 1; width: auto; }
   .room-grid { gap: 2px; padding: 5px; }
 }
+
+.world-lab-viewport { width: 100%; height: 560px; position: relative; overflow: hidden; }
+@media (max-width: 600px) { .world-lab-viewport { height: 450px; } }

@@ -54,7 +54,7 @@ test('direção usa oito setores estáveis e as três direções espelhadas do m
   assert.deepEqual([
     resolveAvatarDirection(1, -1), resolveAvatarDirection(1, 0), resolveAvatarDirection(1, 1), resolveAvatarDirection(0, 1),
     resolveAvatarDirection(-1, 1), resolveAvatarDirection(-1, 0), resolveAvatarDirection(-1, -1), resolveAvatarDirection(0, -1),
-  ], [0, 1, 2, 3, 4, 5, 6, 7]);
+  ], [1, 2, 3, 4, 5, 6, 7, 0]);
   assert.deepEqual([resolveMirroring(4), resolveMirroring(5), resolveMirroring(6), resolveMirroring(0)], [
     { renderDirection: 2, mirrored: true }, { renderDirection: 1, mirrored: true },
     { renderDirection: 0, mirrored: true }, { renderDirection: 0, mirrored: false },
@@ -66,7 +66,7 @@ test('animação de caminhada usa clock compartilhado e não cria timer por avat
   animation.setMoving(true);
   assert.equal(animation.update(99, 4).frame, 0);
   assert.equal(animation.update(1, 4).frame, 1);
-  assert.equal(animation.update(300, 4).frame, 3);
+  assert.equal(animation.update(300, 4).frame, 0);
   animation.setMoving(false);
   assert.deepEqual(animation.snapshot(), { action: 'std', frame: 0, elapsedMs: 0 });
 });

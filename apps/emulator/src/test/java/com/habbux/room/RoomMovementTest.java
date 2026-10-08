@@ -9,6 +9,7 @@ import com.habbux.user.UserIdentity;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -201,8 +202,8 @@ class RoomMovementTest {
             join(manager, room, sessionId, 1, output);
             assertEquals(RoomRuntime.MoveOutcome.MOVING,
                     manager.move(room.id(), sessionId, 2, 0, output::add).get(1, TimeUnit.SECONDS));
-            List<String> positions = List.of(awaitPosition(output), awaitPosition(output));
-            assertEquals(List.of("1,1", "2,0"), positions);
+            List<String> positions = List.of(awaitPosition(output), awaitPosition(output), awaitPosition(output), awaitPosition(output));
+            assertEquals(List.of("0,1", "1,1", "2,1", "2,0"), positions);
             assertEquals(0, manager.activeRoom(room.id()).orElseThrow().movingCount());
         } finally {
             assertTrue(manager.close(Duration.ofSeconds(3)));
@@ -301,6 +302,54 @@ class RoomMovementTest {
             assertEquals(RoomOutbound.ActionFailure.PATH_LIMIT, awaitActionFailure(output).reason());
         } finally {
             assertTrue(manager.close(Duration.ofSeconds(3)));
+        }
+    }
+
+
+    @Test
+    @Timeout(8)
+    void horizontalScreenPathUsesOppositeGridDeltasAndCarriedDeadlines() throws Exception {
+        RoomGridDefinition grid = new RoomGridDefinition(6, 6, filled(36), 0, 5);
+        Instant now = Instant.now();
+        RoomMetadata room = new RoomMetadata(new RoomId(87), 1, "Horizontal", "", 2, grid, now, now);
+        RoomManager manager = manager(id -> java.util.Optional.of(room), 2, 128, 100);
+        BlockingQueue<RoomOutbound> output = new LinkedBlockingQueue<>();
+        UUID session = UUID.randomUUID();
+        try {
+            join(manager, room, session, 1, output);
+            long start = System.nanoTime();
+            assertEquals(RoomRuntime.MoveOutcome.MOVING,
+                    manager.move(room.id(), session, 5, 0, output::add).get(1, TimeUnit.SECONDS));
+            for (int i = 1; i <= 5; i++) assertEquals(i + "," + (5-i), awaitPosition(output));
+            long elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-start);
+            assertTrue(elapsed >= 3535 && elapsed < 3900, "tick must not round every diagonal to 800 ms: " + elapsed);
+        } finally { assertTrue(manager.close(Duration.ofSeconds(3))); }
+    }
+
+    @Test
+    @Timeout(12)
+    void broadcastsRemotePositionsToTwoFiveAndTenPlayersAndCleansAllQueuesOnLeave() throws Exception {
+        for (int count : new int[]{2, 5, 10}) {
+            RoomMetadata room = metadata(80 + count, count, 12, 1, filled(12));
+            RoomManager manager = manager(id -> java.util.Optional.of(room), count, 128, 100);
+            List<UUID> sessions = new ArrayList<>();
+            List<BlockingQueue<RoomOutbound>> outputs = new ArrayList<>();
+            try {
+                for (int i = 0; i < count; i++) {
+                    UUID session = UUID.randomUUID();
+                    BlockingQueue<RoomOutbound> output = new LinkedBlockingQueue<>();
+                    sessions.add(session); outputs.add(output);
+                    join(manager, room, session, i + 1, output);
+                }
+                assertEquals(RoomRuntime.MoveOutcome.MOVING,
+                        manager.move(room.id(), sessions.get(count-1), count, 0, outputs.get(count-1)::add)
+                                .get(1, TimeUnit.SECONDS));
+                for (BlockingQueue<RoomOutbound> output : outputs) assertEquals(count + ",0", awaitPosition(output));
+                for (int i = 0; i < count; i++) manager.leave(room.id(), sessions.get(i), outputs.get(i)::add, false)
+                        .get(1, TimeUnit.SECONDS);
+                assertEquals(0, manager.activeRoom(room.id()).orElseThrow().presenceCount());
+                assertEquals(0, manager.activeRoom(room.id()).orElseThrow().movingCount());
+            } finally { assertTrue(manager.close(Duration.ofSeconds(3))); }
         }
     }
 

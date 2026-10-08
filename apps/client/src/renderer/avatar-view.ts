@@ -4,29 +4,17 @@ import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from './avatar-anim
 import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './avatar-manifest';
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { avatarAnchor, isoDepth, roomToScreen, type IsoConfig } from './isometric';
-import { resolveAvatarDirection } from './avatar-direction';
-import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep } from './renderer-model';
+import { AvatarMovementController } from './avatar-movement';
 import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
 
 // The Room Engine still processes every 100 ms. Segment duration follows the
 // world-grid distance: 500 ms cardinal and 707 ms diagonal.
-const DEFAULT_MOVEMENT_STEP_MS = 500;
 const BUBBLE_DURATION_MS = 4_500;
 
 export interface AvatarViewOptions {
   readonly provider: AvatarAssetProvider;
   readonly isoConfig: IsoConfig;
 }
-
-interface AvatarSegment {
-  readonly x: number;
-  readonly y: number;
-  readonly z: number;
-  readonly durationMs: number;
-  readonly direction: number;
-}
-
-const MAX_QUEUED_SEGMENTS = 256;
 
 export class AvatarView {
   readonly container = new Container();
@@ -36,28 +24,15 @@ export class AvatarView {
   private readonly animation = new AvatarAnimationController(WALK_FRAME_DURATION_MS);
   private readonly sprites = new Map<AvatarPart, Sprite>();
   private readonly composition = new Container();
+  private readonly shadow = new Graphics().ellipse(0, 0, 10, 3).fill({ color: 0x18252a, alpha: 0.20 });
   private readonly bubble = new Container();
   private readonly bubbleBackground = new Graphics();
   private readonly bubbleText = new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: 'Arial' } });
   private isoConfig: IsoConfig;
-  private logicalX = 0;
-  private logicalY = 0;
-  private logicalZ = 0;
-  private renderX = 0;
-  private renderY = 0;
-  private renderZ = 0;
-  private targetX = 0;
-  private targetY = 0;
-  private targetZ = 0;
-  private moveStartX = 0;
-  private moveStartY = 0;
-  private moveStartZ = 0;
-  private moveElapsedMs = 0;
-  private moveDurationMs = DEFAULT_MOVEMENT_STEP_MS;
-  private readonly pendingSegments: AvatarSegment[] = [];
+  private readonly movement = new AvatarMovementController();
+  private readonly footOffsets = new Map<number, number>();
   private footOffset = 7;
-  private moving = false;
-  private direction = 0;
+  private currentDirection = 0;
   private currentAction: AvatarAction = 'std';
   private currentFrame = 0;
   private ready = false;
@@ -74,6 +49,8 @@ export class AvatarView {
     this.composition.label = 'avatar-composition';
     this.composition.sortableChildren = true;
     this.container.addChild(this.composition);
+    this.shadow.zIndex = -100;
+    this.container.addChild(this.shadow);
     this.bubble.visible = false;
     this.bubble.zIndex = 10_000;
     this.bubble.addChild(this.bubbleBackground, this.bubbleText);
@@ -88,87 +65,31 @@ export class AvatarView {
   }
 
   setPosition(x: number, y: number, z = 0, snap = false): void {
-    if (x === this.logicalX && y === this.logicalY && z === this.logicalZ && !snap) return;
-    const deltaX = x - this.logicalX;
-    const deltaY = y - this.logicalY;
-    const nextDirection = snap ? this.direction : resolveAvatarDirection(deltaX, deltaY, this.direction);
-    this.logicalX = x;
-    this.logicalY = y;
-    this.logicalZ = z;
-
-    if (snap || !isAdjacentAvatarStep(deltaX, deltaY)) {
-      this.pendingSegments.length = 0;
-      this.renderX = x;
-      this.renderY = y;
-      this.renderZ = z;
-      this.moveStartX = x;
-      this.moveStartY = y;
-      this.moveStartZ = z;
-      this.targetX = x;
-      this.targetY = y;
-      this.targetZ = z;
-      this.moveElapsedMs = this.moveDurationMs;
-      this.moving = false;
-    } else {
-      const segment: AvatarSegment = {
-        x,
-        y,
-        z,
-        durationMs: avatarMovementDurationMs(deltaX, deltaY),
-        direction: nextDirection,
-      };
-      if (this.moving) {
-        if (this.pendingSegments.length < MAX_QUEUED_SEGMENTS) this.pendingSegments.push(segment);
-      } else {
-        this.startSegment(segment);
-      }
-    }
+    this.movement.setPosition(x, y, z, snap);
     this.positionContainer();
   }
 
   update(deltaMs: number): void {
-    if (this.disposed) return;
-    if (this.moving) {
-      this.moveElapsedMs = Math.min(this.moveDurationMs, this.moveElapsedMs + Math.max(0, deltaMs));
-      const progress = this.moveElapsedMs / this.moveDurationMs;
-      const interpolated = interpolateAvatarPosition(this.moveStartX, this.moveStartY, this.targetX, this.targetY, progress);
-      this.renderX = interpolated.x;
-      this.renderY = interpolated.y;
-      this.renderZ = interpolateAvatarElevation(this.moveStartZ, this.targetZ, progress);
-      if (progress >= 1) {
-        this.renderX = this.targetX;
-        this.renderY = this.targetY;
-        this.renderZ = this.targetZ;
-        const next = this.pendingSegments.shift();
-        if (next) this.startSegment(next);
-        else this.moving = false;
-      }
+    if (this.disposed || !Number.isFinite(deltaMs)) return;
+    const walkingMs = this.movement.update(deltaMs);
+    if (walkingMs > 0) {
+      this.animation.setMoving(true);
+      this.animation.update(walkingMs, 4);
       this.positionContainer();
     }
-    this.animation.setMoving(this.moving);
-    const animation = this.animation.update(deltaMs, 4);
-    if (animation.action !== this.currentAction || animation.frame !== this.currentFrame) {
+    this.animation.setMoving(this.movement.moving);
+    const animation = this.animation.snapshot();
+    if (animation.action !== this.currentAction || animation.frame !== this.currentFrame
+        || this.currentDirection !== this.movement.direction) {
       this.currentAction = animation.action;
       this.currentFrame = animation.frame;
+      this.currentDirection = this.movement.direction;
       this.refreshSprites();
     }
     if (this.bubbleRemainingMs > 0) {
       this.bubbleRemainingMs = Math.max(0, this.bubbleRemainingMs - Math.max(0, deltaMs));
       this.bubble.visible = this.bubbleRemainingMs > 0;
     }
-  }
-
-  private startSegment(segment: AvatarSegment): void {
-    this.moveStartX = this.renderX;
-    this.moveStartY = this.renderY;
-    this.moveStartZ = this.renderZ;
-    this.targetX = segment.x;
-    this.targetY = segment.y;
-    this.targetZ = segment.z;
-    this.moveDurationMs = segment.durationMs;
-    this.moveElapsedMs = 0;
-    this.direction = segment.direction;
-    this.moving = true;
   }
 
   setBubble(message: string): void {
@@ -189,6 +110,13 @@ export class AvatarView {
     this.container.destroy({ children: true });
   }
 
+  diagnostics(): object {
+    return { userId: this.userId, x: this.movement.x, y: this.movement.y, z: this.movement.z,
+      direction: this.movement.direction, moving: this.movement.moving, queued: this.movement.queuedSegments,
+      action: this.currentAction, frame: this.currentFrame, ready: this.ready,
+      screenX: this.container.x, screenY: this.container.y, depth: this.container.zIndex };
+  }
+
   private async prepare(): Promise<void> {
     try {
       await this.provider.preload(this.gender);
@@ -204,8 +132,9 @@ export class AvatarView {
   private refreshSprites(): void {
     if (!this.ready || this.disposed) return;
     this.footOffset = this.measureFootOffset();
+    this.shadow.y = this.footOffset;
     for (const part of this.provider.manifest.layerOrder) {
-      const resolved = this.provider.getFrame(this.gender, part, this.currentAction, this.direction, this.currentFrame);
+      const resolved = this.provider.getFrame(this.gender, part, this.currentAction, this.movement.direction, this.currentFrame);
       let sprite = this.sprites.get(part);
       if (!resolved) {
         if (sprite) sprite.visible = false;
@@ -225,17 +154,12 @@ export class AvatarView {
       sprite.scale.x = 1;
       sprite.visible = true;
     }
-    const placements = new Map<AvatarPart, AvatarPartPlacement>();
-    for (const part of this.provider.manifest.layerOrder) {
-      const resolved = this.provider.getFrame(this.gender, part, this.currentAction, this.direction, this.currentFrame);
-      if (resolved) placements.set(part, resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height));
-    }
     const registration = new Map<AvatarPart, AvatarPartPlacement>();
     for (const part of ['lg', 'sh'] as const) {
-      const resolved = this.provider.getFrame(this.gender, part, 'std', this.direction, 0);
+      const resolved = this.provider.getFrame(this.gender, part, 'std', this.movement.direction, 0);
       if (resolved) registration.set(part, resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height));
     }
-    const mirrored = this.provider.getFrame(this.gender, 'bd', this.currentAction, this.direction, this.currentFrame)?.mirrored ?? false;
+    const mirrored = this.provider.getFrame(this.gender, 'bd', this.currentAction, this.movement.direction, this.currentFrame)?.mirrored ?? false;
     const footAnchorX = resolveAvatarFootAnchorX(registration);
     this.composition.position.x = resolveAvatarCompositionOffsetX(footAnchorX, mirrored);
     this.composition.scale.x = mirrored ? -1 : 1;
@@ -244,27 +168,30 @@ export class AvatarView {
   }
 
   private measureFootOffset(): number {
+    const cached = this.footOffsets.get(this.movement.direction);
+    if (cached !== undefined) return cached;
     let bottom = 0;
     for (const action of ['std', 'wlk'] as const) {
       const actionDefinition = this.provider.manifest.parts.bd.actions[action];
       const frameCount = actionDefinition?.frameCount ?? 1;
       for (let frame = 0; frame < frameCount; frame++) {
         for (const part of this.provider.manifest.layerOrder) {
-          const resolved = this.provider.getFrame(this.gender, part, action, this.direction, frame);
+          const resolved = this.provider.getFrame(this.gender, part, action, this.movement.direction, frame);
           if (resolved) bottom = Math.max(bottom, resolved.texture.height - resolved.frame.offset.y);
         }
       }
     }
+    this.footOffsets.set(this.movement.direction, bottom);
     return bottom;
   }
 
   private positionContainer(): void {
-    const point = avatarAnchor(roomToScreen(this.renderX, this.renderY, this.renderZ, this.isoConfig), this.isoConfig, this.footOffset);
+    const point = avatarAnchor(roomToScreen(this.movement.x, this.movement.y, this.movement.z, this.isoConfig), this.isoConfig, this.footOffset);
     // Snap the composed avatar once. Snapping each body part independently
     // makes pieces land on different pixels while the avatar is interpolating.
     this.container.position.set(Math.round(point.x), Math.round(point.y));
     this.container.scale.set(this.isoConfig.scale);
-    this.container.zIndex = isoDepth(this.renderY, this.renderX, this.renderZ);
+    this.container.zIndex = isoDepth(this.movement.y, this.movement.x, this.movement.z);
   }
 }
 

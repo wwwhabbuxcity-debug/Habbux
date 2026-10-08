@@ -26,9 +26,9 @@ export function roomToScreen(x: number, y: number, elevation = 0, config: IsoCon
   };
 }
 
-export function screenToRoom(screenX: number, screenY: number, config: IsoConfig = DEFAULT_ISO_CONFIG): IsoPoint {
+export function screenToRoom(screenX: number, screenY: number, config: IsoConfig = DEFAULT_ISO_CONFIG, elevation = 0): IsoPoint {
   const x = (screenX - config.origin.x) / config.scale;
-  const y = (screenY - config.origin.y) / config.scale;
+  const y = (screenY - config.origin.y) / config.scale + elevation * config.elevationHeight;
   return {
     x: (x / (config.tileWidth / 2) + y / (config.tileHeight / 2)) / 2,
     y: (y / (config.tileHeight / 2) - x / (config.tileWidth / 2)) / 2,

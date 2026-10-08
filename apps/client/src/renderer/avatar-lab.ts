@@ -90,5 +90,7 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
   }
   app.render();
   status.textContent = 'Matriz visual pronta: 8 direções, 4 frames WALK, STAND, bbox e linha dos pés.';
-  return () => { provider.dispose(); app.destroy(true, { children: true }); host.replaceChildren(); };
+  const { mountWorldLab } = await import('./world-lab');
+  const disposeWorld = await mountWorldLab(host);
+  return () => { disposeWorld(); provider.dispose(); app.destroy(true, { children: true }); host.replaceChildren(); };
 }

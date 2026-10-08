@@ -1,13 +1,15 @@
 export function resolveAvatarDirection(dx: number, dy: number, previous = 0): number {
   if (!Number.isFinite(dx) || !Number.isFinite(dy) || (dx === 0 && dy === 0)) return normalizeDirection(previous);
-  if (dx > 0 && dy < 0) return 0;
-  if (dx > 0 && dy === 0) return 1;
-  if (dx > 0 && dy > 0) return 2;
-  if (dx === 0 && dy > 0) return 3;
-  if (dx < 0 && dy > 0) return 4;
-  if (dx < 0 && dy === 0) return 5;
-  if (dx < 0 && dy < 0) return 6;
-  return 7;
+  // Atlas sectors are SCREEN NE/E/SE/S/SW/W/NW/N. The grid axes
+  // project diagonally: (+x,-y) is screen E, not screen NE.
+  if (dx > 0 && dy < 0) return 1;
+  if (dx > 0 && dy === 0) return 2;
+  if (dx > 0 && dy > 0) return 3;
+  if (dx === 0 && dy > 0) return 4;
+  if (dx < 0 && dy > 0) return 5;
+  if (dx < 0 && dy === 0) return 6;
+  if (dx < 0 && dy < 0) return 7;
+  return 0;
 }
 
 export function normalizeDirection(direction: number): number {

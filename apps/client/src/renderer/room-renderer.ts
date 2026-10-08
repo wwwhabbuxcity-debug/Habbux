@@ -4,7 +4,8 @@ import { Application, Container, Graphics, Rectangle } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { AvatarView } from './avatar-view';
-import { floorSidePolygon, roomToScreen, tilePolygon, type IsoConfig, type IsoFloorSide } from './isometric';
+import { DEFAULT_ISO_CONFIG, isoDepth, roomToScreen, tilePolygon, type IsoConfig } from './isometric';
+import { buildRoomSurfaces, DEFAULT_ROOM_STYLE, fitRoomConfig, shadeColor, type RoomSurfaceStyle } from './room-surfaces';
 import { reconcileEntityIds } from './renderer-model';
 import { resolveRoomTileAtScreen, type RoomTileHit } from './tile-interaction';
 
@@ -24,17 +25,24 @@ export type RoomTileSelect = (x: number, y: number) => void;
 export class RoomRenderer {
   private readonly floorLayer = new Graphics();
   private readonly floorHighlight = new Graphics();
-  private readonly entityLayer = new Graphics();
+  private readonly entityLayer = new Container();
+  private readonly surfaceObjects: Graphics[] = [];
+  private viewportWidth = 0;
+  private viewportHeight = 0;
   private readonly debugLayer = new Graphics();
   private readonly worldRoot = new Container();
   private readonly avatars = new Map<string, AvatarView>();
   private readonly onCanvasPointer = (event: PointerEvent): void => this.handlePointer(event);
   private readonly onCanvasPointerMove = (event: PointerEvent): void => this.handlePointerMove(event);
-  private readonly onCanvasPointerLeave = (): void => this.clearTileHighlight();
+  private readonly onCanvasPointerLeave = (event: PointerEvent): void => {
+    // Touch emits pointerleave immediately after pointerup; keep its approved
+    // 450 ms feedback until the timer, while mouse leave clears immediately.
+    if (event.pointerType !== 'touch') this.clearTileHighlight();
+  };
   private app: Application | null = null;
   private provider: AvatarAssetProvider | null = null;
   private resizeObserver: ResizeObserver | null = null;
-  private config: IsoConfig = { tileWidth: 64, tileHeight: 32, elevationHeight: 16, scale: 1, origin: { x: 0, y: 0 } };
+  private config: IsoConfig = DEFAULT_ISO_CONFIG;
   private currentRoom: RoomState | null = null;
   private pendingRoom: RoomState | null = null;
   private pendingChat: readonly RoomChatVisualMessage[] = [];
@@ -53,6 +61,7 @@ export class RoomRenderer {
     host: HTMLElement,
     status: HTMLElement,
     onTileSelect: RoomTileSelect,
+    private readonly style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE,
   ) {
     this.host = host;
     this.status = status;
@@ -92,7 +101,8 @@ export class RoomRenderer {
     this.entityLayer.label = 'entity-layer';
     this.entityLayer.sortableChildren = true;
     this.debugLayer.label = 'debug-layer';
-    this.worldRoot.addChild(this.floorLayer, this.floorHighlight, this.entityLayer, this.debugLayer);
+    this.worldRoot.addChild(this.floorLayer, this.entityLayer, this.debugLayer);
+    this.entityLayer.addChild(this.floorHighlight);
     app.stage.addChild(this.worldRoot);
     app.canvas.className = 'room-renderer-canvas';
     app.canvas.setAttribute('role', 'img');
@@ -138,26 +148,39 @@ export class RoomRenderer {
     this.avatars.clear();
     this.provider?.dispose();
     this.provider = null;
+    this.clearSurfaces();
     this.app?.destroy(true, { children: true });
     this.app = null;
     this.host.classList.remove('room-viewport-ready');
+  }
+
+  setDiagnosticsClock(paused: boolean): void { if (paused) this.app?.stop(); else this.app?.start(); }
+
+  stepDiagnostics(deltaMs: number): void { this.update(deltaMs); this.app?.render(); }
+
+  diagnostics(): object {
+    return { config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceObjects.length, hover: this.hoveredTile,
+      renderOrder: this.entityLayer.children.map(child => ({ label: child.label, depth: child.zIndex })),
+      avatars: [...this.avatars.values()].map(avatar => avatar.diagnostics()) };
   }
 
   private applyRoom(room: RoomState | null): void {
     this.currentRoom = room;
     if (!room || !this.provider) {
       this.floorLayer.clear();
+      this.clearSurfaces();
+      this.floorSignature = '';
       this.clearTileHighlight();
       this.debugLayer.clear();
       for (const avatar of this.avatars.values()) avatar.dispose();
       this.avatars.clear();
       return;
     }
-    this.resize();
-    const signature = `${room.width}x${room.height}:${room.walkability.join('')}:${room.elevations.join(',')}`;
+    const signature = `${room.roomId}:${room.width}x${room.height}:${room.walkability.join('')}:${room.elevations.join(',')}`;
     if (signature !== this.floorSignature) {
       this.floorSignature = signature;
-      this.drawFloor(room);
+      this.clearTileHighlight();
+      this.resize(true);
     }
     this.syncAvatars(room);
     this.drawDebug(room);
@@ -187,91 +210,86 @@ export class RoomRenderer {
     this.entityLayer.sortChildren();
   }
 
+  private clearSurfaces(): void {
+    for (const surface of this.surfaceObjects) {
+      surface.removeFromParent();
+      surface.destroy();
+    }
+    this.surfaceObjects.length = 0;
+  }
+
   private drawFloor(room: RoomState): void {
     this.floorLayer.clear();
-    const cells = Array.from({ length: room.width * room.height }, (_, index) => ({
-      x: index % room.width,
-      y: Math.floor(index / room.width),
-    })).sort((left, right) => left.x + left.y - right.x - right.y);
-    for (const { x, y } of cells) {
-        const elevation = room.elevations[y * room.width + x] ?? 0;
-        const center = roomToScreen(x, y, elevation, this.config);
-        const top = tilePolygon(center, this.config);
-        const walkable = room.walkability[y * room.width + x] === true;
-        const topPolygon = top.flatMap((point) => [point.x, point.y]);
-        const topColor = !walkable
-          ? 0x172b35
-          : elevation === 0
-            ? ((x + y) % 2 === 0 ? 0x3d6974 : 0x416f7a)
-            : elevation < 3 ? 0x4c7480 : 0x668476;
-        for (const side of ['x', 'y'] as const) {
-          const neighbor = this.neighborElevation(room, x, y, side);
-          if (neighbor !== null && neighbor >= elevation) continue;
-          const depth = neighbor === null
-            ? 8 * this.config.scale
-            : Math.max(4 * this.config.scale, (elevation - neighbor) * this.config.elevationHeight * this.config.scale);
-          const sidePolygon = floorSidePolygon(top, side, depth).flatMap((point) => [point.x, point.y]);
-          this.floorLayer.poly(sidePolygon).fill({
-            color: side === 'x' ? 0x203d48 : 0x294954,
-            alpha: walkable ? 0.96 : 0.82,
-          });
-          this.floorLayer.poly(sidePolygon).stroke({ color: 0x162a34, width: 1, alpha: 0.7 });
-        }
-        this.floorLayer.poly(topPolygon).fill({ color: topColor, alpha: walkable ? 0.96 : 0.82 });
-        this.floorLayer.poly(topPolygon).stroke({ color: walkable ? 0x77a6a2 : 0x38515a, width: 1, alpha: 0.78 });
+    this.clearSurfaces();
+    const surfaces = buildRoomSurfaces(room, this.config, this.style);
+    const colorLine = shadeColor(this.style.floorColor, 0.60);
+    for (const floor of surfaces.floors) {
+      const g = floor.elevation > 0 ? new Graphics() : this.floorLayer;
+      if (g !== this.floorLayer) {
+        g.label = `floor:${floor.x},${floor.y}`;
+        g.zIndex = floor.depth;
+        this.entityLayer.addChild(g);
+        this.surfaceObjects.push(g);
+      }
+      for (const side of floor.sides) g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(side.color);
+      const top = floor.top.polygon;
+      g.poly(top.flatMap(p => [p.x, p.y])).fill(floor.top.color);
+      // Shared plank joints are quiet; exterior relief comes from the slab.
+      g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[1]!.x, top[1]!.y)
+        .stroke({ color: colorLine, width: Math.max(0.5, this.config.scale), alpha: 0.22 });
+      if (this.style.floorMaterial === 'stone' || floor.x % 2 === floor.y % 2) {
+        g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[3]!.x, top[3]!.y)
+          .stroke({ color: colorLine, width: Math.max(0.5, this.config.scale), alpha: 0.14 });
+      }
     }
+    for (const wall of surfaces.walls) {
+      const g = new Graphics();
+      g.label = `wall:${wall.side}:${wall.x},${wall.y}`;
+      g.zIndex = wall.depth;
+      for (const face of [wall.end, wall.front, wall.cap]) {
+        if (face) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(face.color);
+      }
+      const [a, b] = wall.base;
+      const trimHeight = this.style.floorThickness * this.config.elevationHeight * this.config.scale;
+      g.poly([a!.x, a!.y, b!.x, b!.y, b!.x, b!.y - trimHeight, a!.x, a!.y - trimHeight])
+        .fill(shadeColor(this.style.wallColor, 0.66));
+      g.moveTo(a!.x, a!.y - trimHeight).lineTo(b!.x, b!.y - trimHeight)
+        .stroke({ color: shadeColor(this.style.wallColor, 1.15), width: Math.max(0.5, this.config.scale), alpha: 0.65 });
+      if (this.style.wallMaterial === 'panel') {
+        const p = wall.front.polygon;
+        g.moveTo(p[0]!.x, p[0]!.y).lineTo(p[3]!.x, p[3]!.y)
+          .stroke({ color: shadeColor(this.style.wallColor, 0.7), width: this.config.scale, alpha: 0.25 });
+      }
+      this.entityLayer.addChild(g);
+      this.surfaceObjects.push(g);
+    }
+    this.entityLayer.sortChildren();
   }
 
-  private neighborElevation(room: RoomState, x: number, y: number, side: IsoFloorSide): number | null {
-    const nextX = side === 'x' ? x + 1 : x;
-    const nextY = side === 'y' ? y + 1 : y;
-    if (nextX < 0 || nextX >= room.width || nextY < 0 || nextY >= room.height) return null;
-    return room.elevations[nextY * room.width + nextX] ?? 0;
-  }
-
-  private drawDebug(room: RoomState): void {
+  private drawDebug(_room: RoomState): void {
     this.debugLayer.clear();
-    const first = roomToScreen(0, 0, 0, this.config);
-    const last = roomToScreen(room.width - 1, room.height - 1, 0, this.config);
-    this.debugLayer.moveTo(first.x, first.y).lineTo(last.x, last.y).stroke({ color: 0x69dcc1, width: 1, alpha: 0.22 });
+
   }
 
   private update(deltaMs: number): void {
     for (const avatar of this.avatars.values()) avatar.update(deltaMs);
   }
 
-  private resize(): void {
+  private resize(force = false): void {
     const app = this.app;
     if (!app) return;
     const width = Math.max(1, this.host.clientWidth);
     const height = Math.max(1, this.host.clientHeight);
+    if (!force && width === this.viewportWidth && height === this.viewportHeight) return;
+    this.viewportWidth = width;
+    this.viewportHeight = height;
     app.renderer.resize(width, height, Math.min(window.devicePixelRatio || 1, MAX_DPR));
     if (!this.currentRoom) return;
     const room = this.currentRoom;
-    const rawCorners = [
-      roomToScreen(0, 0, room.elevations[0] ?? 0),
-      roomToScreen(room.width - 1, 0, room.elevations[room.width - 1] ?? 0),
-      roomToScreen(0, room.height - 1, room.elevations[(room.height - 1) * room.width] ?? 0),
-      roomToScreen(room.width - 1, room.height - 1, room.elevations.at(-1) ?? 0),
-    ];
-    const minX = Math.min(...rawCorners.map((point) => point.x));
-    const maxX = Math.max(...rawCorners.map((point) => point.x));
-    const maxElevation = Math.max(0, ...room.elevations);
-    const minY = Math.min(...rawCorners.map((point) => point.y)) - 96 - maxElevation * 16;
-    const maxY = Math.max(...rawCorners.map((point) => point.y));
-    const scale = Math.max(0.55, Math.min(1.2, Math.min(width / Math.max(1, maxX - minX + 120), height / Math.max(1, maxY - minY + 80))));
-    const scaledWidth = (maxX - minX) * scale;
-    const scaledHeight = (maxY - minY) * scale;
-    const nextConfig: IsoConfig = {
-      tileWidth: 64,
-      tileHeight: 32,
-      elevationHeight: 16,
-      scale,
-      origin: { x: width / 2 - scaledWidth / 2 - minX * scale, y: height / 2 - scaledHeight / 2 - minY * scale },
-    };
+    const nextConfig = fitRoomConfig(room, width, height, this.style);
     const changed = !sameIsoConfig(this.config, nextConfig);
     this.config = nextConfig;
-    if (changed) {
+    if (changed || force) {
       this.drawFloor(room);
       this.drawDebug(room);
       for (const avatar of this.avatars.values()) avatar.setIsoConfig(this.config);
@@ -325,6 +343,8 @@ export class RoomRenderer {
     this.floorHighlight.poly(polygon)
       .fill({ color: hit.walkable ? 0xb9ecff : 0xff8d9b, alpha: hit.walkable ? 0.22 : 0.18 })
       .stroke({ color: hit.walkable ? 0xd9f7ff : 0xffb2bb, width: Math.max(1, this.config.scale), alpha: 0.82 });
+    this.floorHighlight.zIndex = isoDepth(hit.x, hit.y) - 0.125;
+    this.entityLayer.sortChildren();
     return hit;
   }
 
@@ -343,4 +363,8 @@ export class RoomRenderer {
 
 function sameIsoConfig(left: IsoConfig, right: IsoConfig): boolean {
   return left.scale === right.scale && left.origin.x === right.origin.x && left.origin.y === right.origin.y;
+}
+
+function countDisplayObjects(container: Container): number {
+  return 1 + container.children.reduce((sum, child) => sum + countDisplayObjects(child), 0);
 }

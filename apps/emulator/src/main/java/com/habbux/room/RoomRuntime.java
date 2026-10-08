@@ -264,8 +264,8 @@ public final class RoomRuntime {
                     continue;
                 }
                 int nextCell = presence.path[presence.pathIndex];
-                Presence blocker = occupantByCell[nextCell];
-                if (blocker != null && blocker != presence) {
+                if (!canStep(presence, presence.x, presence.y,
+                        nextCell % metadata.grid().width(), nextCell / metadata.grid().width())) {
                     stopMovement(presence);
                     presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.INVALID_DESTINATION));
                     continue;
@@ -284,7 +284,9 @@ public final class RoomRuntime {
                     presence.path = null;
                     presence.pathIndex = 0;
                 } else {
-                    presence.nextStepAtNanos = nowNanos + movementStepNanos(presence);
+                    // Carry the deadline, not the rounded tick arrival. Otherwise
+                    // every 707 ms diagonal becomes 800 ms and the drift grows.
+                    presence.nextStepAtNanos += movementStepNanos(presence);
                     movingPresences.addLast(presence);
                 }
             }
@@ -362,7 +364,7 @@ public final class RoomRuntime {
             for (int direction = 0; direction < DX.length; direction++) {
                 int nx = x + DX[direction];
                 int ny = y + DY[direction];
-                if (!grid.canTraverse(x, y, nx, ny)) continue;
+                if (!canStep(presence, x, y, nx, ny)) continue;
                 int next = ny * grid.width() + nx;
                 if (searchGenerationByCell[next] == generation) continue;
                 Presence blocker = occupantByCell[next];
@@ -378,6 +380,19 @@ public final class RoomRuntime {
     static long movementStepMillis(int deltaX, int deltaY) {
         return TimeUnit.NANOSECONDS.toMillis(deltaX != 0 && deltaY != 0
                 ? DIAGONAL_MOVEMENT_STEP_NANOS : CARDINAL_MOVEMENT_STEP_NANOS);
+    }
+
+    private boolean canStep(Presence presence, int x, int y, int nx, int ny) {
+        RoomGridDefinition grid = metadata.grid();
+        if (!grid.canTraverse(x, y, nx, ny)) return false;
+        Presence target = occupantByCell[ny * grid.width() + nx];
+        if (target != null && target != presence) return false;
+        if (x != nx && y != ny) {
+            Presence sideX = occupantByCell[y * grid.width() + nx];
+            Presence sideY = occupantByCell[ny * grid.width() + x];
+            if ((sideX != null && sideX != presence) || (sideY != null && sideY != presence)) return false;
+        }
+        return true;
     }
 
     private long movementStepNanos(Presence presence) {

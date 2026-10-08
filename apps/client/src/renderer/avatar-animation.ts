@@ -44,11 +44,10 @@ export class AvatarAnimationController {
 
   update(deltaMs: number, frameCount = this.action === 'wlk' ? 4 : 1): AvatarAnimationState {
     if (this.action === 'std' || !Number.isFinite(deltaMs) || deltaMs <= 0) return this.snapshot();
-    this.elapsedMs += Math.min(deltaMs, 250);
-    while (this.elapsedMs >= this.frameDurationMs) {
-      this.elapsedMs -= this.frameDurationMs;
-      this.frame = (this.frame + 1) % Math.max(1, frameCount);
-    }
+    const total = this.elapsedMs + deltaMs;
+    const advances = Math.floor(total / this.frameDurationMs);
+    this.elapsedMs = total % this.frameDurationMs;
+    this.frame = (this.frame + advances) % Math.max(1, frameCount);
     this.walkFrame = this.frame;
     this.walkElapsedMs = this.elapsedMs;
     return this.snapshot();

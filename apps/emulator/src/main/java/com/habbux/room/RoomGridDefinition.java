@@ -75,14 +75,18 @@ public final class RoomGridDefinition {
         return x >= 0 && x < width && y >= 0 && y < height && walkable[y * width + x] == 1;
     }
     public boolean canTraverse(int fromX, int fromY, int toX, int toY) {
+        int distanceX = Math.abs(toX - fromX), distanceY = Math.abs(toY - fromY);
+        if (distanceX > 1 || distanceY > 1 || distanceX + distanceY == 0) return false;
         if (!isWalkable(fromX, fromY) || !isWalkable(toX, toY)
                 || Math.abs(elevationAt(fromX, fromY) - elevationAt(toX, toY)) > 1) return false;
         int dx = Integer.compare(toX, fromX);
         int dy = Integer.compare(toY, fromY);
         if (dx != 0 && dy != 0) {
-            // Same diagonal rule used by Polaris: reject a corner only when
-            // both orthogonal escape tiles are blocked.
-            return isWalkable(fromX + dx, fromY) || isWalkable(fromX, fromY + dy);
+            // A straight diagonal must keep both adjacent corner tiles open.
+            // Wall geometry cannot be crossed through a blocked corner.
+            return isWalkable(fromX + dx, fromY) && isWalkable(fromX, fromY + dy)
+                    && Math.abs(elevationAt(fromX + dx, fromY) - elevationAt(fromX, fromY)) <= 1
+                    && Math.abs(elevationAt(fromX, fromY + dy) - elevationAt(fromX, fromY)) <= 1;
         }
         return Math.abs(toX - fromX) + Math.abs(toY - fromY) == 1;
     }

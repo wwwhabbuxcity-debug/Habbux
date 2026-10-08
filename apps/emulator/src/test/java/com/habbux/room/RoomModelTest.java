@@ -38,4 +38,21 @@ class RoomModelTest {
                 "test", 0, 0, 1);
         assertFalse(grid.canTraverse(0, 0, 1, 0));
     }
+    @Test
+    void diagonalsCannotCutBlockedCornersOrSkipTiles() {
+        RoomGridDefinition oneBlocked = new RoomGridDefinition(2, 2, new byte[]{1, 0, 1, 1}, 0, 0);
+        assertFalse(oneBlocked.canTraverse(0, 0, 1, 1));
+        RoomGridDefinition open = new RoomGridDefinition(3, 3, new byte[]{1,1,1,1,1,1,1,1,1}, 0, 0);
+        assertTrue(open.canTraverse(0, 0, 1, 1));
+        assertFalse(open.canTraverse(0, 0, 2, 2));
+        assertFalse(open.canTraverse(0, 0, 0, 0));
+    }
+
+    @Test
+    void diagonalCannotCutAHighCornerEvenWhenDestinationIsFlat() {
+        RoomGridDefinition grid = new RoomGridDefinition(2, 2, new byte[]{1,1,1,1},
+                new byte[]{0,2,0,0}, 0, 0, "test", 0, 0, 2);
+        assertFalse(grid.canTraverse(0, 0, 1, 1));
+    }
+
 }
