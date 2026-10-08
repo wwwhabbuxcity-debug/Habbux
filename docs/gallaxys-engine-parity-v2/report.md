@@ -98,7 +98,7 @@ vira textura. Mapas lógicos, walkability, clique/touch, DPR e zoom não mudaram
 - Nas 64 poses de avatar das oito direções, membros obrigatórios visíveis/alpha=1; olhos presentes somente nas direções frontais. Comparação de posição: zero amostras repetidas na caminhada horizontal em desktop/mobile.
 - Evidência: `tmp/gallaxys-engine-parity-v2/after/index.html`, JSONs de resultados/performance e `reference/paired-stand-directions.png`; cópia permanente no backup operacional `visual/after` e `visual/reference`.
 - Zero erros JS no conjunto isolado. Partes naturalmente ocultas pelo tronco/cabelo são distintas de ausência de região.
-- Smoke público e atualização de navegador com cache serão registrados no item de publicação após a troca da release.
+- Smoke público: **12 PNGs adicionais**, HTTPS 200, WebSocket real READY em desktop/mobile; WALK horizontal/frontal e STAND com dois avatares. Mãos, olhos frontais, SVG HTTP 200 e ausência de overflow/erros JS conferidos. Sessão autenticada de quarto continua NOT RUN.
 
 Referências públicas: 16 APNGs, oito direções × STAND/WALK, HTTP 200. WALK tem
 quatro frames de 83 ms no APNG; a animação STAND inclui ciclo de piscar. O
@@ -137,10 +137,25 @@ destruir as fontes compartilhadas. Piso e paredes só mudam em mapa/resize.
 
 ## Publicação e rollback
 
-Artefatos completos e conferidos em `apps/client/dist` e `apps/web/dist`.
-Publicação estática em Tyvo preparada para a revisão Git desta entrega: troca
-atômica de `.deploy/current`, preservação da release anterior, sem troca do JAR
-nem reinício. O resultado operacional será registrado após a publicação.
+Implementação: `ef532e5` (`fix(renderer): complete avatar parts and retain room geometry`), push `main` concluído. Release publicada:
+`/var/www/tyvo.online/.deploy/releases/20261008T055250Z`.
+
+Checkout Tyvo atualizado por fast-forward. Dist conferidos copiados via rsync
+com `--exclude gamedata`; script oficial trocou `.deploy/current` atomicamente.
+Nenhum fonte/segredo foi colocado na raiz pública. Manifesto local/publicado
+SHA-256 `9452cd557787c15a4cd327ee80a2c52eb6fdb1a9c239bdc85d4bcdea251d5ed2`.
+
+- `/`, `/game/`, `/client/`: HTTP 200; READY real via WSS nos dois viewports.
+- Fontes privadas: `/package.json`, `/AGENTS.md` 404; `/.git/config`, `/.env` 403.
+- Browser com cache V1: antes `hands=false/frontalEyes=false`; após reload ambos
+  `true`. PASS, sem limpeza manual de cache.
+- Publicação manteve o JAR e PID Habbux `2442770`, ativo desde 00:53:43 -03;
+  Polaris `1808934`, ativo desde 30/09. Sem restart/reload de serviços.
+- `habbux-tyvo`, Polaris, imager, voice, nginx e MariaDB ativos; Gallaxys HTTP
+  200 e seu gamedata presente. Checksum do JAR runtime anterior preservado.
+- Evidências públicas, logs, JSONs e script de rollback no backup operacional.
+- Esta atualização documental registra o resultado operacional, sem nova
+  publicação estática ou mudança de artefato.
 
 Rollback: backup `/root/backups/habbux-gallaxys-engine-parity-v2/`, bundle Git,
 manifesto anterior, hashes e destino estático anterior. O script de rollback
