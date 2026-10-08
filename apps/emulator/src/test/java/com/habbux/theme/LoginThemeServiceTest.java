@@ -41,6 +41,18 @@ class LoginThemeServiceTest {
         }
     }
 
+    @Test
+    void shipsACompleteConfigForEverySelectableTheme() {
+        LoginThemesSnapshot defaults = LoginThemesSnapshot.defaults();
+
+        assertEquals(14, LoginThemeId.all().size());
+        assertEquals(LoginThemeId.all().size(), defaults.configurations().size());
+        for (LoginThemeId theme : LoginThemeId.all()) {
+            assertEquals(theme, defaults.configuration(theme).theme());
+            assertEquals("default", defaults.configuration(theme).heroAsset());
+        }
+    }
+
     private static final class MemoryStore implements LoginThemeStore {
         private LoginThemesSnapshot snapshot = LoginThemesSnapshot.defaults();
 

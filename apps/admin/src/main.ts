@@ -2,7 +2,7 @@ import './styles.css';
 
 type Settings = { hotelName: string; motd: string; registrationsEnabled: boolean; maintenanceEnabled: boolean };
 type Overview = { settings: Settings; server: { activeConnections: number; activeSessions: number; activeRooms: number; activeRoomUsers: number } };
-type ThemeId = 'neon-purple' | 'tropical-blue' | 'sunset-pink' | 'cosmic-blue';
+type ThemeId = 'neon-purple' | 'tropical-blue' | 'sunset-pink' | 'cosmic-blue' | 'emerald-garden' | 'desert-bazaar' | 'arctic-lodge' | 'underwater-coral' | 'arcade-district' | 'halloween-night' | 'easter-spring' | 'christmas-village' | 'carnival-night' | 'new-year-rooftop';
 type ThemeConfig = { theme: ThemeId; logoText: string; eyebrow: string; title: string; description: string; ctaText: string; ctaVisible: boolean; institutionalText: string; institutionalUrl: string; primaryColor: string; secondaryColor: string; buttonColor: string; glassOpacity: number; blurPixels: number; cardOpacity: number; glowIntensity: number; borderRadius: number; decorationsEnabled: boolean; assetUrl: string; heroAsset: string; version: number };
 type ThemeEntry = { id: ThemeId; name: string; description: string; active: boolean; configuration: ThemeConfig };
 type ThemesResponse = { activeTheme: ThemeId; activeVersion: number; themes: ThemeEntry[] };

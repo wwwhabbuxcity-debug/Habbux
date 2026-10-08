@@ -1,0 +1,83 @@
+html,body { height:100%; overflow:hidden; }
+.login-page { height:100dvh; min-height:0; overflow:hidden; }
+.hero { height:100%; min-height:0; }
+.hero-copy { top:50%; transform:translateY(-50%); }
+.login-card { max-height:calc(100dvh - 30px); overflow:hidden; }
+
+html[data-theme="tropical-blue"] .hero-copy,
+html[data-theme="sunset-pink"] .hero-copy,
+html[data-theme="cosmic-blue"] .hero-copy { top:50%; transform:translateY(-50%); }
+html[data-theme="tropical-blue"] .scene-shade { background:linear-gradient(90deg,rgba(0,55,99,.54),rgba(0,150,210,.04) 48%,rgba(0,54,78,.36)); }
+html[data-theme="sunset-pink"] .scene-shade { background:linear-gradient(90deg,rgba(41,9,42,.52),rgba(70,13,51,.03) 48%,rgba(28,5,25,.5)); }
+html[data-theme="cosmic-blue"] .scene-shade { background:linear-gradient(90deg,rgba(0,7,31,.69),rgba(0,11,36,.12) 52%,rgba(0,8,28,.47)); }
+html[data-theme="easter-spring"] .scene-shade { background:linear-gradient(90deg,rgba(72,30,65,.54),rgba(109,66,97,.08) 50%,rgba(53,21,54,.5)); }
+html[data-theme="easter-spring"] .login-card { background:rgba(75,33,73,calc(var(--card) / 100)); }
+html[data-theme="desert-bazaar"] .scene-shade,html[data-theme="halloween-night"] .scene-shade { background:linear-gradient(90deg,rgba(39,14,28,.62),rgba(58,20,29,.08) 50%,rgba(30,12,22,.54)); }
+html[data-theme="desert-bazaar"] .login-card,html[data-theme="halloween-night"] .login-card { background:rgba(42,17,28,calc(var(--card) / 100)); }
+html[data-theme="arctic-lodge"] .scene-shade,html[data-theme="christmas-village"] .scene-shade,html[data-theme="new-year-rooftop"] .scene-shade { background:linear-gradient(90deg,rgba(0,15,51,.68),rgba(2,19,62,.1) 50%,rgba(0,11,37,.54)); }
+html[data-theme="arctic-lodge"] .login-card,html[data-theme="christmas-village"] .login-card,html[data-theme="new-year-rooftop"] .login-card { background:rgba(4,19,54,calc(var(--card) / 100)); }
+html[data-theme="underwater-coral"] .scene-shade { background:linear-gradient(90deg,rgba(0,38,58,.58),rgba(0,76,95,.06) 50%,rgba(0,35,54,.56)); }
+html[data-theme="underwater-coral"] .login-card { background:rgba(0,48,67,calc(var(--card) / 100)); }
+html[data-theme="arcade-district"] .scene-shade,html[data-theme="carnival-night"] .scene-shade { background:linear-gradient(90deg,rgba(7,8,38,.7),rgba(19,9,54,.08) 50%,rgba(7,8,34,.58)); }
+html[data-theme="arcade-district"] .login-card,html[data-theme="carnival-night"] .login-card { background:rgba(13,15,58,calc(var(--card) / 100)); }
+
+@media (min-width:721px) and (max-height:760px) {
+  .login-card { padding:18px 23px 16px; }
+  .card-brand { margin-bottom:12px; }
+  .auth-heading h2 { font-size:1.12rem; }
+  .auth-feedback { min-height:14px; padding-top:5px; }
+  .auth-form { gap:3px; }
+  .auth-form label { margin-top:2px; }
+  .auth-form input { height:34px; }
+  .password-toggle { top:4px; }
+  .primary-button,.secondary-button { min-height:37px; }
+  .primary-button { margin-top:8px; }
+  .auth-divider { margin:8px 0; }
+  .switch-copy { margin-bottom:5px; }
+  .auth-footnote { margin-top:7px; }
+}
+
+@media (max-width:720px) {
+  .login-page { display:grid; grid-template-rows:minmax(118px,24dvh) minmax(0,1fr); }
+  .theme-art { height:100%; object-position:center top; }
+  .scene-shade { background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(18,9,31,.7) 100%); height:100%; }
+  .hero { grid-row:1; height:auto; min-height:0; position:relative; width:auto; }
+  .hero > .brand { font-size:1.2rem; left:22px; top:18px; }
+  .hero-copy { left:22px; max-width:calc(100% - 44px); top:54%!important; transform:translateY(-42%); }
+  .hero-eyebrow { font-size:.5rem; }
+  h1 { font-size:clamp(1.55rem,7.6vw,2.45rem); margin:7px 0; max-width:15rem; }
+  .hero-description,.hero-scroll { display:none; }
+  .hero-cta { margin-top:10px; min-height:34px; padding-right:13px; }
+  .hero-cta > span { height:21px; width:21px; }
+  .hero-cta b { font-size:.65rem; }
+  .login-card { align-self:stretch; border-radius:var(--radius) var(--radius) 0 0; grid-row:2; height:100%; max-height:none; min-height:0; overflow:hidden; padding:14px 22px 15px; position:relative; right:auto; top:auto; transform:none; width:100%; }
+  .card-brand { display:none; }
+  .auth-heading h2 { font-size:1.22rem; margin:2px 0; }
+  .auth-heading > p:last-child { font-size:.64rem; }
+  .auth-feedback { font-size:.68rem; min-height:15px; padding-top:5px; }
+  .auth-form { gap:3px; }
+  .auth-form label { font-size:.59rem; margin-top:2px; }
+  .auth-form input { height:36px; }
+  .password-toggle { top:3px; }
+  .primary-button,.secondary-button { min-height:39px; }
+  .primary-button { margin-top:8px; }
+  .auth-divider { margin:9px 0 7px; }
+  .switch-copy { font-size:.65rem; margin-bottom:5px; }
+  .auth-footnote { font-size:.53rem; margin-top:7px; }
+}
+
+@media (max-width:720px) and (max-height:630px) {
+  .login-page { grid-template-rows:104px minmax(0,1fr); }
+  .hero > .brand { top:12px; }
+  .hero-copy { top:58px!important; transform:none; }
+  .hero-cta { display:none; }
+  h1 { font-size:1.5rem; }
+  .login-card { padding-top:10px; }
+  .auth-heading h2 { font-size:1.12rem; }
+  .auth-heading > p:last-child { font-size:.58rem; }
+  .auth-feedback { font-size:.62rem; min-height:11px; padding-top:2px; }
+  .auth-form input { height:33px; }
+  .primary-button,.secondary-button { min-height:35px; }
+  .auth-divider { margin:5px 0; }
+  .auth-footnote { display:none; }
+}

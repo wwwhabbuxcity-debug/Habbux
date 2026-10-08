@@ -1,8 +1,9 @@
 import { CoreConnection } from '../../client/src/communication/core';
 import './styles/main.css';
+import './styles/login-layout.css';
 
 type AuthMode = 'LOGIN' | 'REGISTER';
-type ThemeId = 'neon-purple' | 'tropical-blue' | 'sunset-pink' | 'cosmic-blue';
+type ThemeId = 'neon-purple' | 'tropical-blue' | 'sunset-pink' | 'cosmic-blue' | 'emerald-garden' | 'desert-bazaar' | 'arctic-lodge' | 'underwater-coral' | 'arcade-district' | 'halloween-night' | 'easter-spring' | 'christmas-village' | 'carnival-night' | 'new-year-rooftop';
 type LoginTheme = {
   theme: ThemeId; logoText: string; eyebrow: string; title: string; description: string; ctaText: string;
   ctaVisible: boolean; institutionalText: string; institutionalUrl: string; primaryColor: string;
@@ -19,7 +20,7 @@ const registerUsername = $<HTMLInputElement>('#register-username'); const regist
 const title = $<HTMLElement>('#auth-title'); const subtitle = $<HTMLElement>('#auth-subtitle'); const feedback = $<HTMLElement>('#auth-feedback'); const switchMode = $<HTMLButtonElement>('#switch-mode'); const switchCopy = $<HTMLElement>('#switch-copy'); const loginSubmit = $<HTMLButtonElement>('#login-submit'); const registerSubmit = $<HTMLButtonElement>('#register-submit');
 const themeArt = $<HTMLImageElement>('#theme-art'); const heroLogo = $<HTMLAnchorElement>('#hero-logo'); const cardLogo = $<HTMLAnchorElement>('#card-logo'); const heroEyebrow = $<HTMLElement>('#hero-eyebrow'); const heroTitle = $<HTMLElement>('#hero-title'); const heroDescription = $<HTMLElement>('#hero-description'); const heroCta = $<HTMLButtonElement>('#hero-cta'); const heroCtaText = $<HTMLElement>('#hero-cta-text'); const institutionalLink = $<HTMLAnchorElement>('#institutional-link');
 const connection = new CoreConnection(__HABBUX_WS_URL__, 3); let mode: AuthMode = 'LOGIN';
-const knownThemes = new Set<ThemeId>(['neon-purple', 'tropical-blue', 'sunset-pink', 'cosmic-blue']);
+const knownThemes = new Set<ThemeId>(['neon-purple', 'tropical-blue', 'sunset-pink', 'cosmic-blue', 'emerald-garden', 'desert-bazaar', 'arctic-lodge', 'underwater-coral', 'arcade-district', 'halloween-night', 'easter-spring', 'christmas-village', 'carnival-night', 'new-year-rooftop']);
 
 function setFeedback(message: string, kind: 'error' | 'success' = 'error'): void { feedback.textContent = message; feedback.dataset.kind = kind; }
 function setBusy(button: HTMLButtonElement, busy: boolean, label: string): void { button.disabled = busy; button.textContent = busy ? 'AGUARDE…' : label; loginSubmit.disabled = busy; registerSubmit.disabled = busy; }
