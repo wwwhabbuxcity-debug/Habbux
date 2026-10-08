@@ -68,6 +68,40 @@ class RoomMovementTest {
     }
 
     @Test
+    @Timeout(8)
+    void fiveDiagonalStepsUseSevenHundredSevenMillisecondsEach() throws Exception {
+        RoomMetadata room = metadata(89, 2, 6, 6, filled(36));
+        RoomManager manager = manager(id -> java.util.Optional.of(room), room.capacity(), 128, 100);
+        BlockingQueue<RoomOutbound> output = new LinkedBlockingQueue<>();
+        UUID sessionId = UUID.randomUUID();
+        try {
+            join(manager, room, sessionId, 1, output);
+            long started = System.nanoTime();
+            assertEquals(RoomRuntime.MoveOutcome.MOVING,
+                    manager.move(room.id(), sessionId, 5, 5, output::add).get(1, TimeUnit.SECONDS));
+            for (int step = 1; step <= 5; step++) {
+                String[] coordinates = awaitPosition(output).split(",");
+                assertEquals(step, Integer.parseInt(coordinates[0]));
+                assertEquals(step, Integer.parseInt(coordinates[1]));
+            }
+            long elapsed = System.nanoTime() - started;
+            assertTrue(elapsed >= TimeUnit.MILLISECONDS.toNanos(3_000)
+                            && elapsed < TimeUnit.MILLISECONDS.toNanos(4_800),
+                    "five diagonal steps should take about 3.54 seconds");
+        } finally {
+            assertTrue(manager.close(Duration.ofSeconds(3)));
+        }
+    }
+
+    @Test
+    void movementStepDurationUsesWorldGridDistance() {
+        assertEquals(500, RoomRuntime.movementStepMillis(1, 0));
+        assertEquals(500, RoomRuntime.movementStepMillis(0, -1));
+        assertEquals(707, RoomRuntime.movementStepMillis(1, 1));
+        assertEquals(707, RoomRuntime.movementStepMillis(-1, -1));
+    }
+
+    @Test
     @Timeout(10)
     void movementUsesOneFiveHundredMillisecondStepWithoutBurstingTiles() throws Exception {
         RoomMetadata room = metadata(90, 2, 11, 1, filled(11));

@@ -6,8 +6,17 @@ import { resolveAvatarDirection, resolveMirroring } from '../src/renderer/avatar
 import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from '../src/renderer/avatar-animation.ts';
 import { resolveAvatarFrameSelection } from '../src/renderer/avatar-assets.ts';
 import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
-import { interpolateAvatarElevation, interpolateAvatarPosition, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
+import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
 import { roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
+
+test('velocidade usa 500 ms no cardinal e 707 ms no diagonal do grid', () => {
+  assert.equal(avatarMovementDurationMs(1, 0), 500);
+  assert.equal(avatarMovementDurationMs(0, -1), 500);
+  assert.equal(avatarMovementDurationMs(1, 1), 707);
+  assert.equal(avatarMovementDurationMs(-1, -1), 707);
+  assert.equal(isAdjacentAvatarStep(1, 1), true);
+  assert.equal(isAdjacentAvatarStep(2, 0), false);
+});
 
 test('projeção isométrica volta ao tile original e gera losango fechado', () => {
   const config = { tileWidth: 64, tileHeight: 32, elevationHeight: 16, scale: 1.25, origin: { x: 120, y: 80 } } as const;

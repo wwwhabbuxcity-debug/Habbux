@@ -5,12 +5,11 @@ import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './a
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { resolveAvatarDirection } from './avatar-direction';
-import { interpolateAvatarElevation, interpolateAvatarPosition } from './renderer-model';
+import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep } from './renderer-model';
 
-// The Room Engine still processes every 100 ms, but the authoritative avatar
-// step is 500 ms. WALK frames keep their independent 82 ms visual cadence.
-export const ROOM_MOVEMENT_STEP_MS = 500;
-const WALK_DURATION_MS = ROOM_MOVEMENT_STEP_MS;
+// The Room Engine still processes every 100 ms. Segment duration follows the
+// world-grid distance: 500 ms cardinal and 707 ms diagonal.
+const DEFAULT_MOVEMENT_STEP_MS = 500;
 const BUBBLE_DURATION_MS = 4_500;
 
 export interface AvatarViewOptions {
@@ -42,6 +41,7 @@ export class AvatarView {
   private moveStartY = 0;
   private moveStartZ = 0;
   private moveElapsedMs = 0;
+  private moveDurationMs = DEFAULT_MOVEMENT_STEP_MS;
   private moving = false;
   private direction = 0;
   private currentAction: AvatarAction = 'std';
@@ -81,16 +81,17 @@ export class AvatarView {
     this.targetX = x;
     this.targetY = y;
     this.targetZ = z;
-    if (snap || Math.abs(deltaX) + Math.abs(deltaY) > 1.5) {
+    if (snap || !isAdjacentAvatarStep(deltaX, deltaY)) {
       this.renderX = x;
       this.renderY = y;
       this.renderZ = z;
       this.moveStartX = x;
       this.moveStartY = y;
       this.moveStartZ = z;
-      this.moveElapsedMs = WALK_DURATION_MS;
+      this.moveElapsedMs = this.moveDurationMs;
       this.moving = false;
     } else {
+      this.moveDurationMs = avatarMovementDurationMs(deltaX, deltaY);
       this.moveStartX = this.renderX;
       this.moveStartY = this.renderY;
       this.moveStartZ = this.renderZ;
@@ -103,8 +104,8 @@ export class AvatarView {
   update(deltaMs: number): void {
     if (this.disposed) return;
     if (this.moving) {
-      this.moveElapsedMs = Math.min(WALK_DURATION_MS, this.moveElapsedMs + Math.max(0, deltaMs));
-      const progress = this.moveElapsedMs / WALK_DURATION_MS;
+      this.moveElapsedMs = Math.min(this.moveDurationMs, this.moveElapsedMs + Math.max(0, deltaMs));
+      const progress = this.moveElapsedMs / this.moveDurationMs;
       const interpolated = interpolateAvatarPosition(this.moveStartX, this.moveStartY, this.targetX, this.targetY, progress);
       this.renderX = interpolated.x;
       this.renderY = interpolated.y;

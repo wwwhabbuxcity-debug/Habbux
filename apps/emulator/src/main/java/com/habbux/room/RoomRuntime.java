@@ -23,7 +23,8 @@ public final class RoomRuntime {
     private static final int[] DX = {1, 1, 1, 0, -1, -1, -1, 0};
     private static final int[] DY = {-1, 0, 1, 1, 1, 0, -1, -1};
     private static final int MAX_MOVERS_PER_TICK = 16;
-    private static final long MOVEMENT_STEP_NANOS = TimeUnit.MILLISECONDS.toNanos(500);
+    private static final long CARDINAL_MOVEMENT_STEP_NANOS = TimeUnit.MILLISECONDS.toNanos(500);
+    private static final long DIAGONAL_MOVEMENT_STEP_NANOS = Math.round(Math.sqrt(2) * CARDINAL_MOVEMENT_STEP_NANOS);
     private final RoomMetadata metadata;
     private final RoomMailbox mailbox;
     private final Presence[] occupantByCell;
@@ -201,7 +202,7 @@ public final class RoomRuntime {
             presence.path = path.cells;
             presence.pathIndex = 0;
             if (!wasMoving) {
-                presence.nextStepAtNanos = System.nanoTime() + MOVEMENT_STEP_NANOS;
+                presence.nextStepAtNanos = System.nanoTime() + movementStepNanos(presence);
                 movingPresences.addLast(presence);
             }
             movingCount = movingPresences.size();
@@ -253,7 +254,7 @@ public final class RoomRuntime {
         long nowNanos = System.nanoTime();
         mailbox.submit(() -> {
             // Process each queued avatar at most once per room tick. The room
-            // tick remains 100 ms, while a tile step is authoritatively 500 ms.
+            // tick remains 100 ms, while each segment is 500 ms cardinal or 707 ms diagonal.
             int scheduledMovers = Math.min(MAX_MOVERS_PER_TICK, movingPresences.size());
             for (int moved = 0; moved < scheduledMovers && !movingPresences.isEmpty(); moved++) {
                 Presence presence = movingPresences.removeFirst();
@@ -278,12 +279,12 @@ public final class RoomRuntime {
                         metadata.grid().elevationAt(presence.x, presence.y));
                 for (Presence recipient : presences.values()) recipient.client.send(update);
                 presence.pathIndex++;
-                presence.nextStepAtNanos = nowNanos + MOVEMENT_STEP_NANOS;
                 lastActivityNanos = nowNanos;
                 if (presence.pathIndex == presence.path.length) {
                     presence.path = null;
                     presence.pathIndex = 0;
                 } else {
+                    presence.nextStepAtNanos = nowNanos + movementStepNanos(presence);
                     movingPresences.addLast(presence);
                 }
             }
@@ -372,6 +373,23 @@ public final class RoomRuntime {
             }
         }
         return PathResult.failure(RoomOutbound.ActionFailure.UNREACHABLE);
+    }
+
+    static long movementStepMillis(int deltaX, int deltaY) {
+        return TimeUnit.NANOSECONDS.toMillis(deltaX != 0 && deltaY != 0
+                ? DIAGONAL_MOVEMENT_STEP_NANOS : CARDINAL_MOVEMENT_STEP_NANOS);
+    }
+
+    private long movementStepNanos(Presence presence) {
+        int nextCell = presence.path[presence.pathIndex];
+        int nextX = nextCell % metadata.grid().width();
+        int nextY = nextCell / metadata.grid().width();
+        return deltaIsDiagonal(nextX - presence.x, nextY - presence.y)
+                ? DIAGONAL_MOVEMENT_STEP_NANOS : CARDINAL_MOVEMENT_STEP_NANOS;
+    }
+
+    private static boolean deltaIsDiagonal(int deltaX, int deltaY) {
+        return deltaX != 0 && deltaY != 0;
     }
 
     private int nextSearchGeneration() {

@@ -1,3 +1,14 @@
+export const CARDINAL_MOVEMENT_STEP_MS = 500;
+export const DIAGONAL_MOVEMENT_STEP_MS = 707;
+
+export function avatarMovementDurationMs(deltaX: number, deltaY: number): number {
+  return deltaX !== 0 && deltaY !== 0 ? DIAGONAL_MOVEMENT_STEP_MS : CARDINAL_MOVEMENT_STEP_MS;
+}
+
+export function isAdjacentAvatarStep(deltaX: number, deltaY: number): boolean {
+  return (deltaX !== 0 || deltaY !== 0) && Math.abs(deltaX) <= 1 && Math.abs(deltaY) <= 1;
+}
+
 export function interpolateAvatarPosition(startX: number, startY: number, targetX: number, targetY: number, progress: number): { readonly x: number; readonly y: number } {
   const clamped = Math.max(0, Math.min(1, progress));
   return { x: startX + (targetX - startX) * clamped, y: startY + (targetY - startY) * clamped };
