@@ -1,11 +1,11 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
 import type { RoomOccupant } from '../room/room-state';
 import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from './avatar-animation';
-import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './avatar-manifest';
+import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart, AvatarFootAnchor } from './avatar-manifest';
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { avatarAnchor, isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { AvatarMovementController } from './avatar-movement';
-import { avatarPartSpritePosition, avatarPartTint, resolveAvatarPartLayer, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
+import { avatarPartSpritePosition, avatarPartTint, resolveAvatarPartLayer, resolveAvatarFootAnchor, applyAvatarFootAnchor, resolveAvatarPartPlacement } from './avatar-composition';
 
 // The Room Engine still processes every 100 ms. Segment duration follows the
 // world-grid distance: 500 ms cardinal and 707 ms diagonal.
@@ -30,8 +30,7 @@ export class AvatarView {
   private readonly bubbleText = new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: 'Arial' } });
   private isoConfig: IsoConfig;
   private readonly movement = new AvatarMovementController();
-  private readonly footOffsets = new Map<number, number>();
-  private footOffset = 7;
+  private readonly footAnchors: readonly AvatarFootAnchor[];
   private currentDirection = 0;
   private currentAction: AvatarAction = 'std';
   private currentFrame = 0;
@@ -43,6 +42,7 @@ export class AvatarView {
     this.userId = occupant.userId;
     this.gender = genderForUserId(occupant.userId);
     this.provider = options.provider;
+    this.footAnchors = Array.from({length:8},(_,direction)=>resolveAvatarFootAnchor(options.provider.manifest,this.gender,direction));
     this.isoConfig = options.isoConfig;
     this.container.label = `avatar:${occupant.userId}`;
     this.container.sortableChildren = true;
@@ -67,6 +67,13 @@ export class AvatarView {
   setPosition(x: number, y: number, z = 0, snap = false): void {
     this.movement.setPosition(x, y, z, snap);
     this.positionContainer();
+  }
+
+  setDiagnosticsDirection(direction: number): void {
+    if (!Number.isInteger(direction) || direction<0 || direction>7) return;
+    this.movement.direction = direction;
+    this.currentDirection = direction;
+    this.refreshSprites();
   }
 
   update(deltaMs: number): void {
@@ -110,10 +117,18 @@ export class AvatarView {
   }
 
   diagnostics(): object {
+    const support = this.footAnchors[this.movement.direction]!;
+    const footScreen = this.composition.toGlobal(support);
+    const tileCenter = roomToScreen(this.movement.x,this.movement.y,this.movement.z,this.isoConfig);
+    const bounds = this.composition.getBounds();
+    const errorCssPx = Math.hypot(footScreen.x-tileCenter.x,footScreen.y-tileCenter.y);
     return { userId: this.userId, x: this.movement.x, y: this.movement.y, z: this.movement.z,
       direction: this.movement.direction, moving: this.movement.moving, queued: this.movement.queuedSegments,
       action: this.currentAction, frame: this.currentFrame, ready: this.ready,
       parts: [...this.sprites].map(([part,sprite]) => ({part,visible:sprite.visible,alpha:sprite.alpha,layer:sprite.zIndex,x:sprite.x,y:sprite.y,texture:sprite.texture.label})),
+      foot: {support,tileCenter,screen:{x:footScreen.x,y:footScreen.y},containerOrigin:{x:this.container.x,y:this.container.y},
+        pivot:{x:this.composition.pivot.x,y:this.composition.pivot.y},bounds:{x:bounds.x,y:bounds.y,width:bounds.width,height:bounds.height},
+        errorCssPx,errorPhysicalPx:errorCssPx*(window.devicePixelRatio||1),rasterDpr:Math.min(window.devicePixelRatio||1,2),roundPixels:false},
       screenX: this.container.x, screenY: this.container.y, depth: this.container.zIndex };
   }
 
@@ -131,8 +146,6 @@ export class AvatarView {
 
   private refreshSprites(): void {
     if (!this.ready || this.disposed) return;
-    this.footOffset = this.measureFootOffset();
-    this.shadow.y = this.footOffset;
     for (const part of this.provider.manifest.layerOrder) {
       const resolved = this.provider.getFrame(this.gender, part, this.currentAction, this.movement.direction, this.currentFrame);
       let sprite = this.sprites.get(part);
@@ -155,39 +168,14 @@ export class AvatarView {
       sprite.tint = avatarPartTint(part);
       sprite.visible = true;
     }
-    const registration = new Map<AvatarPart, AvatarPartPlacement>();
-    for (const part of ['lg', 'sh'] as const) {
-      const resolved = this.provider.getFrame(this.gender, part, 'std', this.movement.direction, 0);
-      if (resolved) registration.set(part, resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height));
-    }
     const mirrored = this.provider.getFrame(this.gender, 'bd', this.currentAction, this.movement.direction, this.currentFrame)?.mirrored ?? false;
-    const footAnchorX = resolveAvatarFootAnchorX(registration);
-    this.composition.position.x = resolveAvatarCompositionOffsetX(footAnchorX, mirrored);
-    this.composition.scale.x = mirrored ? -1 : 1;
+    applyAvatarFootAnchor(this.composition,this.footAnchors[this.movement.direction]!,mirrored);
     this.composition.sortChildren();
     this.positionContainer();
   }
 
-  private measureFootOffset(): number {
-    const cached = this.footOffsets.get(this.movement.direction);
-    if (cached !== undefined) return cached;
-    let bottom = 0;
-    for (const action of ['std', 'wlk'] as const) {
-      const actionDefinition = this.provider.manifest.parts.bd.actions[action];
-      const frameCount = actionDefinition?.frameCount ?? 1;
-      for (let frame = 0; frame < frameCount; frame++) {
-        for (const part of this.provider.manifest.layerOrder) {
-          const resolved = this.provider.getFrame(this.gender, part, action, this.movement.direction, frame);
-          if (resolved) bottom = Math.max(bottom, resolved.texture.height - resolved.frame.offset.y);
-        }
-      }
-    }
-    this.footOffsets.set(this.movement.direction, bottom);
-    return bottom;
-  }
-
   private positionContainer(): void {
-    const point = avatarAnchor(roomToScreen(this.movement.x, this.movement.y, this.movement.z, this.isoConfig), this.isoConfig, this.footOffset);
+    const point = avatarAnchor(roomToScreen(this.movement.x, this.movement.y, this.movement.z, this.isoConfig));
     // Keep the common registration point continuous at every camera scale.
     // Integer CSS snapping stalls small mobile steps, then jumps a whole pixel.
     // Nearest filtering still preserves the atlas; all parts share this transform.

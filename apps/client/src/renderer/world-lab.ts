@@ -10,6 +10,8 @@ interface LabControl {
   clock(paused: boolean): void;
   destination(x: number, y: number): void;
   fixture(room: RoomState): void;
+  facing(direction: number): void;
+  footDebug(enabled: boolean): void;
 }
 declare global { interface Window { habbuxWorldLab?: LabControl } }
 
@@ -64,6 +66,8 @@ export async function mountWorldLab(host: HTMLElement): Promise<() => void> {
     scenario, step:ms=>renderer.stepDiagnostics(ms), state:()=>renderer.diagnostics(),
     clock:paused=>{running=!paused;renderer.setDiagnosticsClock(paused);},
     fixture:next=>{renderer.setRoom(null);room=next;renderer.setRoom(room);renderer.stepDiagnostics(0);},
+    facing:direction=>renderer.setDiagnosticsDirection(direction),
+    footDebug:enabled=>renderer.setFootDiagnostics(enabled),
     destination:(x,y)=>{
       // This fixture driver does not replace server pathfinding. Only adjacent
       // valid diagnostic steps are allowed; the network room remains separate.

@@ -27,6 +27,7 @@ proposta e não tratada como contrato.
 | [0016](0016-room-engine-execution.md) | Diretório, lifecycle e execução limitada do Room Engine | Aceita |
 | [0017](0017-dom-ui-pixi-renderer.md) | DOM para interface convencional e PixiJS para o mundo | Aceita |
 | [0020](0020-complete-avatar-parts-and-retained-room-background.md) | Partes completas do avatar e geometria estática do quarto | Aceita |
+| [0021](0021-avatar-foot-support-pivot.md) | Apoio fixo dos pés como pivot da composição | Aceita |
 
 Aceito não significa implementação completa: veja os limites de cada decisão e
 os READMEs dos módulos ainda planejados.

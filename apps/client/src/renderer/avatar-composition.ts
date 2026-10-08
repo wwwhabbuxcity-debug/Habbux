@@ -1,4 +1,4 @@
-import type { AvatarFrameDefinition, AvatarPart } from './avatar-manifest';
+import type { AvatarFrameDefinition, AvatarPart, AvatarManifest, AvatarGender, AvatarFootAnchor } from './avatar-manifest';
 
 export interface AvatarPartPlacement {
   readonly x: number;
@@ -16,19 +16,28 @@ export function avatarPartSpritePosition(placement: AvatarPartPlacement): { read
   return { x: placement.x + placement.width / 2, y: placement.y + placement.height };
 }
 
-/** Registro estável dos pés, derivado das peças inferiores do avatar. */
-export function resolveAvatarFootAnchorX(placements: ReadonlyMap<AvatarPart, AvatarPartPlacement>): number {
-  const boxes = (['lg', 'sh'] as const)
-    .map((part) => placements.get(part))
-    .filter((value): value is AvatarPartPlacement => value !== undefined);
-  if (boxes.length === 0) return 0;
-  const minX = Math.min(...boxes.map((box) => box.x));
-  const maxX = Math.max(...boxes.map((box) => box.x + box.width));
-  return (minX + maxX) / 2;
+/** Fixed STAND support: resolved once per gender/direction, never from WALK bounds. */
+export function resolveAvatarFootAnchor(manifest: AvatarManifest, gender: AvatarGender, direction: number): AvatarFootAnchor {
+  const registered = manifest.footAnchors?.genders[gender][String(direction)];
+  if (registered) return registered;
+  // Legacy manifests have no alpha-contour metadata. Their STAND shoe reference
+  // still stays fixed; all shipped figures use the explicit support metadata.
+  const frame = manifest.parts.sh.actions.std?.genders[gender].directions[String(direction)]?.frames['0'];
+  const region = frame && manifest.regions[frame.region];
+  if (!frame || !region) throw new Error('Sapatos STAND sem referência de apoio.');
+  return {x:-frame.offset.x+region.width/2,y:-frame.offset.y+region.height,referenceRegion:frame.region,sampleCount:0};
 }
 
-export function resolveAvatarCompositionOffsetX(footAnchorX: number, mirrored: boolean): number {
-  return mirrored ? footAnchorX : -footAnchorX;
+interface FootAnchorTarget {
+  readonly pivot: {set(x:number,y:number): unknown};
+  readonly position: {set(x:number,y:number): unknown};
+  readonly scale: {x:number};
+}
+/** Pixi applies the pivot before the reflection: S * (sprite - support). */
+export function applyAvatarFootAnchor(target: FootAnchorTarget, support: AvatarFootAnchor, mirrored: boolean): void {
+  target.pivot.set(support.x,support.y);
+  target.position.set(0,0);
+  target.scale.x = mirrored ? -1 : 1;
 }
 
 /** Camera-facing limb order; mirroring applies to the entire composition. */

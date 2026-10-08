@@ -46,12 +46,9 @@ export function tilePolygon(center: IsoPoint, config: IsoConfig = DEFAULT_ISO_CO
   ];
 }
 
-/** Screen anchor for an avatar whose sprite feet are `footOffset` px below its local origin. */
-export function avatarAnchor(center: IsoPoint, config: IsoConfig = DEFAULT_ISO_CONFIG, footOffset = 0): IsoPoint {
-  return {
-    x: center.x,
-    y: center.y + (config.tileHeight / 2 - footOffset) * config.scale,
-  };
+/** The composition pivot owns sprite registration; the world origin is the tile centre. */
+export function avatarAnchor(center: IsoPoint): IsoPoint {
+  return center;
 }
 
 export type IsoFloorSide = 'x' | 'y';

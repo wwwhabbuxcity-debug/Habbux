@@ -9062,5 +9062,110 @@
     "validatedFrameCount": 484,
     "fallbackFrameCount": 61,
     "optionalMissingFrames": []
+  },
+  "footAnchors": {
+    "method": "stand-shoe-sole-lower-contour-v1",
+    "genders": {
+      "male": {
+        "0": {
+          "x": 34.0,
+          "y": 3.576923076923,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_0_0",
+          "sampleCount": 26
+        },
+        "1": {
+          "x": 35.5,
+          "y": 3.894736842105,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_1_0",
+          "sampleCount": 19
+        },
+        "2": {
+          "x": 35.5,
+          "y": 3.92,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_2_0",
+          "sampleCount": 25
+        },
+        "3": {
+          "x": 33.5,
+          "y": 4.695652173913,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_3_0",
+          "sampleCount": 23
+        },
+        "4": {
+          "x": 35.5,
+          "y": 3.92,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_2_0",
+          "sampleCount": 25
+        },
+        "5": {
+          "x": 35.5,
+          "y": 3.894736842105,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_1_0",
+          "sampleCount": 19
+        },
+        "6": {
+          "x": 34.0,
+          "y": 3.576923076923,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_0_0",
+          "sampleCount": 26
+        },
+        "7": {
+          "x": 33.5,
+          "y": 3.695652173913,
+          "referenceRegion": "hh_human_shoe:h_std_sh_1_7_0",
+          "sampleCount": 23
+        }
+      },
+      "female": {
+        "0": {
+          "x": 34.0,
+          "y": 3.576923076923,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_0_0",
+          "sampleCount": 26
+        },
+        "1": {
+          "x": 35.5,
+          "y": 3.894736842105,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_1_0",
+          "sampleCount": 19
+        },
+        "2": {
+          "x": 35.5,
+          "y": 3.92,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_2_0",
+          "sampleCount": 25
+        },
+        "3": {
+          "x": 33.5,
+          "y": 4.521739130435,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_3_0",
+          "sampleCount": 23
+        },
+        "4": {
+          "x": 35.5,
+          "y": 3.92,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_2_0",
+          "sampleCount": 25
+        },
+        "5": {
+          "x": 35.5,
+          "y": 3.894736842105,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_1_0",
+          "sampleCount": 19
+        },
+        "6": {
+          "x": 34.0,
+          "y": 3.576923076923,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_0_0",
+          "sampleCount": 26
+        },
+        "7": {
+          "x": 33.5,
+          "y": 3.695652173913,
+          "referenceRegion": "hh_human_shoe:h_std_sh_2_7_0",
+          "sampleCount": 23
+        }
+      }
+    }
   }
 }

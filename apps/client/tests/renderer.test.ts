@@ -6,7 +6,7 @@ import { resolveAvatarDirection, resolveMirroring } from '../src/renderer/avatar
 import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from '../src/renderer/avatar-animation.ts';
 import { resolveAvatarFrameSelection } from '../src/renderer/avatar-assets.ts';
 import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
-import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement } from '../src/renderer/avatar-composition.ts';
+import { avatarPartSpritePosition, resolveAvatarPartPlacement } from '../src/renderer/avatar-composition.ts';
 import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
 import { avatarAnchor, floorSidePolygon, roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
 import { resolveRoomTileAtScreen } from '../src/renderer/tile-interaction.ts';
@@ -44,10 +44,10 @@ test('bordas do piso são extrudadas para baixo sem alterar o topo isométrico',
   assert.equal(side[2].y - side[1].y, 8);
 });
 
-test('âncora do avatar coloca os pés no canto inferior do tile', () => {
-  const anchor = avatarAnchor({ x: 100, y: 80 }, { tileWidth: 64, tileHeight: 32, elevationHeight: 16, scale: 1, origin: { x: 0, y: 0 } }, 7);
+test('âncora do avatar usa o centro do tile sem adicionar meio tile', () => {
+  const anchor = avatarAnchor({ x: 100, y: 80 });
   assert.equal(anchor.x, 100);
-  assert.equal(anchor.y, 89);
+  assert.equal(anchor.y, 80);
 });
 
 test('direção usa oito setores estáveis e as três direções espelhadas do manifest', () => {
@@ -106,13 +106,6 @@ test('composição converte âncoras do manifesto para um canvas compartilhado',
   const placement = resolveAvatarPartPlacement(frame, 25, 56);
   assert.deepEqual(placement, { x: 20, y: -49, width: 25, height: 56 });
   assert.deepEqual(avatarPartSpritePosition(placement), { x: 32.5, y: 7 });
-  const feet = new Map([
-    ['lg', resolveAvatarPartPlacement({ region: 'x', offset: { x: -21, y: 23 } }, 23, 24)],
-    ['sh', resolveAvatarPartPlacement({ region: 'x', offset: { x: -21, y: 6 } }, 25, 11)],
-  ]);
-  assert.equal(resolveAvatarFootAnchorX(feet), 33.5);
-  assert.equal(resolveAvatarCompositionOffsetX(33.5, false), -33.5);
-  assert.equal(resolveAvatarCompositionOffsetX(33.5, true), 33.5);
 });
 
 test('interpolação termina exatamente no destino e respeita os limites', () => {

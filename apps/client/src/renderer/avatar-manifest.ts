@@ -48,6 +48,18 @@ export interface AvatarPartDefinition {
   readonly actions: Readonly<Partial<Record<AvatarAction, AvatarActionDefinition>>>;
 }
 
+export interface AvatarFootAnchor {
+  readonly x: number;
+  readonly y: number;
+  readonly referenceRegion: string;
+  readonly sampleCount: number;
+}
+
+export interface AvatarFootAnchors {
+  readonly method: 'stand-shoe-sole-lower-contour-v1';
+  readonly genders: Readonly<Record<AvatarGender, Readonly<Record<string, AvatarFootAnchor>>>>;
+}
+
 export interface AvatarManifest {
   readonly version: 1;
   readonly canvas: { readonly width: number; readonly height: number };
@@ -60,6 +72,7 @@ export interface AvatarManifest {
   readonly sheets: Readonly<Record<string, AvatarSheetDefinition>>;
   readonly regions: Readonly<Record<string, AvatarRect>>;
   readonly parts: Readonly<Record<AvatarPart, AvatarPartDefinition>>;
+  readonly footAnchors?: AvatarFootAnchors;
 }
 
 const BASE_PARTS: AvatarPart[] = ['bd', 'hd', 'lg', 'sh', 'ch', 'ls', 'rs', 'hrb', 'hr', 'fc', 'ey'];
@@ -77,6 +90,7 @@ export function parseAvatarManifest(input: unknown): AvatarManifest {
   }
   const layerOrder = parseLayerOrder(input.layerOrder);
   const parts = parseParts(input.parts, sheets, regions);
+  const footAnchors = parseFootAnchors(input.footAnchors, parts, regions);
   if (layerOrder.some(part => !parts[part])) throw new Error('Layer aponta para uma parte ausente.');
   return Object.freeze({
     version: 1,
@@ -90,6 +104,7 @@ export function parseAvatarManifest(input: unknown): AvatarManifest {
     sheets: Object.freeze(sheets),
     regions: Object.freeze(regions),
     parts: Object.freeze(parts),
+    ...(footAnchors ? { footAnchors } : {}),
   });
 }
 
@@ -204,6 +219,37 @@ function freezeBooleanMap(input: Record<string, unknown>, label: string): Readon
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function parseFootAnchors(input: unknown, parts: Record<AvatarPart, AvatarPartDefinition>, regions: Record<string, AvatarRect>): AvatarFootAnchors | undefined {
+  if (input === undefined) return undefined;
+  if (!isRecord(input) || input.method !== 'stand-shoe-sole-lower-contour-v1' || !isRecord(input.genders)) {
+    throw new Error('Referência de apoio dos pés inválida.');
+  }
+  const genders = {} as Record<AvatarGender, Readonly<Record<string, AvatarFootAnchor>>>;
+  for (const gender of ['male','female'] as const) {
+    const directions = input.genders[gender];
+    if (!isRecord(directions) || Object.keys(directions).length !== 8) throw new Error('Apoio precisa das oito direções.');
+    const anchors: Record<string, AvatarFootAnchor> = {};
+    for (let d=0;d<8;d++) {
+      const point = directions[String(d)];
+      const frame = parts.sh.actions.std?.genders[gender].directions[String(d)]?.frames['0'];
+      const region = frame && regions[frame.region];
+      if (!isRecord(point) || !finiteNumber(point.x) || !finiteNumber(point.y) || !positiveInteger(point.sampleCount)
+        || !frame || !region || point.referenceRegion !== frame.region || point.sampleCount > region.width
+        || point.x < -frame.offset.x || point.x > region.width-frame.offset.x
+        || point.y < -frame.offset.y || point.y > region.height-frame.offset.y) {
+        throw new Error('Apoio dos pés diverge dos sapatos STAND.');
+      }
+      anchors[String(d)] = Object.freeze({x:point.x,y:point.y,referenceRegion:frame.region,sampleCount:point.sampleCount});
+    }
+    for (const [mirror,source] of [[4,2],[5,1],[6,0]]) {
+      const a=anchors[String(mirror)]!, b=anchors[String(source)]!;
+      if (a.x!==b.x || a.y!==b.y || a.referenceRegion!==b.referenceRegion) throw new Error('Apoio espelhado inconsistente.');
+    }
+    genders[gender] = Object.freeze(anchors);
+  }
+  return Object.freeze({method:input.method,genders:Object.freeze(genders)});
 }
 
 function positiveInteger(value: unknown): value is number {

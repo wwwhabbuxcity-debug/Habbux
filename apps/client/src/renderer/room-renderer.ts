@@ -51,6 +51,7 @@ export class RoomRenderer {
   private floorSignature = '';
   private chatSignature = '';
   private disposed = false;
+  private footDebug = false;
   private hoveredTile: RoomTileHit | null = null;
   private pointerInside = false;
   private lastPointer = { x: 0, y: 0 };
@@ -158,7 +159,13 @@ export class RoomRenderer {
 
   setDiagnosticsClock(paused: boolean): void { if (paused) this.app?.stop(); else this.app?.start(); }
 
-  stepDiagnostics(deltaMs: number): void { this.update(deltaMs); this.app?.render(); }
+  stepDiagnostics(deltaMs: number): void { this.update(deltaMs); if (this.footDebug) this.drawDebug(this.currentRoom); this.app?.render(); }
+
+  setFootDiagnostics(enabled: boolean): void { this.footDebug = enabled; this.drawDebug(this.currentRoom); }
+
+  setDiagnosticsDirection(direction: number): void {
+    for (const avatar of this.avatars.values()) avatar.setDiagnosticsDirection(direction);
+  }
 
   diagnostics(): object {
     return { config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceCount, surfaceBuilds: this.surfaceBuilds, hover: this.hoveredTile,
@@ -334,9 +341,19 @@ export class RoomRenderer {
     this.entityLayer.sortChildren();
   }
 
-  private drawDebug(_room: RoomState): void {
+  private drawDebug(_room: RoomState | null): void {
     this.debugLayer.clear();
-
+    if (!this.footDebug) return;
+    for (const avatar of this.avatars.values()) {
+      const {foot} = avatar.diagnostics() as {foot:{tileCenter:{x:number;y:number};screen:{x:number;y:number};containerOrigin:{x:number;y:number};bounds:{x:number;y:number;width:number;height:number}}};
+      const {tileCenter,screen,containerOrigin,bounds} = foot;
+      this.debugLayer.poly(tilePolygon(tileCenter,this.config).flatMap(p=>[p.x,p.y])).stroke({color:0x69a7ff,width:1});
+      this.debugLayer.circle(containerOrigin.x,containerOrigin.y,7).stroke({color:0xff8d9b,width:1});
+      this.debugLayer.moveTo(tileCenter.x-4,tileCenter.y).lineTo(tileCenter.x+4,tileCenter.y)
+        .moveTo(tileCenter.x,tileCenter.y-4).lineTo(tileCenter.x,tileCenter.y+4).stroke({color:0x69a7ff,width:1});
+      this.debugLayer.circle(screen.x,screen.y,2).fill(0x69dcc1);
+      if (bounds.width>0 && bounds.height>0) this.debugLayer.rect(bounds.x,bounds.y,bounds.width,bounds.height).stroke({color:0xffd166,width:1,alpha:0.7});
+    }
   }
 
   private update(deltaMs: number): void {
