@@ -138,7 +138,7 @@ texturas bitmap novas e editor de materiais estão fora do escopo. Licença indi
 dos sheets antigos precisa de comprovação. Comparação visual Gallaxys, dez jogadores
 humanos pela Internet e GPU física permanecem não executados.
 
-Publicação e conferência operacional serão registradas após trocar a release.
+Publicação e conferência operacional concluídas; evidências na seção abaixo.
 Após entregar o relatório final, parar e aguardar validação visual da responsável.
 
 ### Resultados finais do ensaio local
@@ -155,3 +155,34 @@ Após entregar o relatório final, parar e aguardar validação visual da respon
 1280 px: 20.0 FPS observados, frame médio 50.0 ms, máximo 233.3 ms; carregamento 2212 ms. Software rendering, não hardware mobile.
 
 390 px: 35.1 FPS observados, frame médio 28.5 ms, máximo 66.7 ms; carregamento 2874 ms. Software rendering, não hardware mobile.
+
+
+### Publicação e conferência operacional
+
+- Commit de implementação: `1d8333c5c899bf2e9bf192aff5a94e5b88e56c87`.
+- Push para `main`: PASS; confirmado com `git ls-remote`.
+  HTTPS inicialmente não tinha credencial; a chave SSH de deploy já existente
+  concluiu o push sem mudar configuração global ou criar credenciais.
+- Checkout Tyvo: fast-forward preservando histórico e os arquivos do CMS/HUD.
+- Release: `/var/www/tyvo.online/.deploy/releases/20261008T035341Z`.
+- Deploy: somente dist, symlink atômico, releases anteriores preservadas.
+- Apenas `habbux-tyvo` reiniciado, após aviso; log `emulator.ready`, listener 3100,
+  banco DEV conectado, sem erro de inicialização. Sem reload Nginx.
+- SHA-256 do JAR ativo igual ao build validado:
+  `90f1e09c0ce466741ac4f009281b4149a516f21b533a5729c2d3a361b4cb1aab`.
+- HTML Client/Web publicados iguais aos builds por SHA-256.
+- `/`, `/game/`, `/client/`: HTTP 200. Game sem sessão mantém proteção e retorno
+  ao login; não foi declarado login autenticado real como testado neste smoke.
+- Chromium público desktop/mobile: páginas sem erro de console/execução;
+  WSS real atingiu `READY` nas duas resoluções. Lab público com sprite E/1 e
+  caminhada horizontal capturada nas duas resoluções.
+- Evidência operacional: `/root/backups/habbux-isometric-world-v2/postdeploy.json`
+  e `visual/public-*.png`. Galeria: `visual/index.html`.
+- Todos os serviços compartilhados ativos; Gallaxys HTTP 200, Polaris mantém
+  o mesmo processo iniciado anteriormente, sem reinício nesta tarefa.
+- Testar visualmente: `https://tyvo.online/client/?avatar-lab=1`.
+- Árvore de implementação limpa; documentação operacional registrada em commit
+  posterior, sem mudar o código compilado ou exigir nova publicação.
+
+A entrega é verificável tecnicamente e publicada para avaliação. Aprovação estética,
+comparação autenticada Gallaxys e desempenho de GPU física continuam pendentes.
