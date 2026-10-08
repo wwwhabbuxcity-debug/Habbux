@@ -12,6 +12,8 @@ import com.habbux.room.RoomConfig;
 import com.habbux.room.RoomManager;
 import com.habbux.room.RoomModelRegistry;
 import com.habbux.persistence.RoomRepository;
+import com.habbux.persistence.HotelSettingsRepository;
+import com.habbux.admin.HotelSettingsService;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +46,12 @@ public final class HabbuxEmulator {
                     RoomManager roomManager = database == null ? null
                             : RoomManager.backedBy(new RoomRepository(database.dataSource()), RoomModelRegistry.loadDefault(),
                             RoomConfig.from(environment));
+                    HotelSettingsService hotelSettings = hotelSettings(database);
                     if (database == null) {
                         LOG.atWarn().addKeyValue("event", "auth.database_unconfigured")
                                 .log("Habbux auth is unavailable until PostgreSQL is configured");
                     }
-                    try (HabbuxServer server = new HabbuxServer(config, authService, authExecutor, roomManager)) {
+                    try (HabbuxServer server = new HabbuxServer(config, authService, authExecutor, roomManager, hotelSettings)) {
                         Runtime.getRuntime().addShutdownHook(new Thread(
                                 () -> shutdownServerAndLogPool(server, database), "habbux-shutdown"));
                         server.start();
@@ -80,6 +83,17 @@ public final class HabbuxEmulator {
                     .setCause(exception)
                     .log("Unable to initialize emulator bootstrap");
             return 1;
+        }
+    }
+
+    private static HotelSettingsService hotelSettings(DatabasePool database) {
+        if (database == null) return HotelSettingsService.unavailable();
+        try {
+            return new HotelSettingsService(new HotelSettingsRepository(database.dataSource()));
+        } catch (RuntimeException exception) {
+            LOG.atWarn().addKeyValue("event", "admin.settings_unavailable").setCause(exception)
+                    .log("Habbux owner controls are unavailable until their migration is applied");
+            return HotelSettingsService.unavailable();
         }
     }
 

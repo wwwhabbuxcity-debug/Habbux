@@ -1,6 +1,7 @@
 package com.habbux.network;
 
 import com.habbux.config.AppConfig;
+import com.habbux.admin.HotelSettingsService;
 import com.habbux.auth.AuthExecutor;
 import com.habbux.auth.AuthService;
 import com.habbux.session.ConnectionRegistry;
@@ -39,20 +40,27 @@ public final class HabbuxServer implements AutoCloseable {
     private final ChannelInitializer<SocketChannel> initializer;
     private final AuthExecutor authExecutor;
     private final RoomManager roomManager;
+    private final HotelSettingsService hotelSettings;
     private Channel listener;
 
     public HabbuxServer(AppConfig config) {
-        this(config, null, null);
+        this(config, null, null, null, HotelSettingsService.unavailable());
     }
 
     public HabbuxServer(AppConfig config, AuthService authService, AuthExecutor authExecutor) {
-        this(config, authService, authExecutor, null);
+        this(config, authService, authExecutor, null, HotelSettingsService.unavailable());
     }
 
     public HabbuxServer(AppConfig config, AuthService authService, AuthExecutor authExecutor, RoomManager roomManager) {
+        this(config, authService, authExecutor, roomManager, HotelSettingsService.unavailable());
+    }
+
+    public HabbuxServer(AppConfig config, AuthService authService, AuthExecutor authExecutor, RoomManager roomManager,
+                        HotelSettingsService hotelSettings) {
         this.config = config;
         this.authExecutor = authExecutor;
         this.roomManager = roomManager;
+        this.hotelSettings = hotelSettings;
         if (roomManager != null && config.maxPayloadBytes() < RoomPayloadCodec.MAX_SNAPSHOT_PAYLOAD_BYTES) {
             throw new IllegalArgumentException("HABBUX_MAX_PAYLOAD_BYTES must be at least "
                     + RoomPayloadCodec.MAX_SNAPSHOT_PAYLOAD_BYTES + " when Room Engine is enabled");
@@ -62,7 +70,7 @@ public final class HabbuxServer implements AutoCloseable {
         workerGroup = new MultiThreadIoEventLoopGroup(
                 config.eventLoopThreads(), new DefaultThreadFactory("habbux-worker"), NioIoHandler.newFactory());
         childChannels = new DefaultChannelGroup("habbux-children", workerGroup.next());
-        initializer = new CoreChannelInitializer(config, registry, childChannels, authService, roomManager);
+        initializer = new CoreChannelInitializer(config, registry, childChannels, authService, roomManager, hotelSettings);
     }
 
     public synchronized void start() throws InterruptedException {
@@ -105,12 +113,13 @@ public final class HabbuxServer implements AutoCloseable {
         childChannels.close().awaitUninterruptibly(timeout, TimeUnit.MILLISECONDS);
         boolean roomsStopped = roomManager == null || roomManager.close(java.time.Duration.ofMillis(timeout));
         boolean authStopped = authExecutor == null || authExecutor.shutdown(java.time.Duration.ofMillis(timeout));
+        boolean controlsStopped = hotelSettings.shutdown(java.time.Duration.ofMillis(timeout));
         AuthExecutor.Metrics authMetrics = authExecutor == null ? null : authExecutor.snapshot();
         boolean bossStopped = bossGroup.shutdownGracefully(0, timeout, TimeUnit.MILLISECONDS)
                 .awaitUninterruptibly(timeout + 1_000L, TimeUnit.MILLISECONDS);
         boolean workersStopped = workerGroup.shutdownGracefully(0, timeout, TimeUnit.MILLISECONDS)
                 .awaitUninterruptibly(timeout + 1_000L, TimeUnit.MILLISECONDS);
-        if (!roomsStopped || !authStopped || !bossStopped || !workersStopped || registry.activeConnections() != 0) {
+        if (!roomsStopped || !authStopped || !controlsStopped || !bossStopped || !workersStopped || registry.activeConnections() != 0) {
             throw new IllegalStateException("Habbux server shutdown did not finish cleanly");
         }
         NetworkMetrics metrics = registry.metrics();

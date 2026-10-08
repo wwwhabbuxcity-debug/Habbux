@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#15101e" />
+    <title>Habbux · Administração</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="logo" href="/admin/" aria-label="Administração Habbux">HABBUX<span>✦</span></a>
+        <div><p class="eyebrow">ADMINISTRAÇÃO</p><h1>Controles do hotel</h1></div>
+        <button id="refresh" class="quiet" type="button">Atualizar dados</button>
+      </header>
+      <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+      <section class="metrics" aria-label="Situação atual">
+        <article><span>Conexões</span><strong id="active-connections">—</strong></article>
+        <article><span>Sessões</span><strong id="active-sessions">—</strong></article>
+        <article><span>Quartos ativos</span><strong id="active-rooms">—</strong></article>
+        <article><span>Jogadores em quartos</span><strong id="active-users">—</strong></article>
+      </section>
+      <section class="card">
+        <div class="card-heading"><div><p class="eyebrow">CONFIGURAÇÃO</p><h2>Operação do hotel</h2></div><span id="save-state" class="save-state">Carregando</span></div>
+        <form id="settings-form">
+          <label for="hotel-name">Nome do hotel</label>
+          <input id="hotel-name" name="hotelName" maxlength="80" required autocomplete="organization" />
+          <label for="motd">Mensagem do hotel</label>
+          <textarea id="motd" name="motd" maxlength="300" rows="4" placeholder="Mensagem exibida para a equipe no painel"></textarea>
+          <label class="toggle" for="registrations-enabled">
+            <input id="registrations-enabled" name="registrationsEnabled" type="checkbox" />
+            <span><b>Permitir novos cadastros</b><small>Bloqueia novas contas imediatamente quando desligado.</small></span>
+          </label>
+          <label class="toggle warning" for="maintenance-enabled">
+            <input id="maintenance-enabled" name="maintenanceEnabled" type="checkbox" />
+            <span><b>Modo de manutenção</b><small>Impede novas entradas em quartos. Quem já está no quarto não cai.</small></span>
+          </label>
+          <div class="actions"><button id="save" class="primary" type="submit">Salvar alterações</button><span>As mudanças entram em vigor na hora.</span></div>
+        </form>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -11,10 +11,14 @@
     "npm": ">=10 <11"
   },
   "workspaces": [
+    "apps/admin",
     "apps/client",
     "apps/web"
   ],
   "scripts": {
+    "admin:dev": "npm run dev --workspace @habbux/admin",
+    "admin:typecheck": "npm run typecheck --workspace @habbux/admin",
+    "admin:build": "npm run build --workspace @habbux/admin",
     "client:dev": "npm run dev --workspace @habbux/client",
     "client:test": "node --experimental-strip-types --test apps/client/tests/*.test.ts",
     "client:typecheck": "npm run typecheck --workspace @habbux/client",
@@ -22,8 +26,8 @@
     "web:dev": "npm run dev --workspace @habbux/web",
     "web:typecheck": "npm run typecheck --workspace @habbux/web",
     "web:build": "npm run build --workspace @habbux/web",
-    "typecheck": "npm run client:typecheck && npm run web:typecheck",
-    "build": "npm run client:build && npm run web:build",
+    "typecheck": "npm run admin:typecheck && npm run client:typecheck && npm run web:typecheck",
+    "build": "npm run admin:build && npm run client:build && npm run web:build",
     "protocol:validate": "node tools/validate-protocol.mjs",
     "protocol:test": "node --test tests/protocol/*.test.mjs",
     "core:load-smoke": "node tools/core-load-smoke.mjs",

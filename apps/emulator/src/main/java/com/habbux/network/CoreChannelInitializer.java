@@ -1,6 +1,7 @@
 package com.habbux.network;
 
 import com.habbux.config.AppConfig;
+import com.habbux.admin.HotelSettingsService;
 import com.habbux.auth.AuthService;
 import com.habbux.session.ConnectionRegistry;
 import com.habbux.session.Session;
@@ -27,23 +28,30 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final ChannelGroup childChannels;
     private final AuthService authService;
     private final RoomManager roomManager;
+    private final HotelSettingsService hotelSettings;
 
     CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels) {
-        this(config, registry, childChannels, null);
+        this(config, registry, childChannels, null, null, HotelSettingsService.unavailable());
     }
 
     CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels,
                            AuthService authService) {
-        this(config, registry, childChannels, authService, null);
+        this(config, registry, childChannels, authService, null, HotelSettingsService.unavailable());
     }
 
     CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels,
                            AuthService authService, RoomManager roomManager) {
+        this(config, registry, childChannels, authService, roomManager, HotelSettingsService.unavailable());
+    }
+
+    CoreChannelInitializer(AppConfig config, ConnectionRegistry registry, ChannelGroup childChannels,
+                           AuthService authService, RoomManager roomManager, HotelSettingsService hotelSettings) {
         this.config = config;
         this.registry = registry;
         this.childChannels = childChannels;
         this.authService = authService;
         this.roomManager = roomManager;
+        this.hotelSettings = hotelSettings;
     }
 
     @Override
@@ -58,6 +66,7 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
         channel.attr(SESSION).set(session);
         channel.pipeline().addLast("http", new HttpServerCodec());
         channel.pipeline().addLast("http-aggregate", new HttpObjectAggregator(8_192));
+        channel.pipeline().addLast("admin-http", new AdminHttpHandler(config, registry, roomManager, hotelSettings));
         channel.pipeline().addLast("origin", new OriginValidationHandler(config.allowedOrigins(), registry));
         channel.pipeline().addLast("websocket", new WebSocketServerProtocolHandler(
                 WebSocketServerProtocolConfig.newBuilder()
@@ -70,7 +79,7 @@ final class CoreChannelInitializer extends ChannelInitializer<SocketChannel> {
         channel.pipeline().addLast("websocket-aggregate", new WebSocketFrameAggregator(
                 CoreChannelHandler.HEADER_BYTES + config.maxPayloadBytes()));
         channel.pipeline().addLast("idle", new IdleStateHandler(config.idleTimeoutSeconds(), 0, 0, TimeUnit.SECONDS));
-        channel.pipeline().addLast("core", new CoreChannelHandler(config, registry, authService, roomManager));
+        channel.pipeline().addLast("core", new CoreChannelHandler(config, registry, authService, roomManager, hotelSettings));
         childChannels.add(channel);
     }
 }

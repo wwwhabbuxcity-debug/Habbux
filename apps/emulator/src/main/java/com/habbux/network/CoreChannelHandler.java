@@ -1,6 +1,7 @@
 package com.habbux.network;
 
 import com.habbux.config.AppConfig;
+import com.habbux.admin.HotelSettingsService;
 import com.habbux.auth.AuthFailure;
 import com.habbux.auth.AuthResult;
 import com.habbux.auth.AuthService;
@@ -43,6 +44,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private final MessageTokenBucket messageRateLimiter;
     private final AuthService authService;
     private final RoomManager roomManager;
+    private final HotelSettingsService hotelSettings;
     private ScheduledFuture<?> handshakeDeadline;
     private ScheduledFuture<?> authDeadline;
     private int messagesBeforeReady;
@@ -53,18 +55,24 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private static final long AUTH_TIMEOUT_SECONDS = 10;
 
     CoreChannelHandler(AppConfig config, ConnectionRegistry registry) {
-        this(config, registry, null);
+        this(config, registry, null, null, HotelSettingsService.unavailable());
     }
 
     CoreChannelHandler(AppConfig config, ConnectionRegistry registry, AuthService authService) {
-        this(config, registry, authService, null);
+        this(config, registry, authService, null, HotelSettingsService.unavailable());
     }
 
     CoreChannelHandler(AppConfig config, ConnectionRegistry registry, AuthService authService, RoomManager roomManager) {
+        this(config, registry, authService, roomManager, HotelSettingsService.unavailable());
+    }
+
+    CoreChannelHandler(AppConfig config, ConnectionRegistry registry, AuthService authService, RoomManager roomManager,
+                       HotelSettingsService hotelSettings) {
         this.config = config;
         this.registry = registry;
         this.authService = authService;
         this.roomManager = roomManager;
+        this.hotelSettings = hotelSettings;
         messageRateLimiter = new MessageTokenBucket(
                 config.messageRatePerSecond(), config.messageRateBurst(), System.nanoTime());
     }
@@ -241,6 +249,11 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             return;
         }
         try (request) {
+            if (!hotelSettings.registrationsEnabled()) {
+                session.transition(Session.State.AUTHENTICATING, Session.State.READY);
+                writeAuthFailure(ctx, AuthFailure.REJECTED);
+                return;
+            }
             startAuthentication(ctx, session, request.username(), request.email(), request.takePassword(), true);
         }
     }
@@ -351,6 +364,10 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             return;
         }
         if (roomManager == null) {
+            client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.UNAVAILABLE));
+            return;
+        }
+        if (hotelSettings.maintenanceEnabled()) {
             client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.UNAVAILABLE));
             return;
         }

@@ -28,6 +28,7 @@ proposta e não tratada como contrato.
 | [0017](0017-dom-ui-pixi-renderer.md) | DOM para interface convencional e PixiJS para o mundo | Aceita |
 | [0020](0020-complete-avatar-parts-and-retained-room-background.md) | Partes completas do avatar e geometria estática do quarto | Aceita |
 | [0021](0021-avatar-foot-support-pivot.md) | Apoio fixo dos pés como pivot da composição | Aceita |
+| [0022](0022-owner-admin-http-controls.md) | Controles administrativos HTTP no Emulator | Aceita |
 
 Aceito não significa implementação completa: veja os limites de cada decisão e
 os READMEs dos módulos ainda planejados.

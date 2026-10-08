@@ -1,7 +1,8 @@
 # Persistência e migrations
 
 PostgreSQL é a fonte de verdade persistente. Migrations criam identidade e
-credenciais do User/Auth Core e metadados/grade estática do Room Core. Estado de
+credenciais do User/Auth Core, metadados/grade estática do Room Core e controles
+operacionais do hotel. Estado de
 ocupação, caminhos e posições não é persistido.
 `migrations/` usa SQL versionado `Vnnnn__descricao.sql`, gerenciado por Flyway.
 Seeds sintéticas e snapshots só serão adicionados quando houver conteúdo real.
@@ -45,6 +46,10 @@ credenciais.
   grid de 1–64 por dimensão (até 4.096 bytes de walkability), tile de spawn e
   timestamps. Runtime usa somente `SELECT`/`INSERT`; não atualiza nem remove
   metadados por conexão de jogo.
+- `hotel_settings` (V0004): registro único de configuração operacional. O painel
+  protegido atualiza nome, mensagem, cadastros e manutenção pelo adaptador HTTP;
+  o processo mantém uma cópia de leitura para não consultar SQL em cadastro ou
+  entrada de quarto.
 - Índices: PKs e constraints `UNIQUE` geram somente os índices usados pela busca
   de login por `username_normalized` ou `email_normalized`; `idx_rooms_owner_id`
   serve a consulta de quartos do proprietário.
