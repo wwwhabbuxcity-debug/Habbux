@@ -29,7 +29,7 @@ html[data-theme="arcade-district"] .scene-shade,html[data-theme="carnival-night"
 html[data-theme="arcade-district"] .login-card,html[data-theme="carnival-night"] .login-card { background:rgba(13,15,58,calc(var(--card) / 100)); }
 
 @media (min-width:721px) {
-  .login-card { backdrop-filter:blur(22px) saturate(130%); background:rgba(5,12,32,.4); border:0; border-left:1px solid rgba(255,255,255,.2); box-shadow:-18px 0 60px rgba(0,0,0,.2); display:flex; flex-direction:column; justify-content:center; }
+  html[data-theme] .login-card { backdrop-filter:blur(22px) saturate(130%); background:rgba(5,12,32,.4); border:0; border-left:1px solid rgba(255,255,255,.2); box-shadow:-18px 0 60px rgba(0,0,0,.2); display:flex; flex-direction:column; justify-content:center; }
   .login-card > * { width:100%; }
 }
 
