@@ -6,6 +6,7 @@ import { resolveAvatarDirection, resolveMirroring } from '../src/renderer/avatar
 import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from '../src/renderer/avatar-animation.ts';
 import { resolveAvatarFrameSelection } from '../src/renderer/avatar-assets.ts';
 import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
+import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement } from '../src/renderer/avatar-composition.ts';
 import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
 import { avatarAnchor, floorSidePolygon, roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
 
@@ -90,6 +91,20 @@ test('manifest normalizado valida sheets, regiões, layers, direções e frames 
   assert.equal(Object.keys(manifest.regions).length, 264);
   assert.equal(manifest.directions.count, 8);
   assert.ok(manifest.parts.bd.actions.std?.genders.male.directions['0']?.frames['0']);
+});
+
+test('composição converte âncoras do manifesto para um canvas compartilhado', () => {
+  const frame = { region: 'x', offset: { x: -20, y: 49 } } as const;
+  const placement = resolveAvatarPartPlacement(frame, 25, 56);
+  assert.deepEqual(placement, { x: 20, y: -49, width: 25, height: 56 });
+  assert.deepEqual(avatarPartSpritePosition(placement), { x: 32.5, y: 7 });
+  const feet = new Map([
+    ['lg', resolveAvatarPartPlacement({ region: 'x', offset: { x: -21, y: 23 } }, 23, 24)],
+    ['sh', resolveAvatarPartPlacement({ region: 'x', offset: { x: -21, y: 6 } }, 25, 11)],
+  ]);
+  assert.equal(resolveAvatarFootAnchorX(feet), 33.5);
+  assert.equal(resolveAvatarCompositionOffsetX(33.5, false), -33.5);
+  assert.equal(resolveAvatarCompositionOffsetX(33.5, true), 33.5);
 });
 
 test('interpolação termina exatamente no destino e respeita os limites', () => {

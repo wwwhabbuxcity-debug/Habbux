@@ -6,6 +6,7 @@ import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-as
 import { avatarAnchor, isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { resolveAvatarDirection } from './avatar-direction';
 import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep } from './renderer-model';
+import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
 
 // The Room Engine still processes every 100 ms. Segment duration follows the
 // world-grid distance: 500 ms cardinal and 707 ms diagonal.
@@ -34,6 +35,7 @@ export class AvatarView {
   private readonly provider: AvatarAssetProvider;
   private readonly animation = new AvatarAnimationController(WALK_FRAME_DURATION_MS);
   private readonly sprites = new Map<AvatarPart, Sprite>();
+  private readonly composition = new Container();
   private readonly bubble = new Container();
   private readonly bubbleBackground = new Graphics();
   private readonly bubbleText = new Text({ text: '', style: { fill: 0xffffff, fontSize: 11, fontFamily: 'Arial' } });
@@ -69,6 +71,9 @@ export class AvatarView {
     this.isoConfig = options.isoConfig;
     this.container.label = `avatar:${occupant.userId}`;
     this.container.sortableChildren = true;
+    this.composition.label = 'avatar-composition';
+    this.composition.sortableChildren = true;
+    this.container.addChild(this.composition);
     this.bubble.visible = false;
     this.bubble.zIndex = 10_000;
     this.bubble.addChild(this.bubbleBackground, this.bubbleText);
@@ -210,17 +215,31 @@ export class AvatarView {
         sprite = new Sprite({ texture: resolved.texture, anchor: { x: 0.5, y: 1 }, roundPixels: false });
         sprite.zIndex = this.provider.manifest.parts[part].layer;
         this.sprites.set(part, sprite);
-        this.container.addChildAt(sprite, Math.min(this.container.children.length - 1, this.provider.manifest.layerOrder.indexOf(part)));
+        this.composition.addChild(sprite);
       } else {
         sprite.texture = resolved.texture;
       }
-      const width = resolved.texture.width;
-      const height = resolved.texture.height;
-      sprite.position.set(resolved.frame.offset.x + width / 2, height - resolved.frame.offset.y);
-      sprite.scale.x = resolved.mirrored ? -1 : 1;
+      const placement = resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height);
+      const position = avatarPartSpritePosition(placement);
+      sprite.position.set(position.x, position.y);
+      sprite.scale.x = 1;
       sprite.visible = true;
     }
-    this.container.sortChildren();
+    const placements = new Map<AvatarPart, AvatarPartPlacement>();
+    for (const part of this.provider.manifest.layerOrder) {
+      const resolved = this.provider.getFrame(this.gender, part, this.currentAction, this.direction, this.currentFrame);
+      if (resolved) placements.set(part, resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height));
+    }
+    const registration = new Map<AvatarPart, AvatarPartPlacement>();
+    for (const part of ['lg', 'sh'] as const) {
+      const resolved = this.provider.getFrame(this.gender, part, 'std', this.direction, 0);
+      if (resolved) registration.set(part, resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height));
+    }
+    const mirrored = this.provider.getFrame(this.gender, 'bd', this.currentAction, this.direction, this.currentFrame)?.mirrored ?? false;
+    const footAnchorX = resolveAvatarFootAnchorX(registration);
+    this.composition.position.x = resolveAvatarCompositionOffsetX(footAnchorX, mirrored);
+    this.composition.scale.x = mirrored ? -1 : 1;
+    this.composition.sortChildren();
     this.positionContainer();
   }
 
