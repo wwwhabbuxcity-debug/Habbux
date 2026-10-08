@@ -94,6 +94,43 @@ class RoomMovementTest {
     }
 
     @Test
+    @Timeout(10)
+    void mixedPathCombinesCardinalAndDiagonalSegmentDurations() throws Exception {
+        RoomMetadata room = metadata(88, 2, 6, 6, filled(36));
+        RoomManager manager = manager(id -> java.util.Optional.of(room), room.capacity(), 128, 100);
+        BlockingQueue<RoomOutbound> output = new LinkedBlockingQueue<>();
+        UUID sessionId = UUID.randomUUID();
+        try {
+            join(manager, room, sessionId, 1, output);
+            long started = System.nanoTime();
+            assertEquals(RoomRuntime.MoveOutcome.MOVING,
+                    manager.move(room.id(), sessionId, 5, 4, output::add).get(1, TimeUnit.SECONDS));
+            int x = 0;
+            int y = 0;
+            int diagonalSteps = 0;
+            int cardinalSteps = 0;
+            for (int step = 0; step < 5; step++) {
+                String[] coordinates = awaitPosition(output).split(",");
+                int nextX = Integer.parseInt(coordinates[0]);
+                int nextY = Integer.parseInt(coordinates[1]);
+                assertEquals(1, Math.max(Math.abs(nextX - x), Math.abs(nextY - y)));
+                if (nextX != x && nextY != y) diagonalSteps++;
+                else cardinalSteps++;
+                x = nextX;
+                y = nextY;
+            }
+            long elapsed = System.nanoTime() - started;
+            assertEquals(4, diagonalSteps);
+            assertEquals(1, cardinalSteps);
+            assertTrue(elapsed >= TimeUnit.MILLISECONDS.toNanos(2_800)
+                            && elapsed < TimeUnit.MILLISECONDS.toNanos(4_800),
+                    "mixed path should take about 3.33 seconds");
+        } finally {
+            assertTrue(manager.close(Duration.ofSeconds(3)));
+        }
+    }
+
+    @Test
     void movementStepDurationUsesWorldGridDistance() {
         assertEquals(500, RoomRuntime.movementStepMillis(1, 0));
         assertEquals(500, RoomRuntime.movementStepMillis(0, -1));
