@@ -150,7 +150,12 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
     const sheet = this.manifest.sheets[sheetId];
     if (!sheet) return Promise.reject(new Error(`Sheet de avatar ausente: ${sheetId}`));
     const url = new URL(sheet.src, this.assetBaseUrl).toString();
-    const promise = Assets.load<Texture>(url);
+    const promise = Assets.load<Texture>(url).then((texture) => {
+      // These are pixel-art sheets. Keep filtering stable at room zoom levels
+      // so interpolation changes position, never the sprite's sharpness.
+      texture.source.style.scaleMode = 'nearest';
+      return texture;
+    });
     this.sheetTextures.set(sheetId, promise);
     return promise;
   }

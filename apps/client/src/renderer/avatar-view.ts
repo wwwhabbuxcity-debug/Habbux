@@ -3,7 +3,7 @@ import type { RoomOccupant } from '../room/room-state';
 import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from './avatar-animation';
 import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './avatar-manifest';
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
-import { isoDepth, roomToScreen, type IsoConfig } from './isometric';
+import { avatarAnchor, isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { resolveAvatarDirection } from './avatar-direction';
 import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep } from './renderer-model';
 
@@ -53,6 +53,7 @@ export class AvatarView {
   private moveElapsedMs = 0;
   private moveDurationMs = DEFAULT_MOVEMENT_STEP_MS;
   private readonly pendingSegments: AvatarSegment[] = [];
+  private footOffset = 7;
   private moving = false;
   private direction = 0;
   private currentAction: AvatarAction = 'std';
@@ -197,6 +198,7 @@ export class AvatarView {
 
   private refreshSprites(): void {
     if (!this.ready || this.disposed) return;
+    this.footOffset = this.measureFootOffset();
     for (const part of this.provider.manifest.layerOrder) {
       const resolved = this.provider.getFrame(this.gender, part, this.currentAction, this.direction, this.currentFrame);
       let sprite = this.sprites.get(part);
@@ -205,7 +207,7 @@ export class AvatarView {
         continue;
       }
       if (!sprite) {
-        sprite = new Sprite({ texture: resolved.texture, anchor: { x: 0.5, y: 1 }, roundPixels: true });
+        sprite = new Sprite({ texture: resolved.texture, anchor: { x: 0.5, y: 1 }, roundPixels: false });
         sprite.zIndex = this.provider.manifest.parts[part].layer;
         this.sprites.set(part, sprite);
         this.container.addChildAt(sprite, Math.min(this.container.children.length - 1, this.provider.manifest.layerOrder.indexOf(part)));
@@ -219,11 +221,29 @@ export class AvatarView {
       sprite.visible = true;
     }
     this.container.sortChildren();
+    this.positionContainer();
+  }
+
+  private measureFootOffset(): number {
+    let bottom = 0;
+    for (const action of ['std', 'wlk'] as const) {
+      const actionDefinition = this.provider.manifest.parts.bd.actions[action];
+      const frameCount = actionDefinition?.frameCount ?? 1;
+      for (let frame = 0; frame < frameCount; frame++) {
+        for (const part of this.provider.manifest.layerOrder) {
+          const resolved = this.provider.getFrame(this.gender, part, action, this.direction, frame);
+          if (resolved) bottom = Math.max(bottom, resolved.texture.height - resolved.frame.offset.y);
+        }
+      }
+    }
+    return bottom;
   }
 
   private positionContainer(): void {
-    const point = roomToScreen(this.renderX, this.renderY, this.renderZ, this.isoConfig);
-    this.container.position.set(point.x, point.y);
+    const point = avatarAnchor(roomToScreen(this.renderX, this.renderY, this.renderZ, this.isoConfig), this.isoConfig, this.footOffset);
+    // Snap the composed avatar once. Snapping each body part independently
+    // makes pieces land on different pixels while the avatar is interpolating.
+    this.container.position.set(Math.round(point.x), Math.round(point.y));
     this.container.scale.set(this.isoConfig.scale);
     this.container.zIndex = isoDepth(this.renderY, this.renderX, this.renderZ);
   }

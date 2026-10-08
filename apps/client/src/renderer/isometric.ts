@@ -46,6 +46,14 @@ export function tilePolygon(center: IsoPoint, config: IsoConfig = DEFAULT_ISO_CO
   ];
 }
 
+/** Screen anchor for an avatar whose sprite feet are `footOffset` px below its local origin. */
+export function avatarAnchor(center: IsoPoint, config: IsoConfig = DEFAULT_ISO_CONFIG, footOffset = 0): IsoPoint {
+  return {
+    x: center.x,
+    y: center.y + (config.tileHeight / 2 - footOffset) * config.scale,
+  };
+}
+
 export type IsoFloorSide = 'x' | 'y';
 
 /** Extruded visible edge of a tile, used for the small floor slab border. */
