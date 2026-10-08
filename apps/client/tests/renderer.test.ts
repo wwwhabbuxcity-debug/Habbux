@@ -7,7 +7,7 @@ import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from '../src/render
 import { resolveAvatarFrameSelection } from '../src/renderer/avatar-assets.ts';
 import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
 import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
-import { roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
+import { floorSidePolygon, roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
 
 test('velocidade usa 500 ms no cardinal e 707 ms no diagonal do grid', () => {
   assert.equal(avatarMovementDurationMs(1, 0), 500);
@@ -25,6 +25,14 @@ test('projeção isométrica volta ao tile original e gera losango fechado', () 
   assert.ok(Math.abs(room.x - 7) < 0.000001);
   assert.ok(Math.abs(room.y - 3) < 0.000001);
   assert.equal(tilePolygon(screen, config).length, 4);
+});
+
+test('bordas do piso são extrudadas para baixo sem alterar o topo isométrico', () => {
+  const top = tilePolygon({ x: 100, y: 80 });
+  const side = floorSidePolygon(top, 'x', 8);
+  assert.equal(side.length, 4);
+  assert.equal(side[2].x, side[1].x);
+  assert.equal(side[2].y - side[1].y, 8);
 });
 
 test('direção usa oito setores estáveis e as três direções espelhadas do manifest', () => {

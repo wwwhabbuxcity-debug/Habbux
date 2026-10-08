@@ -17,6 +17,16 @@ export interface AvatarViewOptions {
   readonly isoConfig: IsoConfig;
 }
 
+interface AvatarSegment {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly durationMs: number;
+  readonly direction: number;
+}
+
+const MAX_QUEUED_SEGMENTS = 256;
+
 export class AvatarView {
   readonly container = new Container();
   readonly userId: string;
@@ -42,6 +52,7 @@ export class AvatarView {
   private moveStartZ = 0;
   private moveElapsedMs = 0;
   private moveDurationMs = DEFAULT_MOVEMENT_STEP_MS;
+  private readonly pendingSegments: AvatarSegment[] = [];
   private moving = false;
   private direction = 0;
   private currentAction: AvatarAction = 'std';
@@ -74,29 +85,37 @@ export class AvatarView {
     if (x === this.logicalX && y === this.logicalY && z === this.logicalZ && !snap) return;
     const deltaX = x - this.logicalX;
     const deltaY = y - this.logicalY;
-    if (!snap) this.direction = resolveAvatarDirection(deltaX, deltaY, this.direction);
+    const nextDirection = snap ? this.direction : resolveAvatarDirection(deltaX, deltaY, this.direction);
     this.logicalX = x;
     this.logicalY = y;
     this.logicalZ = z;
-    this.targetX = x;
-    this.targetY = y;
-    this.targetZ = z;
+
     if (snap || !isAdjacentAvatarStep(deltaX, deltaY)) {
+      this.pendingSegments.length = 0;
       this.renderX = x;
       this.renderY = y;
       this.renderZ = z;
       this.moveStartX = x;
       this.moveStartY = y;
       this.moveStartZ = z;
+      this.targetX = x;
+      this.targetY = y;
+      this.targetZ = z;
       this.moveElapsedMs = this.moveDurationMs;
       this.moving = false;
     } else {
-      this.moveDurationMs = avatarMovementDurationMs(deltaX, deltaY);
-      this.moveStartX = this.renderX;
-      this.moveStartY = this.renderY;
-      this.moveStartZ = this.renderZ;
-      this.moveElapsedMs = 0;
-      this.moving = true;
+      const segment: AvatarSegment = {
+        x,
+        y,
+        z,
+        durationMs: avatarMovementDurationMs(deltaX, deltaY),
+        direction: nextDirection,
+      };
+      if (this.moving) {
+        if (this.pendingSegments.length < MAX_QUEUED_SEGMENTS) this.pendingSegments.push(segment);
+      } else {
+        this.startSegment(segment);
+      }
     }
     this.positionContainer();
   }
@@ -114,7 +133,9 @@ export class AvatarView {
         this.renderX = this.targetX;
         this.renderY = this.targetY;
         this.renderZ = this.targetZ;
-        this.moving = false;
+        const next = this.pendingSegments.shift();
+        if (next) this.startSegment(next);
+        else this.moving = false;
       }
       this.positionContainer();
     }
@@ -129,6 +150,19 @@ export class AvatarView {
       this.bubbleRemainingMs = Math.max(0, this.bubbleRemainingMs - Math.max(0, deltaMs));
       this.bubble.visible = this.bubbleRemainingMs > 0;
     }
+  }
+
+  private startSegment(segment: AvatarSegment): void {
+    this.moveStartX = this.renderX;
+    this.moveStartY = this.renderY;
+    this.moveStartZ = this.renderZ;
+    this.targetX = segment.x;
+    this.targetY = segment.y;
+    this.targetZ = segment.z;
+    this.moveDurationMs = segment.durationMs;
+    this.moveElapsedMs = 0;
+    this.direction = segment.direction;
+    this.moving = true;
   }
 
   setBubble(message: string): void {

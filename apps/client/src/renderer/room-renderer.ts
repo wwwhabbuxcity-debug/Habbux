@@ -4,7 +4,7 @@ import { Application, Container, Graphics, Rectangle } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { AvatarView } from './avatar-view';
-import { roomToScreen, screenToRoom, tilePolygon, type IsoConfig } from './isometric';
+import { floorSidePolygon, roomToScreen, screenToRoom, tilePolygon, type IsoConfig, type IsoFloorSide } from './isometric';
 import { reconcileEntityIds } from './renderer-model';
 
 const MAX_DPR = 2;
@@ -173,17 +173,44 @@ export class RoomRenderer {
 
   private drawFloor(room: RoomState): void {
     this.floorLayer.clear();
-    for (let y = 0; y < room.height; y++) {
-      for (let x = 0; x < room.width; x++) {
+    const cells = Array.from({ length: room.width * room.height }, (_, index) => ({
+      x: index % room.width,
+      y: Math.floor(index / room.width),
+    })).sort((left, right) => left.x + left.y - right.x - right.y);
+    for (const { x, y } of cells) {
         const elevation = room.elevations[y * room.width + x] ?? 0;
         const center = roomToScreen(x, y, elevation, this.config);
-        const polygon = tilePolygon(center, this.config).flatMap((point) => [point.x, point.y]);
+        const top = tilePolygon(center, this.config);
         const walkable = room.walkability[y * room.width + x] === true;
-        const color = !walkable ? 0x1e303c : elevation === 0 ? 0x315462 : elevation < 3 ? 0x42677a : 0x5b7d72;
-        this.floorLayer.poly(polygon).fill({ color, alpha: walkable ? 0.95 : 0.75 });
-        this.floorLayer.poly(polygon).stroke({ color: walkable ? 0x5b8790 : 0x304a55, width: 1, alpha: 0.8 });
-      }
+        const topPolygon = top.flatMap((point) => [point.x, point.y]);
+        const topColor = !walkable
+          ? 0x172b35
+          : elevation === 0
+            ? ((x + y) % 2 === 0 ? 0x3d6974 : 0x416f7a)
+            : elevation < 3 ? 0x4c7480 : 0x668476;
+        for (const side of ['x', 'y'] as const) {
+          const neighbor = this.neighborElevation(room, x, y, side);
+          if (neighbor !== null && neighbor >= elevation) continue;
+          const depth = neighbor === null
+            ? 8 * this.config.scale
+            : Math.max(4 * this.config.scale, (elevation - neighbor) * this.config.elevationHeight * this.config.scale);
+          const sidePolygon = floorSidePolygon(top, side, depth).flatMap((point) => [point.x, point.y]);
+          this.floorLayer.poly(sidePolygon).fill({
+            color: side === 'x' ? 0x203d48 : 0x294954,
+            alpha: walkable ? 0.96 : 0.82,
+          });
+          this.floorLayer.poly(sidePolygon).stroke({ color: 0x162a34, width: 1, alpha: 0.7 });
+        }
+        this.floorLayer.poly(topPolygon).fill({ color: topColor, alpha: walkable ? 0.96 : 0.82 });
+        this.floorLayer.poly(topPolygon).stroke({ color: walkable ? 0x77a6a2 : 0x38515a, width: 1, alpha: 0.78 });
     }
+  }
+
+  private neighborElevation(room: RoomState, x: number, y: number, side: IsoFloorSide): number | null {
+    const nextX = side === 'x' ? x + 1 : x;
+    const nextY = side === 'y' ? y + 1 : y;
+    if (nextX < 0 || nextX >= room.width || nextY < 0 || nextY >= room.height) return null;
+    return room.elevations[nextY * room.width + nextX] ?? 0;
   }
 
   private drawDebug(room: RoomState): void {

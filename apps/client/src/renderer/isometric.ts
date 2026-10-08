@@ -46,6 +46,20 @@ export function tilePolygon(center: IsoPoint, config: IsoConfig = DEFAULT_ISO_CO
   ];
 }
 
+export type IsoFloorSide = 'x' | 'y';
+
+/** Extruded visible edge of a tile, used for the small floor slab border. */
+export function floorSidePolygon(top: readonly IsoPoint[], side: IsoFloorSide, depth: number): readonly IsoPoint[] {
+  const start = side === 'x' ? top[1]! : top[2]!;
+  const end = side === 'x' ? top[2]! : top[3]!;
+  return [
+    start,
+    end,
+    { x: end.x, y: end.y + depth },
+    { x: start.x, y: start.y + depth },
+  ];
+}
+
 export function isoDepth(x: number, y: number, elevation = 0): number {
   return x + y + elevation * 0.01;
 }
