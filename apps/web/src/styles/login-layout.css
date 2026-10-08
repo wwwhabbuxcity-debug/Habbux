@@ -4,6 +4,13 @@ html,body { height:100%; overflow:hidden; }
 .hero-copy { top:50%; transform:translateY(-50%); }
 .login-card { max-height:calc(100dvh - 30px); overflow:hidden; }
 
+@media (min-width:721px) {
+  .login-page { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .hero { grid-column:1; width:100%; }
+  .hero-copy { max-width:min(28rem,36vw); }
+  .login-card { align-self:center; grid-column:2; justify-self:center; position:relative; right:auto; top:auto; transform:none; width:min(365px,calc(50vw - 48px)); }
+}
+
 html[data-theme="tropical-blue"] .hero-copy,
 html[data-theme="sunset-pink"] .hero-copy,
 html[data-theme="cosmic-blue"] .hero-copy { top:50%; transform:translateY(-50%); }
