@@ -26,7 +26,7 @@ export interface FloorSurface {
 }
 export interface WallSurface {
   readonly x: number; readonly y: number; readonly side: 'x' | 'y';
-  readonly front: SurfaceFace; readonly cap: SurfaceFace; readonly end: SurfaceFace | null;
+  readonly front: SurfaceFace; readonly cap: SurfaceFace; readonly end: SurfaceFace | null; readonly startEnd: SurfaceFace | null;
   readonly base: readonly IsoPoint[];
   readonly depth: number;
 }
@@ -47,6 +47,21 @@ function elevationAt(room: RoomState, x: number, y: number): number | null {
 export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE): RoomSurfaces {
   const floors: FloorSurface[] = [];
   const walls: WallSurface[] = [];
+  // One ceiling and one outer vertex per junction. Front panels keep their own
+  // depth for occlusion, while their caps meet at convex AND recessed corners.
+  const ceiling = Math.max(0, ...room.elevations) + style.wallHeight;
+  const junctions = new Map<string, { x: boolean; y: boolean; edges: number }>();
+  const key = (x: number, y: number): string => `${x},${y}`;
+  if (style.walls) for (let y = 0; y < room.height; y++) for (let x = 0; x < room.width; x++) {
+    if (elevationAt(room, x, y) === null) continue;
+    for (const side of ['x', 'y'] as const) {
+      if (elevationAt(room, x - (side === 'x' ? 1 : 0), y - (side === 'y' ? 1 : 0)) !== null) continue;
+      for (const p of [{ x: x - 0.5, y: y - 0.5 }, { x: x + (side === 'y' ? 0.5 : -0.5), y: y + (side === 'x' ? 0.5 : -0.5) }]) {
+        const id = key(p.x, p.y), joint = junctions.get(id) ?? { x: false, y: false, edges: 0 };
+        joint[side] = true; joint.edges++; junctions.set(id, joint);
+      }
+    }
+  }
   for (let y = 0; y < room.height; y++) {
     for (let x = 0; x < room.width; x++) {
       const z = elevationAt(room, x, y);
@@ -61,7 +76,9 @@ export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: Roo
         const depth = (z - bottom) * config.elevationHeight * config.scale;
         sides.push({ polygon: floorSidePolygon(top, side, depth), color: shadeColor(style.floorColor, side === 'x' ? 0.62 : 0.76) });
       }
-      const variation = style.floorMaterial === 'wood' ? ((x >> 1) + y) % 3 * 0.025 : 0;
+      // Material boards span several grid cells. Grid boundaries are interaction
+      // geometry, not a checkerboard texture.
+      const variation = style.floorMaterial === 'wood' ? ((Math.floor((x + (y % 2) * 2) / 4) + y) % 3) * 0.008 : 0;
       floors.push({ x, y, elevation: z, top: { polygon: top, color: shadeColor(style.floorColor, 1 - variation) }, sides, depth: isoDepth(x, y) - 0.25 });
       if (!style.walls) continue;
       for (const side of ['x', 'y'] as const) {
@@ -69,22 +86,22 @@ export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: Roo
         // Back-facing boundary of the actual occupied footprint, including recesses.
         const a = { x: x - 0.5, y: y - 0.5 };
         const b = { x: x + (side === 'y' ? 0.5 : -0.5), y: y + (side === 'x' ? 0.5 : -0.5) };
-        const outward = { x: side === 'x' ? -style.wallThickness : 0, y: side === 'y' ? -style.wallThickness : 0 };
         const p0 = roomToScreen(a.x, a.y, z, config);
         const p1 = roomToScreen(b.x, b.y, z, config);
-        const t0 = roomToScreen(a.x, a.y, z + style.wallHeight, config);
-        const t1 = roomToScreen(b.x, b.y, z + style.wallHeight, config);
-        const corner = elevationAt(room, x - 1, y) === null && elevationAt(room, x, y - 1) === null;
-        const outer0 = roomToScreen(a.x + (corner ? -style.wallThickness : outward.x), a.y + (corner ? -style.wallThickness : outward.y), z + style.wallHeight, config);
-        const outer1 = roomToScreen(b.x + outward.x, b.y + outward.y, z + style.wallHeight, config);
-        const outerBase = roomToScreen(b.x + outward.x, b.y + outward.y, z, config);
-        const nextX = x + (side === 'y' ? 1 : 0), nextY = y + (side === 'x' ? 1 : 0);
-        const continued = elevationAt(room, nextX, nextY) === z
-          && elevationAt(room, nextX - (side === 'x' ? 1 : 0), nextY - (side === 'y' ? 1 : 0)) === null;
+        const t0 = roomToScreen(a.x, a.y, ceiling, config);
+        const t1 = roomToScreen(b.x, b.y, ceiling, config);
+        const outer = (p: IsoPoint, height: number): IsoPoint => {
+          const joint = junctions.get(key(p.x, p.y))!;
+          return roomToScreen(p.x - (joint.x ? style.wallThickness : 0), p.y - (joint.y ? style.wallThickness : 0), height, config);
+        };
+        const outer0 = outer(a, ceiling), outer1 = outer(b, ceiling);
+        const outerBase = outer(b, z);
+        const continued = junctions.get(key(b.x, b.y))!.edges > 1;
         walls.push({ x, y, side, base: [p0, p1], depth: isoDepth(x, y) - 0.5,
           front: { polygon: [p0, p1, t1, t0], color: shadeColor(style.wallColor, side === 'x' ? 0.80 : 1) },
           cap: { polygon: [t0, t1, outer1, outer0], color: shadeColor(style.wallColor, 1.12) },
           end: continued ? null : { polygon: [p1, outerBase, outer1, t1], color: shadeColor(style.wallColor, 0.66) },
+          startEnd: junctions.get(key(a.x, a.y))!.edges > 1 ? null : { polygon: [p0, outer(a, z), outer0, t0], color: shadeColor(style.wallColor, 0.66) },
         });
       }
     }

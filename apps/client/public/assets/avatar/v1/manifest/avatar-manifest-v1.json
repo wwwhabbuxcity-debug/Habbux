@@ -1776,18 +1776,19 @@
               }
             },
             "female": {
-              "sourceGender": 999,
+              "sourceGender": 1,
               "directions": {
                 "0": {
                   "renderDirection": 0,
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_0_0",
+                      "region": "hh_human_body:h_std_bd_1_0_0",
                       "offset": {
                         "x": -20,
                         "y": 49
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_0_0"
                     }
                   }
                 },
@@ -1796,11 +1797,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_1_0",
+                      "region": "hh_human_body:h_std_bd_1_1_0",
                       "offset": {
                         "x": -24,
                         "y": 49
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_1_0"
                     }
                   }
                 },
@@ -1809,11 +1811,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_2_0",
+                      "region": "hh_human_body:h_std_bd_1_2_0",
                       "offset": {
                         "x": -22,
                         "y": 50
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_2_0"
                     }
                   }
                 },
@@ -1822,11 +1825,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_3_0",
+                      "region": "hh_human_body:h_std_bd_1_3_0",
                       "offset": {
                         "x": -21,
                         "y": 50
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_3_0"
                     }
                   }
                 },
@@ -1835,11 +1839,12 @@
                   "mirrored": true,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_2_0",
+                      "region": "hh_human_body:h_std_bd_1_2_0",
                       "offset": {
                         "x": -22,
                         "y": 50
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_2_0"
                     }
                   }
                 },
@@ -1848,11 +1853,12 @@
                   "mirrored": true,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_1_0",
+                      "region": "hh_human_body:h_std_bd_1_1_0",
                       "offset": {
                         "x": -24,
                         "y": 49
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_1_0"
                     }
                   }
                 },
@@ -1861,11 +1867,12 @@
                   "mirrored": true,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_0_0",
+                      "region": "hh_human_body:h_std_bd_1_0_0",
                       "offset": {
                         "x": -20,
                         "y": 49
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_0_0"
                     }
                   }
                 },
@@ -1874,11 +1881,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_body:h_std_bd_999_7_0",
+                      "region": "hh_human_body:h_std_bd_1_7_0",
                       "offset": {
                         "x": -22,
                         "y": 47
-                      }
+                      },
+                      "sourceFallback": "h_std_bd_1_7_0"
                     }
                   }
                 }
@@ -2757,20 +2765,6 @@
                     }
                   }
                 },
-                "3": {
-                  "renderDirection": 3,
-                  "mirrored": false,
-                  "frames": {
-                    "0": {
-                      "region": "hh_human_hair:h_std_hrb_1_0_0",
-                      "offset": {
-                        "x": -18,
-                        "y": 78
-                      },
-                      "sourceFallback": "h_std_hrb_1_0_0"
-                    }
-                  }
-                },
                 "4": {
                   "renderDirection": 2,
                   "mirrored": true,
@@ -3304,12 +3298,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_leg:h_std_lg_2_0_0",
+                      "region": "hh_human_leg:h_std_lg_1_1_0",
                       "offset": {
-                        "x": -24,
-                        "y": 23
+                        "x": -26,
+                        "y": 19
                       },
-                      "sourceFallback": "h_std_lg_2_0_0"
+                      "sourceFallback": "h_std_lg_1_1_0"
                     }
                   }
                 },
@@ -3357,12 +3351,12 @@
                   "mirrored": true,
                   "frames": {
                     "0": {
-                      "region": "hh_human_leg:h_std_lg_2_0_0",
+                      "region": "hh_human_leg:h_std_lg_1_1_0",
                       "offset": {
-                        "x": -24,
-                        "y": 23
+                        "x": -26,
+                        "y": 19
                       },
-                      "sourceFallback": "h_std_lg_2_0_0"
+                      "sourceFallback": "h_std_lg_1_1_0"
                     }
                   }
                 },
@@ -4869,12 +4863,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_shirt:h_std_ch_2_1_0",
+                      "region": "hh_human_shirt:h_std_ch_1_0_0",
                       "offset": {
                         "x": -19,
                         "y": 48
                       },
-                      "sourceFallback": "h_std_ch_2_1_0"
+                      "sourceFallback": "h_std_ch_1_0_0"
                     }
                   }
                 },
@@ -4948,12 +4942,12 @@
                   "mirrored": true,
                   "frames": {
                     "0": {
-                      "region": "hh_human_shirt:h_std_ch_2_1_0",
+                      "region": "hh_human_shirt:h_std_ch_1_0_0",
                       "offset": {
                         "x": -19,
                         "y": 48
                       },
-                      "sourceFallback": "h_std_ch_2_1_0"
+                      "sourceFallback": "h_std_ch_1_0_0"
                     }
                   }
                 },
@@ -5113,12 +5107,12 @@
                   "mirrored": false,
                   "frames": {
                     "0": {
-                      "region": "hh_human_shirt:h_std_ls_2_0_0",
+                      "region": "hh_human_shirt:h_std_ls_1_1_0",
                       "offset": {
                         "x": -28,
                         "y": 42
                       },
-                      "sourceFallback": "h_std_ls_2_0_0"
+                      "sourceFallback": "h_std_ls_1_1_0"
                     }
                   }
                 },
@@ -5166,12 +5160,12 @@
                   "mirrored": true,
                   "frames": {
                     "0": {
-                      "region": "hh_human_shirt:h_std_ls_2_0_0",
+                      "region": "hh_human_shirt:h_std_ls_1_1_0",
                       "offset": {
                         "x": -28,
                         "y": 42
                       },
-                      "sourceFallback": "h_std_ls_2_0_0"
+                      "sourceFallback": "h_std_ls_1_1_0"
                     }
                   }
                 },
@@ -5225,8 +5219,8 @@
                     "1": {
                       "region": "hh_human_shirt:h_wlk_ls_1_0_0",
                       "offset": {
-                        "x": -18,
-                        "y": 46
+                        "x": -17,
+                        "y": 44
                       },
                       "sourceFallback": "h_wlk_ls_1_0_0"
                     },
@@ -5432,8 +5426,8 @@
                     "1": {
                       "region": "hh_human_shirt:h_wlk_ls_1_0_0",
                       "offset": {
-                        "x": -18,
-                        "y": 46
+                        "x": -17,
+                        "y": 44
                       },
                       "sourceFallback": "h_wlk_ls_1_0_0"
                     },
@@ -5534,8 +5528,8 @@
                     "0": {
                       "region": "hh_human_shirt:h_wlk_ls_2_1_1",
                       "offset": {
-                        "x": -27,
-                        "y": 45
+                        "x": -26,
+                        "y": 42
                       },
                       "sourceFallback": "h_wlk_ls_2_1_1"
                     },
@@ -5673,8 +5667,8 @@
                     "0": {
                       "region": "hh_human_shirt:h_wlk_ls_2_1_1",
                       "offset": {
-                        "x": -27,
-                        "y": 45
+                        "x": -26,
+                        "y": 42
                       },
                       "sourceFallback": "h_wlk_ls_2_1_1"
                     },
@@ -5743,7 +5737,7 @@
                       "region": "hh_human_shirt:h_wlk_ls_2_7_1",
                       "offset": {
                         "x": -17,
-                        "y": 45
+                        "y": 44
                       },
                       "sourceFallback": "h_wlk_ls_2_7_1"
                     },
@@ -6256,8 +6250,8 @@
                     "0": {
                       "region": "hh_human_shirt:h_wlk_rs_1_7_1",
                       "offset": {
-                        "x": -43,
-                        "y": 44
+                        "x": -42,
+                        "y": 43
                       },
                       "sourceFallback": "h_wlk_rs_1_7_1"
                     },
@@ -6760,20 +6754,6 @@
                     }
                   }
                 },
-                "3": {
-                  "renderDirection": 3,
-                  "mirrored": false,
-                  "frames": {
-                    "0": {
-                      "region": "hh_human_face:h_std_ey_1_1_0",
-                      "offset": {
-                        "x": -26,
-                        "y": 58
-                      },
-                      "sourceFallback": "h_std_ey_1_1_0"
-                    }
-                  }
-                },
                 "4": {
                   "renderDirection": 2,
                   "mirrored": true,
@@ -6805,20 +6785,6 @@
             "female": {
               "sourceGender": 2,
               "directions": {
-                "1": {
-                  "renderDirection": 1,
-                  "mirrored": false,
-                  "frames": {
-                    "0": {
-                      "region": "hh_human_face:h_std_ey_2_2_0",
-                      "offset": {
-                        "x": -37,
-                        "y": 62
-                      },
-                      "sourceFallback": "h_std_ey_2_2_0"
-                    }
-                  }
-                },
                 "2": {
                   "renderDirection": 2,
                   "mirrored": false,
@@ -6855,20 +6821,6 @@
                         "x": -33,
                         "y": 62
                       }
-                    }
-                  }
-                },
-                "5": {
-                  "renderDirection": 1,
-                  "mirrored": true,
-                  "frames": {
-                    "0": {
-                      "region": "hh_human_face:h_std_ey_2_2_0",
-                      "offset": {
-                        "x": -37,
-                        "y": 62
-                      },
-                      "sourceFallback": "h_std_ey_2_2_0"
                     }
                   }
                 }

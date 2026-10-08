@@ -1,6 +1,6 @@
 import { Application, Container, Graphics, Sprite, Text } from 'pixi.js';
 import { createAvatarAssetProvider, loadAvatarManifest } from './avatar-assets';
-import type { AvatarPart } from './avatar-manifest';
+import type { AvatarGender, AvatarPart } from './avatar-manifest';
 import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
 
 const MANIFEST_PATH = '/client/assets/avatar/v1/manifest/avatar-manifest-v1.json';
@@ -13,7 +13,8 @@ const WALK_FRAME_COUNT = 4;
 export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Promise<() => void> {
   const manifest = await loadAvatarManifest(new URL(MANIFEST_PATH, window.location.origin).toString());
   const provider = createAvatarAssetProvider(manifest, new URL(ASSET_BASE_PATH, window.location.origin).toString());
-  await provider.preload('male');
+  const gender: AvatarGender = new URLSearchParams(window.location.search).get('avatar-gender') === 'female' ? 'female' : 'male';
+  await provider.preload(gender);
   const app = new Application();
   await app.init({
     width: CELL_WIDTH * 5,
@@ -52,7 +53,7 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
       const placements = new Map<AvatarPart, AvatarPartPlacement>();
       let mirrored = false;
       for (const part of manifest.layerOrder) {
-        const resolved = provider.getFrame('male', part, action, direction, frame);
+        const resolved = provider.getFrame(gender, part, action, direction, frame);
         if (!resolved) continue;
         const placement = resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height);
         placements.set(part, placement);
@@ -70,14 +71,14 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
       }
       const registration = new Map<AvatarPart, AvatarPartPlacement>();
       for (const part of ['lg', 'sh'] as const) {
-        const resolved = provider.getFrame('male', part, 'std', direction, 0);
+        const resolved = provider.getFrame(gender, part, 'std', direction, 0);
         if (resolved) registration.set(part, resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height));
       }
       const registrationX = resolveAvatarFootAnchorX(registration);
       composition.position.set(resolveAvatarCompositionOffsetX(registrationX, mirrored), 36);
       composition.scale.x = mirrored ? -1 : 1;
       const guide = new Graphics()
-        .rect(bounds.minX - registrationX, bounds.minY + 36, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY)
+        .rect(mirrored ? registrationX - bounds.maxX : bounds.minX - registrationX, bounds.minY + 36, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY)
         .stroke({ color: 0xffd166, width: 1, alpha: 0.7 })
         .moveTo(-CELL_WIDTH / 2 + 8, bounds.maxY + 36)
         .lineTo(CELL_WIDTH / 2 - 8, bounds.maxY + 36)
@@ -89,7 +90,7 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
     }
   }
   app.render();
-  status.textContent = 'Matriz visual pronta: 8 direções, 4 frames WALK, STAND, bbox e linha dos pés.';
+  status.textContent = `Matriz visual ${gender}: 8 direções, 4 frames WALK, STAND, bbox e linha dos pés.`;
   const { mountWorldLab } = await import('./world-lab');
   const disposeWorld = await mountWorldLab(host);
   return () => { disposeWorld(); provider.dispose(); app.destroy(true, { children: true }); host.replaceChildren(); };

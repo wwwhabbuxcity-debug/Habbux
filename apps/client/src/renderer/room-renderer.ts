@@ -167,6 +167,7 @@ export class RoomRenderer {
   private applyRoom(room: RoomState | null): void {
     this.currentRoom = room;
     if (!room || !this.provider) {
+      this.floorLayer.cacheAsTexture(false);
       this.floorLayer.clear();
       this.clearSurfaces();
       this.floorSignature = '';
@@ -219,6 +220,7 @@ export class RoomRenderer {
   }
 
   private drawFloor(room: RoomState): void {
+    this.floorLayer.cacheAsTexture(false);
     this.floorLayer.clear();
     this.clearSurfaces();
     const surfaces = buildRoomSurfaces(room, this.config, this.style);
@@ -231,30 +233,68 @@ export class RoomRenderer {
         this.entityLayer.addChild(g);
         this.surfaceObjects.push(g);
       }
-      for (const side of floor.sides) g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(side.color);
+      for (const side of floor.sides) {
+        g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(side.color);
+        const [a,b] = side.polygon;
+        g.moveTo(a!.x,a!.y).lineTo(b!.x,b!.y).stroke({color:shadeColor(this.style.floorColor,1.12),width:this.config.scale,alpha:0.4});
+      }
       const top = floor.top.polygon;
       g.poly(top.flatMap(p => [p.x, p.y])).fill(floor.top.color);
-      // Shared plank joints are quiet; exterior relief comes from the slab.
-      g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[1]!.x, top[1]!.y)
-        .stroke({ color: colorLine, width: Math.max(0.5, this.config.scale), alpha: 0.22 });
-      if (this.style.floorMaterial === 'stone' || floor.x % 2 === floor.y % 2) {
+      // World-aligned material: four-cell staggered boards, or large stone slabs.
+      // No outline around each interaction tile. Geometry is built on resize only.
+      const wood = this.style.floorMaterial === 'wood';
+      if (wood || floor.y % 2 === 0) g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[1]!.x, top[1]!.y)
+        .stroke({ color: colorLine, width: this.config.scale, alpha: 0.10 });
+      if (wood ? (floor.x + (floor.y % 2) * 2) % 4 === 0 : floor.x % 2 === 0) {
         g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[3]!.x, top[3]!.y)
-          .stroke({ color: colorLine, width: Math.max(0.5, this.config.scale), alpha: 0.14 });
+          .stroke({ color: colorLine, width: this.config.scale, alpha: 0.09 });
       }
+      if (wood && this.config.scale >= 0.5 && (floor.x + floor.y) % 4 === 0) {
+        for (const fraction of [0.28,0.72]) {
+          const a = roomToScreen(floor.x-0.35,floor.y-0.5+fraction,floor.elevation,this.config);
+          const b = roomToScreen(floor.x+0.35,floor.y-0.5+fraction,floor.elevation,this.config);
+          g.moveTo(a.x,a.y).lineTo(b.x,b.y);
+        }
+        g.stroke({color:colorLine,width:this.config.scale*0.5,alpha:0.035});
+      }
+    }
+    // The flat floor never changes during a walk. Rasterize it once per room /
+    // resize, rather than submit hundreds of static material paths each frame.
+    // Raised floors stay in the depth-sorted layer; hover is a separate object.
+    if (surfaces.floors.some(floor => floor.elevation === 0)) {
+      this.floorLayer.cacheAsTexture({resolution: Math.min(window.devicePixelRatio || 1, MAX_DPR), antialias: false});
     }
     for (const wall of surfaces.walls) {
       const g = new Graphics();
       g.label = `wall:${wall.side}:${wall.x},${wall.y}`;
       g.zIndex = wall.depth;
-      for (const face of [wall.end, wall.front, wall.cap]) {
+      for (const face of [wall.startEnd, wall.end, wall.front, wall.cap]) {
         if (face) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(face.color);
       }
       const [a, b] = wall.base;
+      const [, , topB, topA] = wall.front.polygon;
       const trimHeight = this.style.floorThickness * this.config.elevationHeight * this.config.scale;
       g.poly([a!.x, a!.y, b!.x, b!.y, b!.x, b!.y - trimHeight, a!.x, a!.y - trimHeight])
         .fill(shadeColor(this.style.wallColor, 0.66));
       g.moveTo(a!.x, a!.y - trimHeight).lineTo(b!.x, b!.y - trimHeight)
         .stroke({ color: shadeColor(this.style.wallColor, 1.15), width: Math.max(0.5, this.config.scale), alpha: 0.65 });
+      // Continuous cornice and restrained plaster grain from original vector
+      // geometry; no Gallaxys textures or runtime dependency.
+      g.poly([topA!.x,topA!.y,topB!.x,topB!.y,topB!.x,topB!.y+trimHeight/2,topA!.x,topA!.y+trimHeight/2])
+        .fill({color:shadeColor(wall.front.color,0.72),alpha:0.18});
+      g.moveTo(topA!.x,topA!.y).lineTo(topB!.x,topB!.y)
+        .stroke({color:shadeColor(wall.front.color,1.2),width:this.config.scale,alpha:0.5});
+      if (this.style.wallMaterial === 'plaster' && this.config.scale >= 0.5) {
+        const seed = wall.x * 31 + wall.y * 17 + (wall.side === 'x' ? 11 : 0);
+        for (let i=0;i<3;i++) {
+          const along = 0.12+((seed+i*13)%29)/38;
+          const height = 0.12+((seed+i*7)%23)/31;
+          const x = a!.x+(b!.x-a!.x)*along;
+          const y = a!.y+(b!.y-a!.y)*along+(topA!.y-a!.y)*height;
+          g.moveTo(x,y).lineTo(x+2*this.config.scale,y);
+        }
+        g.stroke({color:shadeColor(wall.front.color,0.7),width:this.config.scale,alpha:0.06});
+      }
       if (this.style.wallMaterial === 'panel') {
         const p = wall.front.polygon;
         g.moveTo(p[0]!.x, p[0]!.y).lineTo(p[3]!.x, p[3]!.y)

@@ -187,9 +187,10 @@ export class AvatarView {
 
   private positionContainer(): void {
     const point = avatarAnchor(roomToScreen(this.movement.x, this.movement.y, this.movement.z, this.isoConfig), this.isoConfig, this.footOffset);
-    // Snap the composed avatar once. Snapping each body part independently
-    // makes pieces land on different pixels while the avatar is interpolating.
-    this.container.position.set(Math.round(point.x), Math.round(point.y));
+    // Keep the common registration point continuous at every camera scale.
+    // Integer CSS snapping stalls small mobile steps, then jumps a whole pixel.
+    // Nearest filtering still preserves the atlas; all parts share this transform.
+    this.container.position.set(point.x, point.y);
     this.container.scale.set(this.isoConfig.scale);
     this.container.zIndex = isoDepth(this.movement.y, this.movement.x, this.movement.z);
   }

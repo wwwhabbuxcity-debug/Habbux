@@ -56,7 +56,9 @@ export async function loadAvatarManifest(url: string): Promise<AvatarManifest> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8_000);
   try {
-    const response = await fetch(url, { cache: 'force-cache', signal: controller.signal });
+    // Metadata can be corrected independently of the unchanged PNG sheets.
+    // Revalidate once on load so an existing browser receives those corrections.
+    const response = await fetch(url, { cache: 'no-cache', signal: controller.signal });
     if (!response.ok) throw new Error(`Manifesto de avatar indisponível (${response.status}).`);
     const value: unknown = await response.json();
     const { parseAvatarManifest } = await import('./avatar-manifest');
