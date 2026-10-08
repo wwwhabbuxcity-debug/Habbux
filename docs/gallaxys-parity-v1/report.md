@@ -168,11 +168,32 @@ Não houve SQL nem criação de atlas por frame.
 FPS em SwiftShader e heap sofreram variação entre execuções no host compartilhado.
 A primeira versão de detalhes custou mais no desktop e foi simplificada; valores
 das rodadas intermediárias preservados em `pre-optimization/results.json` e
-`before-floor-cache/results.json`. Os FPS finais ainda variaram bastante; não há
-base para declarar o requisito de performance integral como PASS.
+`before-floor-cache/results.json`. O desktop teve FPS menor nesta rodada (33,87 → 17,38);
+o requisito de performance sem degradação permanece **PARTIAL**. As variações
+de SwiftShader no host compartilhado não substituem um teste em GPU real.
 Não se atribui ganho/regressão a hardware nem se garante 60 FPS/mobile físico.
 **GPU real, memória GPU, teste prolongado de vazamento e E2E de conta autenticada:
 NOT RUN**. As métricas acima são medições reais do fixture, não estimativas.
+
+## Publicação verificada
+
+- Commit de implementação: `c3f4d26e5948a2d7a91d686eb3fe63dfc83c463d`, push
+  concluído em `wwwhabbuxcity-debug/Habbux`, branch `main`.
+- Checkout Tyvo atualizado por fast-forward; dist client/web já testados copiados
+  e publicados pelo script estático. Release: **`20261008T050808Z`**.
+- `/`, `/game/`, `/client/` e manifesto: HTTP 200. `.git/config`: 403; fontes e
+  registro privados: 404. `/client/`: WebSocket real **READY** em 1280/390 px.
+- Fixture pública: dois avatares em STAND e horizontal, manifesto corrigido,
+  zero erros JS/overflow; dez screenshots públicos adicionais em
+  `visual/public/`. Isso não é teste de login/SSO/sala autenticada.
+- Mesmo contexto de navegador carregou o manifesto anterior antes da publicação
+  (`bd_999`) e, depois do reload, recebeu `bd_1`: warm-cache smoke **PASS**,
+  registrado em `warm-cache-result.json`.
+- Habbux PID `2442770` e Gallaxys PID `1808934`, ativos, sem troca de PID ou
+  horário de início. JAR ativo preservado, SHA-256 verificado; seis PNGs originais
+  preservados e SHA-256 conferido. Gallaxys responde HTTP 200.
+- Rollback estático preparado; nenhum restart, migration ou mudança de configuração
+  nginx/banco. Log do serviço lido após a publicação.
 
 ## Pendências reais
 
