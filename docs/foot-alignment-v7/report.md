@@ -99,8 +99,21 @@ Piso, paredes, mapas, hover, CMS, HUD e chat preservados.
 
 ## Publicação e rollback
 
-Artefatos conferidos, publicação estática preparada. Resultado operacional
-será registrado após commit/push e troca da release.
+Implementação `0158a81` (`fix(avatar): anchor foot support at the projected tile centre`), push `main` concluído. Publicado em
+`/var/www/tyvo.online/.deploy/releases/20261008T062705Z` pelo script oficial,
+com troca atômica de `.deploy/current`. Rsync incluiu `--exclude gamedata`.
+
+- Manifesto local/publicado: SHA-256 `bae6553595770d5dc11fd75cca7afdc267247581c4b36610a511780624657eb3`.
+- `/`, `/game/`, `/client/` HTTP 200; WebSocket real READY em desktop/mobile.
+- Smoke com dois avatares: STAND, WALK horizontal e frontal, olhos/mãos presentes,
+  apoio com erro físico 0, zero erros JS e overflow. **12 PNGs públicos adicionais**.
+- Cache anterior: sem anchors/diagnóstico; após reload, anchors presentes e erro
+  físico 0, sem limpeza manual de cache.
+- Fontes privadas: package/AGENTS 404; `.git/config`/`.env` 403.
+- PIDs e horários de início preservados: Habbux 2442770, Polaris 1808934.
+  JAR runtime conferido, sem troca. Nenhum restart/reload de serviço.
+- Seis serviços compartilhados ativos; Gallaxys HTTP 200 e gamedata presente.
+- Registro operacional incluído em commit documental, sem republicar artefatos.
 
 Backup: `/root/backups/habbux-foot-alignment-v7/`, incluindo bundle Git,
 manifesto anterior, destino da release anterior, logs e evidências visuais.
