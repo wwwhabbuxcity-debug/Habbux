@@ -52,7 +52,6 @@ class RoomMovementTest {
             int x = 0;
             int y = 0;
             for (int step = 0; step < 4; step++) {
-                manager.tickMovingRooms();
                 String[] coordinates = awaitPosition(output).split(",");
                 int nextX = Integer.parseInt(coordinates[0]);
                 int nextY = Integer.parseInt(coordinates[1]);
@@ -63,6 +62,36 @@ class RoomMovementTest {
             }
             assertEquals("4,4", x + "," + y);
             assertEquals(0, manager.activeRoom(room.id()).orElseThrow().movingCount());
+        } finally {
+            assertTrue(manager.close(Duration.ofSeconds(3)));
+        }
+    }
+
+    @Test
+    @Timeout(10)
+    void movementUsesOneFiveHundredMillisecondStepWithoutBurstingTiles() throws Exception {
+        RoomMetadata room = metadata(90, 2, 11, 1, filled(11));
+        RoomManager manager = manager(id -> java.util.Optional.of(room), room.capacity(), 128, 100);
+        BlockingQueue<RoomOutbound> output = new LinkedBlockingQueue<>();
+        UUID sessionId = UUID.randomUUID();
+        try {
+            join(manager, room, sessionId, 1, output);
+            long started = System.nanoTime();
+            assertEquals(RoomRuntime.MoveOutcome.MOVING,
+                    manager.move(room.id(), sessionId, 10, 0, output::add).get(1, TimeUnit.SECONDS));
+            long fiveTileNanos = 0;
+            for (int step = 1; step <= 10; step++) {
+                String[] coordinates = awaitPosition(output).split(",");
+                assertEquals(step, Integer.parseInt(coordinates[0]));
+                if (step == 5) fiveTileNanos = System.nanoTime() - started;
+            }
+            long tenTileNanos = System.nanoTime() - started;
+            assertTrue(fiveTileNanos >= TimeUnit.MILLISECONDS.toNanos(2_000)
+                            && fiveTileNanos < TimeUnit.MILLISECONDS.toNanos(3_500),
+                    "five tiles should take about 2.5 seconds");
+            assertTrue(tenTileNanos >= TimeUnit.MILLISECONDS.toNanos(4_500)
+                            && tenTileNanos < TimeUnit.MILLISECONDS.toNanos(7_000),
+                    "ten tiles should take about 5 seconds");
         } finally {
             assertTrue(manager.close(Duration.ofSeconds(3)));
         }

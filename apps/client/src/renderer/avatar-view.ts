@@ -7,10 +7,10 @@ import { isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { resolveAvatarDirection } from './avatar-direction';
 import { interpolateAvatarElevation, interpolateAvatarPosition } from './renderer-model';
 
-// RoomConfig.defaults() emits one authoritative position every 100 ms.
-// The visual step must finish before the next authoritative tile arrives.
-const ROOM_MOVEMENT_TICK_MS = 100;
-const WALK_DURATION_MS = ROOM_MOVEMENT_TICK_MS;
+// The Room Engine still processes every 100 ms, but the authoritative avatar
+// step is 500 ms. WALK frames keep their independent 82 ms visual cadence.
+export const ROOM_MOVEMENT_STEP_MS = 500;
+const WALK_DURATION_MS = ROOM_MOVEMENT_STEP_MS;
 const BUBBLE_DURATION_MS = 4_500;
 
 export interface AvatarViewOptions {

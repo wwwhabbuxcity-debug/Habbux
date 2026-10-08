@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Mutable room state. Every mutation is an event executed by this runtime's mailbox owner. */
@@ -22,6 +23,7 @@ public final class RoomRuntime {
     private static final int[] DX = {1, 1, 1, 0, -1, -1, -1, 0};
     private static final int[] DY = {-1, 0, 1, 1, 1, 0, -1, -1};
     private static final int MAX_MOVERS_PER_TICK = 16;
+    private static final long MOVEMENT_STEP_NANOS = TimeUnit.MILLISECONDS.toNanos(500);
     private final RoomMetadata metadata;
     private final RoomMailbox mailbox;
     private final Presence[] occupantByCell;
@@ -198,7 +200,10 @@ public final class RoomRuntime {
             boolean wasMoving = presence.path != null;
             presence.path = path.cells;
             presence.pathIndex = 0;
-            if (!wasMoving) movingPresences.addLast(presence);
+            if (!wasMoving) {
+                presence.nextStepAtNanos = System.nanoTime() + MOVEMENT_STEP_NANOS;
+                movingPresences.addLast(presence);
+            }
             movingCount = movingPresences.size();
             lastActivityNanos = System.nanoTime();
             result.complete(MoveOutcome.MOVING);
@@ -245,10 +250,18 @@ public final class RoomRuntime {
     /** Called by one shared manager ticker; actual mutation still enters this room's mailbox. */
     void tickMovement() {
         if (movingCount == 0 || state != State.ACTIVE) return;
+        long nowNanos = System.nanoTime();
         mailbox.submit(() -> {
-            for (int moved = 0; moved < MAX_MOVERS_PER_TICK && !movingPresences.isEmpty(); moved++) {
+            // Process each queued avatar at most once per room tick. The room
+            // tick remains 100 ms, while a tile step is authoritatively 500 ms.
+            int scheduledMovers = Math.min(MAX_MOVERS_PER_TICK, movingPresences.size());
+            for (int moved = 0; moved < scheduledMovers && !movingPresences.isEmpty(); moved++) {
                 Presence presence = movingPresences.removeFirst();
                 if (presences.get(presence.sessionId) != presence || presence.path == null) continue;
+                if (nowNanos < presence.nextStepAtNanos) {
+                    movingPresences.addLast(presence);
+                    continue;
+                }
                 int nextCell = presence.path[presence.pathIndex];
                 Presence blocker = occupantByCell[nextCell];
                 if (blocker != null && blocker != presence) {
@@ -265,7 +278,8 @@ public final class RoomRuntime {
                         metadata.grid().elevationAt(presence.x, presence.y));
                 for (Presence recipient : presences.values()) recipient.client.send(update);
                 presence.pathIndex++;
-                lastActivityNanos = System.nanoTime();
+                presence.nextStepAtNanos = nowNanos + MOVEMENT_STEP_NANOS;
+                lastActivityNanos = nowNanos;
                 if (presence.pathIndex == presence.path.length) {
                     presence.path = null;
                     presence.pathIndex = 0;
@@ -428,6 +442,7 @@ public final class RoomRuntime {
         private final RoomClient client;
         private int[] path;
         private int pathIndex;
+        private long nextStepAtNanos;
         private long lastChatNanos;
         private Presence(UUID sessionId, long userId, String username, int x, int y, RoomClient client) {
             this.sessionId = sessionId;
