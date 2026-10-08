@@ -27,6 +27,8 @@ export class RoomRenderer {
   private readonly floorHighlight = new Graphics();
   private readonly entityLayer = new Container();
   private readonly surfaceObjects: Graphics[] = [];
+  private surfaceCount = 0;
+  private surfaceBuilds = 0;
   private viewportWidth = 0;
   private viewportHeight = 0;
   private readonly debugLayer = new Graphics();
@@ -159,7 +161,7 @@ export class RoomRenderer {
   stepDiagnostics(deltaMs: number): void { this.update(deltaMs); this.app?.render(); }
 
   diagnostics(): object {
-    return { config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceObjects.length, hover: this.hoveredTile,
+    return { config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceCount, surfaceBuilds: this.surfaceBuilds, hover: this.hoveredTile,
       renderOrder: this.entityLayer.children.map(child => ({ label: child.label, depth: child.zIndex })),
       avatars: [...this.avatars.values()].map(avatar => avatar.diagnostics()) };
   }
@@ -217,6 +219,7 @@ export class RoomRenderer {
       surface.destroy();
     }
     this.surfaceObjects.length = 0;
+    this.surfaceCount = 0;
   }
 
   private drawFloor(room: RoomState): void {
@@ -224,6 +227,8 @@ export class RoomRenderer {
     this.floorLayer.clear();
     this.clearSurfaces();
     const surfaces = buildRoomSurfaces(room, this.config, this.style);
+    this.surfaceBuilds++;
+    this.surfaceCount = surfaces.walls.length + surfaces.floors.filter(f => f.elevation > 0).length;
     const colorLine = shadeColor(this.style.floorColor, 0.60);
     for (const floor of surfaces.floors) {
       const g = floor.elevation > 0 ? new Graphics() : this.floorLayer;
@@ -257,22 +262,37 @@ export class RoomRenderer {
         }
         g.stroke({color:colorLine,width:this.config.scale*0.5,alpha:0.035});
       }
-    }
-    // The flat floor never changes during a walk. Rasterize it once per room /
-    // resize, rather than submit hundreds of static material paths each frame.
-    // Raised floors stay in the depth-sorted layer; hover is a separate object.
-    if (surfaces.floors.some(floor => floor.elevation === 0)) {
-      this.floorLayer.cacheAsTexture({resolution: Math.min(window.devicePixelRatio || 1, MAX_DPR), antialias: false});
+      // Contact shadows follow real wall boundaries, including recesses. All
+      // strips stay inside this tile; hit geometry and floor elevation are shared.
+      if (this.style.walls) for (const side of ['x','y'] as const) {
+        const nx = floor.x - (side === 'x' ? 1 : 0), ny = floor.y - (side === 'y' ? 1 : 0);
+        if (nx >= 0 && ny >= 0 && room.elevations[ny * room.width + nx]! >= 0) continue;
+        const a = top[0]!, b = top[side === 'x' ? 3 : 1]!;
+        const inward = roomToScreen(floor.x + (side === 'x' ? 0.10 : 0), floor.y + (side === 'y' ? 0.10 : 0), floor.elevation, this.config);
+        const center = roomToScreen(floor.x, floor.y, floor.elevation, this.config);
+        const dx = inward.x - center.x, dy = inward.y - center.y;
+        g.poly([a.x,a.y,b.x,b.y,b.x+dx,b.y+dy,a.x+dx,a.y+dy]).fill({color:0x27343c,alpha:0.12});
+      }
     }
     for (const wall of surfaces.walls) {
-      const g = new Graphics();
-      g.label = `wall:${wall.side}:${wall.x},${wall.y}`;
-      g.zIndex = wall.depth;
+      // Outer back planes cannot occlude a position inside the room. Batch them
+      // with the flat floor; recessed walls retain individual depth sorting.
+      const exterior = wall.side === 'x' ? wall.x === 0 : wall.y === 0;
+      const g = exterior ? this.floorLayer : new Graphics();
+      if (!exterior) {
+        g.label = `wall:${wall.side}:${wall.x},${wall.y}`;
+        g.zIndex = wall.depth;
+      }
       for (const face of [wall.startEnd, wall.end, wall.front, wall.cap]) {
         if (face) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(face.color);
       }
       const [a, b] = wall.base;
       const [, , topB, topA] = wall.front.polygon;
+      // Gentle common-height plaster shading, continuous across panel joins.
+      const lowerA = {x:a!.x,y:a!.y+(topA!.y-a!.y)*0.28};
+      const lowerB = {x:b!.x,y:b!.y+(topB!.y-b!.y)*0.28};
+      g.poly([a!.x,a!.y,b!.x,b!.y,lowerB.x,lowerB.y,lowerA.x,lowerA.y])
+        .fill({color:shadeColor(wall.front.color,0.65),alpha:0.09});
       const trimHeight = this.style.floorThickness * this.config.elevationHeight * this.config.scale;
       g.poly([a!.x, a!.y, b!.x, b!.y, b!.x, b!.y - trimHeight, a!.x, a!.y - trimHeight])
         .fill(shadeColor(this.style.wallColor, 0.66));
@@ -300,8 +320,16 @@ export class RoomRenderer {
         g.moveTo(p[0]!.x, p[0]!.y).lineTo(p[3]!.x, p[3]!.y)
           .stroke({ color: shadeColor(this.style.wallColor, 0.7), width: this.config.scale, alpha: 0.25 });
       }
-      this.entityLayer.addChild(g);
-      this.surfaceObjects.push(g);
+      if (!exterior) {
+        this.entityLayer.addChild(g);
+        this.surfaceObjects.push(g);
+      }
+    }
+    // Pixi retains this geometry on the GPU. Bitmap caching is an explicit
+    // diagnostic option: A/B tests found its larger transparent quad slower.
+    // Raised floors, recessed walls, avatars and hover keep individual depth.
+    if (this.style.cacheBackground !== false && (surfaces.floors.some(floor => floor.elevation === 0) || surfaces.walls.some(wall => wall.side === 'x' ? wall.x === 0 : wall.y === 0))) {
+      this.floorLayer.cacheAsTexture({resolution: Math.min(window.devicePixelRatio || 1, MAX_DPR), antialias: false});
     }
     this.entityLayer.sortChildren();
   }

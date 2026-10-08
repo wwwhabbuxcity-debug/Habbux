@@ -5,7 +5,7 @@ import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart } from './a
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { avatarAnchor, isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { AvatarMovementController } from './avatar-movement';
-import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
+import { avatarPartSpritePosition, avatarPartTint, resolveAvatarPartLayer, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
 
 // The Room Engine still processes every 100 ms. Segment duration follows the
 // world-grid distance: 500 ms cardinal and 707 ms diagonal.
@@ -74,15 +74,14 @@ export class AvatarView {
     const walkingMs = this.movement.update(deltaMs);
     if (walkingMs > 0) {
       this.animation.setMoving(true);
-      this.animation.update(walkingMs, 4);
+      this.animation.advance(walkingMs, 4);
       this.positionContainer();
     }
     this.animation.setMoving(this.movement.moving);
-    const animation = this.animation.snapshot();
-    if (animation.action !== this.currentAction || animation.frame !== this.currentFrame
+    if (this.animation.currentAction !== this.currentAction || this.animation.currentFrame !== this.currentFrame
         || this.currentDirection !== this.movement.direction) {
-      this.currentAction = animation.action;
-      this.currentFrame = animation.frame;
+      this.currentAction = this.animation.currentAction;
+      this.currentFrame = this.animation.currentFrame;
       this.currentDirection = this.movement.direction;
       this.refreshSprites();
     }
@@ -114,6 +113,7 @@ export class AvatarView {
     return { userId: this.userId, x: this.movement.x, y: this.movement.y, z: this.movement.z,
       direction: this.movement.direction, moving: this.movement.moving, queued: this.movement.queuedSegments,
       action: this.currentAction, frame: this.currentFrame, ready: this.ready,
+      parts: [...this.sprites].map(([part,sprite]) => ({part,visible:sprite.visible,alpha:sprite.alpha,layer:sprite.zIndex,x:sprite.x,y:sprite.y,texture:sprite.texture.label})),
       screenX: this.container.x, screenY: this.container.y, depth: this.container.zIndex };
   }
 
@@ -142,7 +142,6 @@ export class AvatarView {
       }
       if (!sprite) {
         sprite = new Sprite({ texture: resolved.texture, anchor: { x: 0.5, y: 1 }, roundPixels: false });
-        sprite.zIndex = this.provider.manifest.parts[part].layer;
         this.sprites.set(part, sprite);
         this.composition.addChild(sprite);
       } else {
@@ -152,6 +151,8 @@ export class AvatarView {
       const position = avatarPartSpritePosition(placement);
       sprite.position.set(position.x, position.y);
       sprite.scale.x = 1;
+      sprite.zIndex = resolveAvatarPartLayer(part, this.movement.direction);
+      sprite.tint = avatarPartTint(part);
       sprite.visible = true;
     }
     const registration = new Map<AvatarPart, AvatarPartPlacement>();

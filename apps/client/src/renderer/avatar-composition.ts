@@ -30,3 +30,36 @@ export function resolveAvatarFootAnchorX(placements: ReadonlyMap<AvatarPart, Ava
 export function resolveAvatarCompositionOffsetX(footAnchorX: number, mirrored: boolean): number {
   return mirrored ? footAnchorX : -footAnchorX;
 }
+
+/** Camera-facing limb order; mirroring applies to the entire composition. */
+export function resolveAvatarPartLayer(part: AvatarPart, direction: number): number {
+  const renderDirection = direction === 4 ? 2 : direction === 5 ? 1 : direction === 6 ? 0 : direction;
+  const nearLeft = renderDirection === 0 || renderDirection === 7;
+  switch (part) {
+    case 'bd': return 0;
+    case 'lg': return 2;
+    case 'sh': return 3;
+    case 'lh': return nearLeft ? 8 : 4;
+    case 'ls': return nearLeft ? 9 : 5;
+    case 'rh': return nearLeft ? 4 : 8;
+    case 'rs': return nearLeft ? 5 : 9;
+    case 'ch': return 6;
+    case 'hrb': return 10;
+    case 'hd': return 11;
+    case 'fc': return 12;
+    case 'ey': return 13;
+    case 'hr': return 14;
+  }
+}
+
+/** Original default palette; no figure-data or palette copied from another hotel. */
+export function avatarPartTint(part: AvatarPart): number {
+  switch (part) {
+    case 'bd': case 'hd': case 'lh': case 'rh': case 'fc': return 0xf3c6a6;
+    case 'ch': case 'ls': case 'rs': return 0xa9c9dd;
+    case 'lg': return 0x647588;
+    case 'sh': return 0x424b55;
+    case 'hr': case 'hrb': return 0x80604a;
+    case 'ey': return 0xffffff;
+  }
+}

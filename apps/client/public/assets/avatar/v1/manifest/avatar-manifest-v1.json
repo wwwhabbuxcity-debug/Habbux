@@ -29,16 +29,18 @@
   },
   "layerOrder": [
     "bd",
-    "hd",
     "lg",
     "sh",
-    "ch",
+    "lh",
     "ls",
+    "ch",
+    "rh",
     "rs",
     "hrb",
-    "hr",
+    "hd",
     "fc",
-    "ey"
+    "ey",
+    "hr"
   ],
   "sheets": {
     "hh_human_body": {
@@ -70,6 +72,11 @@
       "src": "sheets/hh_human_hair.png",
       "width": 3065,
       "height": 522
+    },
+    "habbux_hands_original_v1": {
+      "src": "sheets/habbux_hands_original_v1.svg",
+      "width": 320,
+      "height": 480
     }
   },
   "regions": {
@@ -1656,6 +1663,606 @@
       "y": 97,
       "width": 14,
       "height": 6
+    },
+    "habbux_hands_original_v1:own_std_lh_male_0_0": {
+      "x": 0,
+      "y": 0,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_lh_male_1_0": {
+      "x": 32,
+      "y": 0,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_lh_male_2_0": {
+      "x": 64,
+      "y": 0,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_lh_male_3_0": {
+      "x": 96,
+      "y": 0,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_lh_male_7_0": {
+      "x": 128,
+      "y": 0,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_lh_female_0_0": {
+      "x": 160,
+      "y": 0,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_std_lh_female_1_0": {
+      "x": 192,
+      "y": 0,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_lh_female_2_0": {
+      "x": 224,
+      "y": 0,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_std_lh_female_3_0": {
+      "x": 256,
+      "y": 0,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_std_lh_female_7_0": {
+      "x": 288,
+      "y": 0,
+      "width": 5,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_0_0": {
+      "x": 0,
+      "y": 48,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_0_1": {
+      "x": 32,
+      "y": 48,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_0_2": {
+      "x": 64,
+      "y": 48,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_0_3": {
+      "x": 96,
+      "y": 48,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_1_0": {
+      "x": 128,
+      "y": 48,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_1_1": {
+      "x": 160,
+      "y": 48,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_1_2": {
+      "x": 192,
+      "y": 48,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_1_3": {
+      "x": 224,
+      "y": 48,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_2_0": {
+      "x": 256,
+      "y": 48,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_2_1": {
+      "x": 288,
+      "y": 48,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_2_2": {
+      "x": 0,
+      "y": 96,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_2_3": {
+      "x": 32,
+      "y": 96,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_3_0": {
+      "x": 64,
+      "y": 96,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_3_1": {
+      "x": 96,
+      "y": 96,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_3_2": {
+      "x": 128,
+      "y": 96,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_3_3": {
+      "x": 160,
+      "y": 96,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_7_0": {
+      "x": 192,
+      "y": 96,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_7_1": {
+      "x": 224,
+      "y": 96,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_7_2": {
+      "x": 256,
+      "y": 96,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_male_7_3": {
+      "x": 288,
+      "y": 96,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_0_0": {
+      "x": 0,
+      "y": 144,
+      "width": 7,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_0_1": {
+      "x": 32,
+      "y": 144,
+      "width": 7,
+      "height": 15
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_0_2": {
+      "x": 64,
+      "y": 144,
+      "width": 7,
+      "height": 22
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_0_3": {
+      "x": 96,
+      "y": 144,
+      "width": 7,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_1_0": {
+      "x": 128,
+      "y": 144,
+      "width": 6,
+      "height": 16
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_1_1": {
+      "x": 160,
+      "y": 144,
+      "width": 10,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_1_2": {
+      "x": 192,
+      "y": 144,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_1_3": {
+      "x": 224,
+      "y": 144,
+      "width": 6,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_2_0": {
+      "x": 256,
+      "y": 144,
+      "width": 7,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_2_1": {
+      "x": 288,
+      "y": 144,
+      "width": 9,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_2_2": {
+      "x": 0,
+      "y": 192,
+      "width": 7,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_2_3": {
+      "x": 32,
+      "y": 192,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_3_0": {
+      "x": 64,
+      "y": 192,
+      "width": 5,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_3_1": {
+      "x": 96,
+      "y": 192,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_3_2": {
+      "x": 128,
+      "y": 192,
+      "width": 5,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_3_3": {
+      "x": 160,
+      "y": 192,
+      "width": 7,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_7_0": {
+      "x": 192,
+      "y": 192,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_7_1": {
+      "x": 224,
+      "y": 192,
+      "width": 7,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_7_2": {
+      "x": 256,
+      "y": 192,
+      "width": 5,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_lh_female_7_3": {
+      "x": 288,
+      "y": 192,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_std_rh_male_0_0": {
+      "x": 0,
+      "y": 240,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_rh_male_1_0": {
+      "x": 32,
+      "y": 240,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_rh_male_2_0": {
+      "x": 64,
+      "y": 240,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_rh_male_3_0": {
+      "x": 96,
+      "y": 240,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_rh_male_7_0": {
+      "x": 128,
+      "y": 240,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_std_rh_female_0_0": {
+      "x": 160,
+      "y": 240,
+      "width": 7,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_std_rh_female_1_0": {
+      "x": 192,
+      "y": 240,
+      "width": 5,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_std_rh_female_2_0": {
+      "x": 224,
+      "y": 240,
+      "width": 7,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_std_rh_female_3_0": {
+      "x": 256,
+      "y": 240,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_std_rh_female_7_0": {
+      "x": 288,
+      "y": 240,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_0_0": {
+      "x": 0,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_0_1": {
+      "x": 32,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_0_2": {
+      "x": 64,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_0_3": {
+      "x": 96,
+      "y": 288,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_1_0": {
+      "x": 128,
+      "y": 288,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_1_1": {
+      "x": 160,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_1_2": {
+      "x": 192,
+      "y": 288,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_1_3": {
+      "x": 224,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_2_0": {
+      "x": 256,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_2_1": {
+      "x": 288,
+      "y": 288,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_2_2": {
+      "x": 0,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_2_3": {
+      "x": 32,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_3_0": {
+      "x": 64,
+      "y": 336,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_3_1": {
+      "x": 96,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_3_2": {
+      "x": 128,
+      "y": 336,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_3_3": {
+      "x": 160,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_7_0": {
+      "x": 192,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_7_1": {
+      "x": 224,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_7_2": {
+      "x": 256,
+      "y": 336,
+      "width": 5,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_male_7_3": {
+      "x": 288,
+      "y": 336,
+      "width": 6,
+      "height": 8
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_0_0": {
+      "x": 0,
+      "y": 384,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_0_1": {
+      "x": 32,
+      "y": 384,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_0_2": {
+      "x": 64,
+      "y": 384,
+      "width": 6,
+      "height": 20
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_0_3": {
+      "x": 96,
+      "y": 384,
+      "width": 11,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_1_0": {
+      "x": 128,
+      "y": 384,
+      "width": 5,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_1_1": {
+      "x": 160,
+      "y": 384,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_1_2": {
+      "x": 192,
+      "y": 384,
+      "width": 5,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_1_3": {
+      "x": 224,
+      "y": 384,
+      "width": 10,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_2_0": {
+      "x": 256,
+      "y": 384,
+      "width": 8,
+      "height": 20
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_2_1": {
+      "x": 288,
+      "y": 384,
+      "width": 7,
+      "height": 20
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_2_2": {
+      "x": 0,
+      "y": 432,
+      "width": 8,
+      "height": 20
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_2_3": {
+      "x": 32,
+      "y": 432,
+      "width": 11,
+      "height": 15
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_3_0": {
+      "x": 64,
+      "y": 432,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_3_1": {
+      "x": 96,
+      "y": 432,
+      "width": 7,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_3_2": {
+      "x": 128,
+      "y": 432,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_3_3": {
+      "x": 160,
+      "y": 432,
+      "width": 6,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_7_0": {
+      "x": 192,
+      "y": 432,
+      "width": 6,
+      "height": 19
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_7_1": {
+      "x": 224,
+      "y": 432,
+      "width": 6,
+      "height": 18
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_7_2": {
+      "x": 256,
+      "y": 432,
+      "width": 5,
+      "height": 17
+    },
+    "habbux_hands_original_v1:own_wlk_rh_female_7_3": {
+      "x": 288,
+      "y": 432,
+      "width": 7,
+      "height": 18
     }
   },
   "parts": {
@@ -6779,6 +7386,20 @@
                       }
                     }
                   }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "hh_human_face:h_std_ey_2_3_0",
+                      "offset": {
+                        "x": -26,
+                        "y": 59
+                      },
+                      "sourceFallback": "h_std_ey_2_3_0"
+                    }
+                  }
                 }
               }
             },
@@ -6820,6 +7441,1610 @@
                       "offset": {
                         "x": -33,
                         "y": 62
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "hh_human_face:h_std_ey_1_1_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 61
+                      },
+                      "sourceFallback": "h_std_ey_1_1_0"
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "hh_human_face:h_std_ey_1_1_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 61
+                      },
+                      "sourceFallback": "h_std_ey_1_1_0"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lh": {
+      "sheet": "habbux_hands_original_v1",
+      "layer": 4,
+      "actions": {
+        "std": {
+          "frameCount": 1,
+          "genders": {
+            "male": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_0_0",
+                      "offset": {
+                        "x": -16,
+                        "y": 25
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_2_0",
+                      "offset": {
+                        "x": -43,
+                        "y": 27
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_3_0",
+                      "offset": {
+                        "x": -44,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_7_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_2_0",
+                      "offset": {
+                        "x": -43,
+                        "y": 27
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_male_0_0",
+                      "offset": {
+                        "x": -16,
+                        "y": 25
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "female": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_0_0",
+                      "offset": {
+                        "x": -16,
+                        "y": 34
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_2_0",
+                      "offset": {
+                        "x": -42,
+                        "y": 36
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_3_0",
+                      "offset": {
+                        "x": -43,
+                        "y": 33
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_7_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 32
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_2_0",
+                      "offset": {
+                        "x": -42,
+                        "y": 36
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_lh_female_0_0",
+                      "offset": {
+                        "x": -16,
+                        "y": 34
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "wlk": {
+          "frameCount": 4,
+          "genders": {
+            "male": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 25
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 25
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_2",
+                      "offset": {
+                        "x": -18,
+                        "y": 21
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_3",
+                      "offset": {
+                        "x": -16,
+                        "y": 24
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 25
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_1",
+                      "offset": {
+                        "x": -32,
+                        "y": 23
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_2",
+                      "offset": {
+                        "x": -28,
+                        "y": 25
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_3",
+                      "offset": {
+                        "x": -21,
+                        "y": 23
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_0",
+                      "offset": {
+                        "x": -42,
+                        "y": 27
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_1",
+                      "offset": {
+                        "x": -45,
+                        "y": 26
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_2",
+                      "offset": {
+                        "x": -42,
+                        "y": 28
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_3",
+                      "offset": {
+                        "x": -41,
+                        "y": 36
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_3_0",
+                      "offset": {
+                        "x": -44,
+                        "y": 22
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_3_1",
+                      "offset": {
+                        "x": -43,
+                        "y": 22
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_3_2",
+                      "offset": {
+                        "x": -44,
+                        "y": 22
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_3_3",
+                      "offset": {
+                        "x": -44,
+                        "y": 24
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_7_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 21
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_7_1",
+                      "offset": {
+                        "x": -18,
+                        "y": 21
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_7_2",
+                      "offset": {
+                        "x": -17,
+                        "y": 21
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_7_3",
+                      "offset": {
+                        "x": -17,
+                        "y": 20
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_0",
+                      "offset": {
+                        "x": -42,
+                        "y": 27
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_1",
+                      "offset": {
+                        "x": -45,
+                        "y": 26
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_2",
+                      "offset": {
+                        "x": -42,
+                        "y": 28
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_2_3",
+                      "offset": {
+                        "x": -41,
+                        "y": 36
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 25
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_1",
+                      "offset": {
+                        "x": -32,
+                        "y": 23
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_2",
+                      "offset": {
+                        "x": -28,
+                        "y": 25
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_1_3",
+                      "offset": {
+                        "x": -21,
+                        "y": 23
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 25
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 25
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_2",
+                      "offset": {
+                        "x": -18,
+                        "y": 21
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_male_0_3",
+                      "offset": {
+                        "x": -16,
+                        "y": 24
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "female": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_0",
+                      "offset": {
+                        "x": -16,
+                        "y": 35
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_1",
+                      "offset": {
+                        "x": -16,
+                        "y": 32
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_2",
+                      "offset": {
+                        "x": -16,
+                        "y": 35
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_3",
+                      "offset": {
+                        "x": -15,
+                        "y": 35
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 33
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_1",
+                      "offset": {
+                        "x": -28,
+                        "y": 33
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_2",
+                      "offset": {
+                        "x": -27,
+                        "y": 34
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_3",
+                      "offset": {
+                        "x": -20,
+                        "y": 33
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_0",
+                      "offset": {
+                        "x": -41,
+                        "y": 38
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_1",
+                      "offset": {
+                        "x": -42,
+                        "y": 36
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_2",
+                      "offset": {
+                        "x": -41,
+                        "y": 38
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_3",
+                      "offset": {
+                        "x": -41,
+                        "y": 36
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_3_0",
+                      "offset": {
+                        "x": -44,
+                        "y": 33
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_3_1",
+                      "offset": {
+                        "x": -43,
+                        "y": 31
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_3_2",
+                      "offset": {
+                        "x": -44,
+                        "y": 33
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_3_3",
+                      "offset": {
+                        "x": -43,
+                        "y": 33
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_7_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 32
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_7_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 32
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_7_2",
+                      "offset": {
+                        "x": -17,
+                        "y": 31
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_7_3",
+                      "offset": {
+                        "x": -17,
+                        "y": 29
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_0",
+                      "offset": {
+                        "x": -41,
+                        "y": 38
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_1",
+                      "offset": {
+                        "x": -42,
+                        "y": 36
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_2",
+                      "offset": {
+                        "x": -41,
+                        "y": 38
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_2_3",
+                      "offset": {
+                        "x": -41,
+                        "y": 36
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 33
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_1",
+                      "offset": {
+                        "x": -28,
+                        "y": 33
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_2",
+                      "offset": {
+                        "x": -27,
+                        "y": 34
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_1_3",
+                      "offset": {
+                        "x": -20,
+                        "y": 33
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_0",
+                      "offset": {
+                        "x": -16,
+                        "y": 35
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_1",
+                      "offset": {
+                        "x": -16,
+                        "y": 32
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_2",
+                      "offset": {
+                        "x": -16,
+                        "y": 35
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_lh_female_0_3",
+                      "offset": {
+                        "x": -15,
+                        "y": 35
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "rh": {
+      "sheet": "habbux_hands_original_v1",
+      "layer": 4,
+      "actions": {
+        "std": {
+          "frameCount": 1,
+          "genders": {
+            "male": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_0_0",
+                      "offset": {
+                        "x": -38,
+                        "y": 17
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_2_0",
+                      "offset": {
+                        "x": -21,
+                        "y": 19
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_3_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_7_0",
+                      "offset": {
+                        "x": -44,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_2_0",
+                      "offset": {
+                        "x": -21,
+                        "y": 19
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_male_0_0",
+                      "offset": {
+                        "x": -38,
+                        "y": 17
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "female": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_0_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 28
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 30
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_2_0",
+                      "offset": {
+                        "x": -20,
+                        "y": 29
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_3_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 33
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_7_0",
+                      "offset": {
+                        "x": -43,
+                        "y": 32
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_2_0",
+                      "offset": {
+                        "x": -20,
+                        "y": 29
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 30
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_std_rh_female_0_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 28
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "wlk": {
+          "frameCount": 4,
+          "genders": {
+            "male": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 19
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_1",
+                      "offset": {
+                        "x": -35,
+                        "y": 19
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_2",
+                      "offset": {
+                        "x": -36,
+                        "y": 18
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_3",
+                      "offset": {
+                        "x": -42,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_1",
+                      "offset": {
+                        "x": -24,
+                        "y": 22
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_2",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_3",
+                      "offset": {
+                        "x": -34,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_0",
+                      "offset": {
+                        "x": -21,
+                        "y": 19
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 20
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_2",
+                      "offset": {
+                        "x": -21,
+                        "y": 19
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_3",
+                      "offset": {
+                        "x": -24,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_3_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 22
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_3_1",
+                      "offset": {
+                        "x": -16,
+                        "y": 24
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_3_2",
+                      "offset": {
+                        "x": -17,
+                        "y": 22
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_3_3",
+                      "offset": {
+                        "x": -17,
+                        "y": 22
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_7_0",
+                      "offset": {
+                        "x": -43,
+                        "y": 20
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_7_1",
+                      "offset": {
+                        "x": -43,
+                        "y": 20
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_7_2",
+                      "offset": {
+                        "x": -44,
+                        "y": 21
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_7_3",
+                      "offset": {
+                        "x": -42,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_0",
+                      "offset": {
+                        "x": -21,
+                        "y": 19
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 20
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_2",
+                      "offset": {
+                        "x": -21,
+                        "y": 19
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_2_3",
+                      "offset": {
+                        "x": -24,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_1",
+                      "offset": {
+                        "x": -24,
+                        "y": 22
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_2",
+                      "offset": {
+                        "x": -28,
+                        "y": 22
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_1_3",
+                      "offset": {
+                        "x": -34,
+                        "y": 21
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 19
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_1",
+                      "offset": {
+                        "x": -35,
+                        "y": 19
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_2",
+                      "offset": {
+                        "x": -36,
+                        "y": 18
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_male_0_3",
+                      "offset": {
+                        "x": -42,
+                        "y": 21
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "female": {
+              "sourceGender": 1,
+              "directions": {
+                "0": {
+                  "renderDirection": 0,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 30
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_1",
+                      "offset": {
+                        "x": -35,
+                        "y": 30
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_2",
+                      "offset": {
+                        "x": -36,
+                        "y": 30
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_3",
+                      "offset": {
+                        "x": -36,
+                        "y": 30
+                      }
+                    }
+                  }
+                },
+                "1": {
+                  "renderDirection": 1,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 31
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_1",
+                      "offset": {
+                        "x": -24,
+                        "y": 31
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_2",
+                      "offset": {
+                        "x": -28,
+                        "y": 31
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_3",
+                      "offset": {
+                        "x": -30,
+                        "y": 30
+                      }
+                    }
+                  }
+                },
+                "2": {
+                  "renderDirection": 2,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_0",
+                      "offset": {
+                        "x": -19,
+                        "y": 31
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 32
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_2",
+                      "offset": {
+                        "x": -19,
+                        "y": 31
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_3",
+                      "offset": {
+                        "x": -19,
+                        "y": 28
+                      }
+                    }
+                  }
+                },
+                "3": {
+                  "renderDirection": 3,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_3_0",
+                      "offset": {
+                        "x": -17,
+                        "y": 33
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_3_1",
+                      "offset": {
+                        "x": -16,
+                        "y": 33
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_3_2",
+                      "offset": {
+                        "x": -17,
+                        "y": 33
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_3_3",
+                      "offset": {
+                        "x": -17,
+                        "y": 31
+                      }
+                    }
+                  }
+                },
+                "7": {
+                  "renderDirection": 7,
+                  "mirrored": false,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_7_0",
+                      "offset": {
+                        "x": -43,
+                        "y": 31
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_7_1",
+                      "offset": {
+                        "x": -43,
+                        "y": 30
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_7_2",
+                      "offset": {
+                        "x": -44,
+                        "y": 30
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_7_3",
+                      "offset": {
+                        "x": -42,
+                        "y": 31
+                      }
+                    }
+                  }
+                },
+                "4": {
+                  "renderDirection": 2,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_0",
+                      "offset": {
+                        "x": -19,
+                        "y": 31
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_1",
+                      "offset": {
+                        "x": -17,
+                        "y": 32
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_2",
+                      "offset": {
+                        "x": -19,
+                        "y": 31
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_2_3",
+                      "offset": {
+                        "x": -19,
+                        "y": 28
+                      }
+                    }
+                  }
+                },
+                "5": {
+                  "renderDirection": 1,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_0",
+                      "offset": {
+                        "x": -28,
+                        "y": 31
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_1",
+                      "offset": {
+                        "x": -24,
+                        "y": 31
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_2",
+                      "offset": {
+                        "x": -28,
+                        "y": 31
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_1_3",
+                      "offset": {
+                        "x": -30,
+                        "y": 30
+                      }
+                    }
+                  }
+                },
+                "6": {
+                  "renderDirection": 0,
+                  "mirrored": true,
+                  "frames": {
+                    "0": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_0",
+                      "offset": {
+                        "x": -37,
+                        "y": 30
+                      }
+                    },
+                    "1": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_1",
+                      "offset": {
+                        "x": -35,
+                        "y": 30
+                      }
+                    },
+                    "2": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_2",
+                      "offset": {
+                        "x": -36,
+                        "y": 30
+                      }
+                    },
+                    "3": {
+                      "region": "habbux_hands_original_v1:own_wlk_rh_female_0_3",
+                      "offset": {
+                        "x": -36,
+                        "y": 30
                       }
                     }
                   }

@@ -25,6 +25,9 @@ export class AvatarAnimationController {
     this.frameDurationMs = frameDurationMs;
   }
 
+  get currentAction(): AvatarAction { return this.action; }
+  get currentFrame(): number { return this.frame; }
+
   setMoving(moving: boolean): void {
     const next = moving ? 'wlk' : 'std';
     if (next === this.action) return;
@@ -43,14 +46,19 @@ export class AvatarAnimationController {
   }
 
   update(deltaMs: number, frameCount = this.action === 'wlk' ? 4 : 1): AvatarAnimationState {
-    if (this.action === 'std' || !Number.isFinite(deltaMs) || deltaMs <= 0) return this.snapshot();
+    this.advance(deltaMs, frameCount);
+    return this.snapshot();
+  }
+
+  /** Allocation-free hot path; snapshot remains available to tests/diagnostics. */
+  advance(deltaMs: number, frameCount = this.action === 'wlk' ? 4 : 1): void {
+    if (this.action === 'std' || !Number.isFinite(deltaMs) || deltaMs <= 0) return;
     const total = this.elapsedMs + deltaMs;
     const advances = Math.floor(total / this.frameDurationMs);
     this.elapsedMs = total % this.frameDurationMs;
     this.frame = (this.frame + advances) % Math.max(1, frameCount);
     this.walkFrame = this.frame;
     this.walkElapsedMs = this.elapsedMs;
-    return this.snapshot();
   }
 
   snapshot(): AvatarAnimationState {

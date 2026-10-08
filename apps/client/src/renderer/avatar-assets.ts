@@ -35,6 +35,7 @@ export function resolveAvatarFrameSelection(
   frame: number,
 ): AvatarFrameSelection | undefined {
   const partDefinition = manifest.parts[part];
+  if (!partDefinition) return undefined;
   const actionDefinition = partDefinition.actions[action] ?? partDefinition.actions.std;
   if (!actionDefinition) return undefined;
   const genderDefinition = actionDefinition.genders[gender];

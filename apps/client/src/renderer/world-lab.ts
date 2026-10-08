@@ -27,7 +27,8 @@ export async function mountWorldLab(host: HTMLElement): Promise<() => void> {
   controls.append(label,select,status); host.append(controls,viewport);
   let room: RoomState;
   let running = true;
-  let renderer = new RoomRenderer(viewport,status,(x,y)=>api.destination(x,y));
+  const style = {...DEFAULT_ROOM_STYLE, cacheBackground: new URLSearchParams(window.location.search).get('room-cache') === '1'};
+  let renderer = new RoomRenderer(viewport,status,(x,y)=>api.destination(x,y),style);
   await renderer.mount();
   function scenario(name: WorldLabScenario, count = 1): void {
     renderer.setRoom(null);
@@ -80,7 +81,7 @@ export async function mountWorldLab(host: HTMLElement): Promise<() => void> {
   toggle.addEventListener('click',()=>{
     visibleWalls=!visibleWalls;
     renderer.dispose();
-    renderer=new RoomRenderer(viewport,status,(x,y)=>api.destination(x,y),{...DEFAULT_ROOM_STYLE,walls:visibleWalls});
+    renderer=new RoomRenderer(viewport,status,(x,y)=>api.destination(x,y),{...style,walls:visibleWalls});
     void renderer.mount().then(()=>{renderer.setRoom(room);renderer.setDiagnosticsClock(!running);});
   });
   controls.append(toggle);

@@ -10,10 +10,11 @@ export interface RoomSurfaceStyle {
   readonly wallHeight: number; // elevation units, same Z as floor/avatar
   readonly wallThickness: number; // grid units, outside the walkable floor
   readonly walls: boolean;
+  readonly cacheBackground?: boolean;
 }
 export const DEFAULT_ROOM_STYLE: RoomSurfaceStyle = Object.freeze({
   floorColor: 0xb6a080, floorMaterial: 'wood', floorThickness: 0.5,
-  wallColor: 0x9ab5bd, wallMaterial: 'plaster', wallHeight: 8, wallThickness: 0.16, walls: true,
+  wallColor: 0x9ab5bd, wallMaterial: 'plaster', wallHeight: 8, wallThickness: 0.16, walls: true, cacheBackground: false,
 });
 export interface SurfaceFace {
   readonly polygon: readonly IsoPoint[];

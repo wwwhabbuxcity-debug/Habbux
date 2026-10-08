@@ -94,9 +94,9 @@ test('manifest normalizado valida sheets, regiões, layers, direções e frames 
   const file = resolve(process.cwd(), 'apps/client/public/assets/avatar/v1/manifest/avatar-manifest-v1.json');
   const parsed: unknown = JSON.parse(await readFile(file, 'utf8'));
   const manifest = parseAvatarManifest(parsed);
-  assert.equal(Object.keys(manifest.sheets).length, 6);
-  assert.equal(manifest.layerOrder.length, 11);
-  assert.equal(Object.keys(manifest.regions).length, 264);
+  assert.equal(Object.keys(manifest.sheets).length, 7);
+  assert.equal(manifest.layerOrder.length, 13);
+  assert.equal(Object.keys(manifest.regions).length, 364);
   assert.equal(manifest.directions.count, 8);
   assert.ok(manifest.parts.bd.actions.std?.genders.male.directions['0']?.frames['0']);
 });

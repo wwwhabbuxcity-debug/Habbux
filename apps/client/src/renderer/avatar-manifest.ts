@@ -1,6 +1,6 @@
 export type AvatarGender = 'male' | 'female';
 export type AvatarAction = 'std' | 'wlk';
-export type AvatarPart = 'bd' | 'hd' | 'lg' | 'sh' | 'ch' | 'ls' | 'rs' | 'hrb' | 'hr' | 'fc' | 'ey';
+export type AvatarPart = 'bd' | 'hd' | 'lg' | 'sh' | 'ch' | 'ls' | 'rs' | 'lh' | 'rh' | 'hrb' | 'hr' | 'fc' | 'ey';
 
 export interface AvatarRect {
   readonly x: number;
@@ -62,7 +62,8 @@ export interface AvatarManifest {
   readonly parts: Readonly<Record<AvatarPart, AvatarPartDefinition>>;
 }
 
-const PARTS = new Set<AvatarPart>(['bd', 'hd', 'lg', 'sh', 'ch', 'ls', 'rs', 'hrb', 'hr', 'fc', 'ey']);
+const BASE_PARTS: AvatarPart[] = ['bd', 'hd', 'lg', 'sh', 'ch', 'ls', 'rs', 'hrb', 'hr', 'fc', 'ey'];
+const PARTS = new Set<AvatarPart>([...BASE_PARTS, 'lh', 'rh']);
 const ACTIONS = new Set<AvatarAction>(['std', 'wlk']);
 
 export function parseAvatarManifest(input: unknown): AvatarManifest {
@@ -76,6 +77,7 @@ export function parseAvatarManifest(input: unknown): AvatarManifest {
   }
   const layerOrder = parseLayerOrder(input.layerOrder);
   const parts = parseParts(input.parts, sheets, regions);
+  if (layerOrder.some(part => !parts[part])) throw new Error('Layer aponta para uma parte ausente.');
   return Object.freeze({
     version: 1,
     canvas: Object.freeze({ width: 180, height: 260 }),
@@ -100,7 +102,7 @@ function parseSheets(input: unknown): Record<string, AvatarSheetDefinition> {
     }
     result[id] = Object.freeze({ src: value.src, width: value.width, height: value.height });
   }
-  if (Object.keys(result).length !== 6) throw new Error('Manifesto precisa dos seis sheets mínimos.');
+  if (Object.keys(result).length < 6 || Object.keys(result).length > 7) throw new Error('Manifesto precisa de seis sheets base e no máximo um complemento.');
   return result;
 }
 
@@ -121,11 +123,11 @@ function parseRegions(input: unknown, sheets: Readonly<Record<string, AvatarShee
 }
 
 function parseLayerOrder(input: unknown): AvatarPart[] {
-  if (!Array.isArray(input) || input.length !== PARTS.size || input.some((part) => typeof part !== 'string' || !PARTS.has(part as AvatarPart))) {
+  if (!Array.isArray(input) || ![11,13].includes(input.length) || BASE_PARTS.some(part => !input.includes(part)) || input.some((part) => typeof part !== 'string' || !PARTS.has(part as AvatarPart))) {
     throw new Error('Ordem de layers do avatar inválida.');
   }
   const result = [...input] as AvatarPart[];
-  if (new Set(result).size !== PARTS.size) throw new Error('Ordem de layers do avatar contém duplicatas.');
+  if (new Set(result).size !== result.length) throw new Error('Ordem de layers do avatar contém duplicatas.');
   return result;
 }
 
@@ -134,6 +136,7 @@ function parseParts(input: unknown, sheets: Readonly<Record<string, AvatarSheetD
   const result = {} as Record<AvatarPart, AvatarPartDefinition>;
   for (const part of PARTS) {
     const value = input[part];
+    if ((part === 'lh' || part === 'rh') && value === undefined) continue;
     if (!isRecord(value) || typeof value.sheet !== 'string' || !sheets[value.sheet] || !nonNegativeInteger(value.layer) || !isRecord(value.actions)) {
       throw new Error(`Part de avatar inválida: ${part}`);
     }

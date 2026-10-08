@@ -1,7 +1,7 @@
 import { Application, Container, Graphics, Sprite, Text } from 'pixi.js';
 import { createAvatarAssetProvider, loadAvatarManifest } from './avatar-assets';
 import type { AvatarGender, AvatarPart } from './avatar-manifest';
-import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
+import { avatarPartSpritePosition, avatarPartTint, resolveAvatarPartLayer, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement, type AvatarPartPlacement } from './avatar-composition';
 
 const MANIFEST_PATH = '/client/assets/avatar/v1/manifest/avatar-manifest-v1.json';
 const ASSET_BASE_PATH = '/client/assets/avatar/v1/';
@@ -14,6 +14,7 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
   const manifest = await loadAvatarManifest(new URL(MANIFEST_PATH, window.location.origin).toString());
   const provider = createAvatarAssetProvider(manifest, new URL(ASSET_BASE_PATH, window.location.origin).toString());
   const gender: AvatarGender = new URLSearchParams(window.location.search).get('avatar-gender') === 'female' ? 'female' : 'male';
+  const requestedParts = new URLSearchParams(window.location.search).get('avatar-parts')?.split(',').filter(Boolean);
   await provider.preload(gender);
   const app = new Application();
   await app.init({
@@ -53,6 +54,7 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
       const placements = new Map<AvatarPart, AvatarPartPlacement>();
       let mirrored = false;
       for (const part of manifest.layerOrder) {
+        if (requestedParts?.length && !requestedParts.includes(part)) continue;
         const resolved = provider.getFrame(gender, part, action, direction, frame);
         if (!resolved) continue;
         const placement = resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height);
@@ -66,7 +68,8 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
         const position = avatarPartSpritePosition(placement);
         sprite.position.set(position.x, position.y);
         sprite.scale.x = 1;
-        sprite.zIndex = manifest.parts[part].layer;
+        sprite.zIndex = resolveAvatarPartLayer(part, direction);
+        sprite.tint = avatarPartTint(part);
         composition.addChild(sprite);
       }
       const registration = new Map<AvatarPart, AvatarPartPlacement>();
@@ -77,8 +80,8 @@ export async function mountAvatarLab(host: HTMLElement, status: HTMLElement): Pr
       const registrationX = resolveAvatarFootAnchorX(registration);
       composition.position.set(resolveAvatarCompositionOffsetX(registrationX, mirrored), 36);
       composition.scale.x = mirrored ? -1 : 1;
-      const guide = new Graphics()
-        .rect(mirrored ? registrationX - bounds.maxX : bounds.minX - registrationX, bounds.minY + 36, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY)
+      const guide = new Graphics();
+      if (Number.isFinite(bounds.minX)) guide.rect(mirrored ? registrationX - bounds.maxX : bounds.minX - registrationX, bounds.minY + 36, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY)
         .stroke({ color: 0xffd166, width: 1, alpha: 0.7 })
         .moveTo(-CELL_WIDTH / 2 + 8, bounds.maxY + 36)
         .lineTo(CELL_WIDTH / 2 - 8, bounds.maxY + 36)
