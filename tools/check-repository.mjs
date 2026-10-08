@@ -16,6 +16,7 @@ const secretPatterns = [
 ];
 const approvedAvatarBinary = /^apps\/client\/public\/assets\/avatar\/v1\/sheets\/hh_human_(?:body|face|hair|leg|shirt|shoe)\.png$/u;
 const approvedLoginThemeBinary = /^apps\/web\/public\/themes\/(?:neon-purple|tropical-blue|sunset-pink|cosmic-blue|emerald-garden|desert-bazaar|arctic-lodge|underwater-coral|arcade-district|halloween-night|easter-spring|christmas-village|carnival-night|new-year-rooftop)\.webp$/u;
+const approvedHomeBinary = /^apps\/web\/public\/home-cosmic\.webp$/u;
 let problems = 0;
 for (const file of files) {
   const name = file.split('/').at(-1);
@@ -34,7 +35,7 @@ for (const file of files) {
     continue;
   }
   const content = readFileSync(file);
-  if (content.includes(0) && !approvedAvatarBinary.test(file) && !approvedLoginThemeBinary.test(file)) {
+  if (content.includes(0) && !approvedAvatarBinary.test(file) && !approvedLoginThemeBinary.test(file) && !approvedHomeBinary.test(file)) {
     console.error(`Unexpected binary: ${file}`);
     problems++;
   } else if (secretPatterns.some(pattern => pattern.test(content.toString('utf8')))) {

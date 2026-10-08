@@ -1,6 +1,7 @@
 import { CoreConnection } from '../../client/src/communication/core';
 import './styles/main.css';
 import './styles/login-layout.css';
+import './styles/home.css';
 
 type AuthMode = 'LOGIN' | 'REGISTER';
 type ThemeId = 'neon-purple' | 'tropical-blue' | 'sunset-pink' | 'cosmic-blue' | 'emerald-garden' | 'desert-bazaar' | 'arctic-lodge' | 'underwater-coral' | 'arcade-district' | 'halloween-night' | 'easter-spring' | 'christmas-village' | 'carnival-night' | 'new-year-rooftop';
@@ -14,6 +15,9 @@ type LoginTheme = {
 const $ = <T extends HTMLElement>(selector: string): T => {
   const found = document.querySelector<T>(selector); if (!found) throw new Error(`Elemento CMS ausente: ${selector}`); return found;
 };
+const authPage = $<HTMLElement>('#auth-page'); const homePage = $<HTMLElement>('#home-page');
+const authRoute = window.location.pathname === '/auth' || window.location.pathname === '/auth/' || new URLSearchParams(window.location.search).has('preview');
+authPage.hidden = !authRoute; homePage.hidden = authRoute;
 const loginForm = $<HTMLFormElement>('#login-form'); const registerForm = $<HTMLFormElement>('#register-form');
 const identifier = $<HTMLInputElement>('#login-identifier'); const loginPassword = $<HTMLInputElement>('#login-password');
 const registerUsername = $<HTMLInputElement>('#register-username'); const registerEmail = $<HTMLInputElement>('#register-email'); const registerPassword = $<HTMLInputElement>('#register-password'); const registerConfirm = $<HTMLInputElement>('#register-confirm');
@@ -74,4 +78,8 @@ loginForm.addEventListener('submit', (event) => { event.preventDefault(); if (!i
 registerForm.addEventListener('submit', (event) => { event.preventDefault(); if (!registerForm.reportValidity()) return; if (registerPassword.value !== registerConfirm.value) { setFeedback('As senhas não coincidem.'); registerConfirm.focus(); return; } setBusy(registerSubmit, true, 'CRIAR CONTA'); const credentialText = registerPassword.value; void connection.register(registerUsername.value.trim(), registerEmail.value.trim(), credentialText).then((result) => { if (!result.ok) { setFeedback(errorMessage(result.category)); return; } return connection.logout().then(() => { identifier.value = registerUsername.value.trim(); registerPassword.value = ''; registerConfirm.value = ''; renderMode('LOGIN'); setFeedback('Conta criada com sucesso. Agora entre para jogar.', 'success'); }); }).catch(() => setFeedback('Não foi possível criar sua conta.')).finally(() => setBusy(registerSubmit, false, 'CRIAR CONTA')); });
 switchMode.addEventListener('click', () => renderMode(mode === 'LOGIN' ? 'REGISTER' : 'LOGIN'));
 document.querySelectorAll<HTMLButtonElement>('[data-password-toggle]').forEach((button) => button.addEventListener('click', () => { const field = document.getElementById(button.dataset.passwordToggle ?? '') as HTMLInputElement | null; if (!field) return; const show = field.type === 'password'; field.type = show ? 'text' : 'password'; button.textContent = show ? 'Ocultar' : 'Mostrar'; button.setAttribute('aria-label', `${show ? 'Ocultar' : 'Mostrar'} senha`); }));
-heroCta.addEventListener('click', () => { identifier.focus({ preventScroll: false }); }); if (new URLSearchParams(window.location.search).get('mode') === 'register') renderMode('REGISTER'); connection.connect(); void loadTheme(); window.addEventListener('pagehide', () => connection.dispose());
+heroCta.addEventListener('click', () => { identifier.focus({ preventScroll: false }); });
+if (authRoute) {
+  if (new URLSearchParams(window.location.search).get('mode') === 'register') renderMode('REGISTER');
+  connection.connect(); void loadTheme(); window.addEventListener('pagehide', () => connection.dispose());
+}

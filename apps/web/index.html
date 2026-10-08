@@ -9,7 +9,31 @@
     <title>Habbux · Entre no seu mundo</title>
   </head>
   <body>
-    <main class="login-page">
+    <main id="home-page" class="home-page">
+      <img class="home-art" src="/home-cosmic.webp" width="1672" height="941" alt="" fetchpriority="high" />
+      <div class="home-shade" aria-hidden="true"></div>
+      <header class="home-header">
+        <a class="home-brand" href="/" aria-label="Habbux início">HABBUX<span>✦</span></a>
+        <nav class="home-nav" aria-label="Navegação principal">
+          <a class="active" href="/"><span aria-hidden="true">⌂</span> Início</a>
+          <a href="#loja"><span aria-hidden="true">◇</span> Loja</a>
+          <a href="#comunidade"><span aria-hidden="true">⌘</span> Comunidade</a>
+          <a href="#noticias"><span aria-hidden="true">▣</span> Notícias</a>
+          <a class="home-more" href="#menu" aria-label="Mais opções">•••</a>
+        </nav>
+        <a class="home-online" href="/auth/"><i></i> Hotel online</a>
+      </header>
+      <section class="home-hero" aria-labelledby="home-title">
+        <p class="home-eyebrow">EXISTEM MUITOS MUNDOS PARA DESCOBRIR</p>
+        <h1 id="home-title" class="home-title">Entre, explore<br />e faça parte.</h1>
+        <p class="home-description">Conecte-se com pessoas, crie quartos, colecione raros e participe de eventos exclusivos no Habbux.</p>
+        <div class="home-actions">
+          <a class="home-play" href="/auth/">Jogar agora <span aria-hidden="true">→</span></a>
+          <a class="home-news" href="#noticias">Ver novidades</a>
+        </div>
+      </section>
+    </main>
+    <main id="auth-page" class="login-page" hidden>
       <img id="theme-art" class="theme-art" src="/themes/neon-purple.webp" width="1672" height="941" alt="" fetchpriority="high" />
       <div class="scene-shade" aria-hidden="true"></div>
       <section class="hero" aria-label="Habbux, um novo mundo para explorar">
