@@ -13,3 +13,6 @@ CREATE TABLE hotel_settings (
 
 INSERT INTO hotel_settings (id, hotel_name, motd, registrations_enabled, maintenance_enabled)
 VALUES (1, 'Habbux', 'Bem-vinda ao Habbux.', TRUE, FALSE);
+
+GRANT SELECT, UPDATE (hotel_name, motd, registrations_enabled, maintenance_enabled, updated_at)
+    ON hotel_settings TO habbux_phase2_app;
