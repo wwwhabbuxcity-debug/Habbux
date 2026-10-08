@@ -14,6 +14,9 @@ import com.habbux.room.RoomModelRegistry;
 import com.habbux.persistence.RoomRepository;
 import com.habbux.persistence.HotelSettingsRepository;
 import com.habbux.admin.HotelSettingsService;
+import com.habbux.persistence.LoginThemeRepository;
+import com.habbux.theme.LoginThemeService;
+import java.nio.file.Path;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +50,13 @@ public final class HabbuxEmulator {
                             : RoomManager.backedBy(new RoomRepository(database.dataSource()), RoomModelRegistry.loadDefault(),
                             RoomConfig.from(environment));
                     HotelSettingsService hotelSettings = hotelSettings(database);
+                    LoginThemeService loginThemes = loginThemes(database);
                     if (database == null) {
                         LOG.atWarn().addKeyValue("event", "auth.database_unconfigured")
                                 .log("Habbux auth is unavailable until PostgreSQL is configured");
                     }
-                    try (HabbuxServer server = new HabbuxServer(config, authService, authExecutor, roomManager, hotelSettings)) {
+                    try (HabbuxServer server = new HabbuxServer(config, authService, authExecutor, roomManager, hotelSettings,
+                            loginThemes)) {
                         Runtime.getRuntime().addShutdownHook(new Thread(
                                 () -> shutdownServerAndLogPool(server, database), "habbux-shutdown"));
                         server.start();
@@ -94,6 +99,18 @@ public final class HabbuxEmulator {
             LOG.atWarn().addKeyValue("event", "admin.settings_unavailable").setCause(exception)
                     .log("Habbux owner controls are unavailable until their migration is applied");
             return HotelSettingsService.unavailable();
+        }
+    }
+
+    private static LoginThemeService loginThemes(DatabasePool database) {
+        if (database == null) return LoginThemeService.unavailable();
+        try {
+            return new LoginThemeService(new LoginThemeRepository(database.dataSource()),
+                    Path.of("/var/lib/habbux-tyvo/login-theme-assets"));
+        } catch (RuntimeException exception) {
+            LOG.atWarn().addKeyValue("event", "login_themes.unavailable").setCause(exception)
+                    .log("Habbux login themes are unavailable until their migration is applied");
+            return LoginThemeService.unavailable();
         }
     }
 

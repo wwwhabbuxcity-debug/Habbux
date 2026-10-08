@@ -1,27 +1,60 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="neon-purple">
   <head>
-    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" /><meta name="theme-color" content="#17101e" />
-    <meta name="description" content="Entre no Habbux." /><title>Habbux · Entre no seu mundo</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#17101e" />
+    <meta name="description" content="Entre no Habbux." />
+    <title>Habbux · Entre no seu mundo</title>
   </head>
   <body>
-    <main class="cms-shell">
-      <section class="cms-hero" aria-label="Habbux, um novo mundo para explorar">
-        <div class="hero-glow hero-glow-one"></div><div class="hero-glow hero-glow-two"></div>
-        <div class="hero-copy"><span class="hero-kicker">UM NOVO MUNDO ESTÁ NASCENDO</span><p>Entre, explore<br />e faça parte.</p></div>
-        <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
-        <div class="hero-city" aria-hidden="true"><i class="star star-one">✦</i><i class="star star-two">·</i><i class="star star-three">✦</i><div class="city-roof"></div><div class="city-body"><b></b><b></b><b></b><b></b><b></b><b></b></div><div class="city-ground"></div></div>
-        <div class="hero-footer"><span class="scroll-dot"></span><span>DESCUBRA O HABBUX</span><span class="arrow">↓</span></div>
+    <main class="login-page">
+      <img id="theme-art" class="theme-art" src="/themes/neon-purple.webp" width="1672" height="941" alt="" fetchpriority="high" />
+      <div class="scene-shade" aria-hidden="true"></div>
+      <section class="hero" aria-label="Habbux, um novo mundo para explorar">
+        <a id="hero-logo" class="brand" href="/" aria-label="Habbux início">HABBUX<span>✦</span></a>
+        <div class="hero-copy">
+          <p id="hero-eyebrow" class="hero-eyebrow">UM NOVO MUNDO ESTÁ NASCENDO</p>
+          <h1 id="hero-title">Entre, explore e faça parte.</h1>
+          <p id="hero-description" class="hero-description">Crie quartos, faça amizades e viva novas histórias no Habbux.</p>
+          <button id="hero-cta" class="hero-cta" type="button"><span aria-hidden="true">▶</span><b id="hero-cta-text">Descubra o Habbux</b><i aria-hidden="true">→</i></button>
+          <a id="institutional-link" class="institutional-link" hidden rel="noopener noreferrer"></a>
+        </div>
+        <p class="hero-scroll"><span></span> ROLE PARA EXPLORAR <b aria-hidden="true">↓</b></p>
       </section>
-      <section class="cms-panel"><div class="auth-wrap">
-        <a class="cms-logo" href="/" aria-label="Habbux início">HABBUX<span>✦</span></a>
-        <div class="auth-heading"><p class="auth-eyebrow">BEM-VINDO AO HABBUX</p><h1 id="auth-title">Bem-vindo de volta</h1><p id="auth-subtitle">Entre na sua conta para continuar</p></div>
+      <section class="login-card" aria-labelledby="auth-title">
+        <a id="card-logo" class="brand card-brand" href="/" aria-label="Habbux início">HABBUX<span>✦</span></a>
+        <div class="auth-heading">
+          <p class="auth-eyebrow">BEM-VINDO DE VOLTA</p>
+          <h2 id="auth-title">Bem-vindo de volta</h2>
+          <p id="auth-subtitle">Entre na sua conta para continuar</p>
+        </div>
         <div id="auth-feedback" class="auth-feedback" role="status" aria-live="polite"></div>
-        <form id="login-form" class="auth-form" novalidate><label for="login-identifier">Email ou nome de usuário</label><input id="login-identifier" name="identifier" autocomplete="username" placeholder="Digite seu email ou nome de usuário" required /><label for="login-password">Senha</label><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required /><div class="form-meta"><label class="check-label"><input id="remember" type="checkbox" disabled /> <span>Lembrar-me</span></label><button id="forgot" class="text-button" type="button" disabled>Esqueceu a senha?</button></div><button id="login-submit" class="primary-button" type="submit">ENTRAR</button></form>
-        <form id="register-form" class="auth-form" novalidate hidden><label for="register-username">Nome de usuário</label><input id="register-username" name="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z][A-Za-z0-9_]{2,19}" placeholder="Escolha um nome de usuário" required /><label for="register-email">Email</label><input id="register-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@exemplo.com" required /><label for="register-password">Senha</label><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Mínimo de 12 caracteres" required /><label for="register-confirm">Confirmar senha</label><input id="register-confirm" name="confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Repita sua senha" required /><button id="register-submit" class="primary-button" type="submit">CRIAR CONTA</button></form>
-        <div class="auth-divider"><span></span><b>OU</b><span></span></div><p id="switch-copy" class="switch-copy">Novo no Habbux?</p><button id="switch-mode" class="secondary-button" type="button">CRIAR UMA CONTA</button><p class="auth-footnote">A recuperação de senha estará disponível em breve.</p>
-      </div></section>
-    </main><script type="module" src="/src/main.ts"></script>
+        <form id="login-form" class="auth-form" novalidate>
+          <label for="login-identifier">Email ou nome de usuário</label>
+          <input id="login-identifier" name="identifier" autocomplete="username" placeholder="Digite seu email ou nome de usuário" required />
+          <label for="login-password">Senha</label>
+          <span class="password-field"><input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••" required /><button class="password-toggle" type="button" data-password-toggle="login-password" aria-label="Mostrar senha">Mostrar</button></span>
+          <button id="login-submit" class="primary-button" type="submit">ENTRAR <span aria-hidden="true">→</span></button>
+        </form>
+        <form id="register-form" class="auth-form" novalidate hidden>
+          <label for="register-username">Nome de usuário</label>
+          <input id="register-username" name="username" autocomplete="username" minlength="3" maxlength="20" pattern="[A-Za-z][A-Za-z0-9_]{2,19}" placeholder="Escolha um nome de usuário" required />
+          <label for="register-email">Email</label>
+          <input id="register-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@exemplo.com" required />
+          <label for="register-password">Senha</label>
+          <span class="password-field"><input id="register-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Mínimo de 12 caracteres" required /><button class="password-toggle" type="button" data-password-toggle="register-password" aria-label="Mostrar senha">Mostrar</button></span>
+          <label for="register-confirm">Confirmar senha</label>
+          <span class="password-field"><input id="register-confirm" name="confirm" type="password" autocomplete="new-password" minlength="12" maxlength="128" placeholder="Repita sua senha" required /><button class="password-toggle" type="button" data-password-toggle="register-confirm" aria-label="Mostrar senha">Mostrar</button></span>
+          <button id="register-submit" class="primary-button" type="submit">CRIAR CONTA <span aria-hidden="true">→</span></button>
+        </form>
+        <div class="auth-divider"><span></span><b>OU</b><span></span></div>
+        <p id="switch-copy" class="switch-copy">Novo no Habbux?</p>
+        <button id="switch-mode" class="secondary-button" type="button">CRIAR UMA CONTA</button>
+        <p class="auth-footnote">A recuperação de senha estará disponível em breve.</p>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

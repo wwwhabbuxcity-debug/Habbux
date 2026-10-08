@@ -1,45 +1,37 @@
 <!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex,nofollow" />
-    <meta name="theme-color" content="#15101e" />
+    <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" /><meta name="theme-color" content="#15101e" />
     <title>Habbux · Administração</title>
   </head>
   <body>
     <main class="shell">
-      <header class="topbar">
-        <a class="logo" href="/admin/" aria-label="Administração Habbux">HABBUX<span>✦</span></a>
-        <div><p class="eyebrow">ADMINISTRAÇÃO</p><h1>Controles do hotel</h1></div>
-        <button id="refresh" class="quiet" type="button">Atualizar dados</button>
-      </header>
+      <header class="topbar"><a class="logo" href="/admin/" aria-label="Administração Habbux">HABBUX<span>✦</span></a><div><p class="eyebrow">ADMINISTRAÇÃO</p><h1>Controles do hotel</h1></div><button id="refresh" class="quiet" type="button">Atualizar dados</button></header>
+      <nav class="tabs" aria-label="Seções do painel"><button class="tab active" data-view="overview" type="button">Operação</button><button class="tab" data-view="themes" type="button">Aparência <span>→ Tela de Login</span></button></nav>
       <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
-      <section class="metrics" aria-label="Situação atual">
-        <article><span>Conexões</span><strong id="active-connections">—</strong></article>
-        <article><span>Sessões</span><strong id="active-sessions">—</strong></article>
-        <article><span>Quartos ativos</span><strong id="active-rooms">—</strong></article>
-        <article><span>Jogadores em quartos</span><strong id="active-users">—</strong></article>
+      <section id="overview-view">
+        <section class="metrics" aria-label="Situação atual"><article><span>Conexões</span><strong id="active-connections">—</strong></article><article><span>Sessões</span><strong id="active-sessions">—</strong></article><article><span>Quartos ativos</span><strong id="active-rooms">—</strong></article><article><span>Jogadores em quartos</span><strong id="active-users">—</strong></article></section>
+        <section class="card"><div class="card-heading"><div><p class="eyebrow">CONFIGURAÇÃO</p><h2>Operação do hotel</h2></div><span id="save-state" class="save-state">Carregando</span></div>
+          <form id="settings-form"><label for="hotel-name">Nome do hotel</label><input id="hotel-name" name="hotelName" maxlength="80" required autocomplete="organization" /><label for="motd">Mensagem do hotel</label><textarea id="motd" name="motd" maxlength="300" rows="4" placeholder="Mensagem exibida para a equipe no painel"></textarea><label class="toggle" for="registrations-enabled"><input id="registrations-enabled" name="registrationsEnabled" type="checkbox" /><span><b>Permitir novos cadastros</b><small>Bloqueia novas contas imediatamente quando desligado.</small></span></label><label class="toggle warning" for="maintenance-enabled"><input id="maintenance-enabled" name="maintenanceEnabled" type="checkbox" /><span><b>Modo de manutenção</b><small>Impede novas entradas em quartos. Quem já está no quarto não cai.</small></span></label><div class="actions"><button id="save" class="primary" type="submit">Salvar alterações</button><span>As mudanças entram em vigor na hora.</span></div></form>
+        </section>
       </section>
-      <section class="card">
-        <div class="card-heading"><div><p class="eyebrow">CONFIGURAÇÃO</p><h2>Operação do hotel</h2></div><span id="save-state" class="save-state">Carregando</span></div>
-        <form id="settings-form">
-          <label for="hotel-name">Nome do hotel</label>
-          <input id="hotel-name" name="hotelName" maxlength="80" required autocomplete="organization" />
-          <label for="motd">Mensagem do hotel</label>
-          <textarea id="motd" name="motd" maxlength="300" rows="4" placeholder="Mensagem exibida para a equipe no painel"></textarea>
-          <label class="toggle" for="registrations-enabled">
-            <input id="registrations-enabled" name="registrationsEnabled" type="checkbox" />
-            <span><b>Permitir novos cadastros</b><small>Bloqueia novas contas imediatamente quando desligado.</small></span>
-          </label>
-          <label class="toggle warning" for="maintenance-enabled">
-            <input id="maintenance-enabled" name="maintenanceEnabled" type="checkbox" />
-            <span><b>Modo de manutenção</b><small>Impede novas entradas em quartos. Quem já está no quarto não cai.</small></span>
-          </label>
-          <div class="actions"><button id="save" class="primary" type="submit">Salvar alterações</button><span>As mudanças entram em vigor na hora.</span></div>
-        </form>
+      <section id="themes-view" hidden>
+        <div class="section-heading"><div><p class="eyebrow">APARÊNCIA</p><h2>Tela de Login</h2><p>Escolha o tema público e personalize cada composição sem novo deploy.</p></div><span id="theme-status" class="save-state">Carregando temas</span></div>
+        <section id="theme-cards" class="theme-cards" aria-label="Temas de login"></section>
+        <section class="card theme-editor"><div class="card-heading"><div><p class="eyebrow">PERSONALIZAÇÃO</p><h2>Configurar tema</h2></div><button id="restore-theme" class="quiet danger" type="button">Restaurar padrão</button></div>
+          <form id="theme-form"><div class="field-grid"><label for="theme-select">Tema<select id="theme-select"></select></label><label for="logo-text">Logo (texto)<input id="logo-text" maxlength="24" required /></label><label for="theme-eyebrow">Linha superior<input id="theme-eyebrow" maxlength="80" required /></label><label for="theme-title">Título principal<input id="theme-title" maxlength="120" required /></label></div>
+            <label for="theme-description">Texto complementar<textarea id="theme-description" maxlength="300" rows="3" required></textarea></label><div class="field-grid"><label for="cta-text">Texto do CTA<input id="cta-text" maxlength="64" required /></label><label for="institutional-text">Texto institucional<input id="institutional-text" maxlength="160" /></label><label for="institutional-url">Link institucional (HTTPS)<input id="institutional-url" type="url" maxlength="512" placeholder="https://" /></label></div>
+            <fieldset><legend>Cores</legend><div class="field-grid colors"><label for="primary-color">Principal<input id="primary-color" type="color" /></label><label for="secondary-color">Secundária<input id="secondary-color" type="color" /></label><label for="button-color">Botão<input id="button-color" type="color" /></label></div></fieldset>
+            <fieldset><legend>Acabamento</legend><div class="range-grid"><label>Glass <output id="glass-output"></output><input id="glass-opacity" type="range" min="20" max="96" /></label><label>Blur <output id="blur-output"></output><input id="blur-pixels" type="range" min="0" max="24" /></label><label>Opacidade <output id="card-output"></output><input id="card-opacity" type="range" min="35" max="98" /></label><label>Glow <output id="glow-output"></output><input id="glow-intensity" type="range" min="0" max="100" /></label><label>Raio <output id="radius-output"></output><input id="border-radius" type="range" min="6" max="32" /></label></div></fieldset>
+            <div class="boolean-grid"><label class="toggle compact" for="cta-visible"><input id="cta-visible" type="checkbox" /><span><b>Exibir CTA</b><small>O botão leva o foco ao login.</small></span></label><label class="toggle compact" for="decorations-enabled"><input id="decorations-enabled" type="checkbox" /><span><b>Animações decorativas</b><small>Respeita redução de movimento.</small></span></label></div>
+            <fieldset><legend>Imagem de fundo</legend><p class="helper">Use PNG ou JPEG entre 640×360 e 4096×4096, até 2 MB. O arquivo é validado e substitui somente este tema.</p><div class="asset-row"><input id="theme-asset" type="file" accept="image/png,image/jpeg" /><button id="upload-asset" class="quiet" type="button">Enviar imagem</button><span id="asset-state">Usando arte padrão</span></div></fieldset>
+            <div class="actions"><button id="save-theme" class="primary" type="submit">Salvar personalização</button><span>Revise na prévia antes de ativar.</span></div>
+          </form>
+        </section>
       </section>
     </main>
+    <dialog id="preview-dialog"><div class="preview-top"><strong id="preview-title">Prévia</strong><div class="preview-actions"><button data-preview-mode="desktop" type="button">Desktop</button><button data-preview-mode="tablet" type="button">Tablet</button><button data-preview-mode="mobile" type="button">Mobile</button><button id="preview-fullscreen" type="button">Tela cheia</button><button id="preview-register" type="button">Cadastro</button><button id="close-preview" type="button">Fechar</button></div></div><div id="preview-frame-wrap" class="preview-frame-wrap desktop"><iframe id="preview-frame" title="Prévia real da tela de login"></iframe></div></dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

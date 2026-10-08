@@ -15,6 +15,7 @@ const secretPatterns = [
   /(?:^|[^A-Za-z0-9])(?:password|passwd|secret|api[_-]?key|access[_-]?token|client[_-]?secret)\b\s*(?:=\s*|:\s+)["']?(?!local-development-only\b|\$|<|TBD\b|CHANGE_ME\b|(?:process|document|cursor|login|ui|hasher|randomBytes)\s*(?:\.|\())[^\s"'`,;}]{12,}/i,
 ];
 const approvedAvatarBinary = /^apps\/client\/public\/assets\/avatar\/v1\/sheets\/hh_human_(?:body|face|hair|leg|shirt|shoe)\.png$/u;
+const approvedLoginThemeBinary = /^apps\/web\/public\/themes\/(?:neon-purple|tropical-blue|sunset-pink|cosmic-blue)\.webp$/u;
 let problems = 0;
 for (const file of files) {
   const name = file.split('/').at(-1);
@@ -33,7 +34,7 @@ for (const file of files) {
     continue;
   }
   const content = readFileSync(file);
-  if (content.includes(0) && !approvedAvatarBinary.test(file)) {
+  if (content.includes(0) && !approvedAvatarBinary.test(file) && !approvedLoginThemeBinary.test(file)) {
     console.error(`Unexpected binary: ${file}`);
     problems++;
   } else if (secretPatterns.some(pattern => pattern.test(content.toString('utf8')))) {
