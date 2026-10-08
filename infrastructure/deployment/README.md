@@ -17,6 +17,12 @@ caminhos externos ou fontes. O serviço systemd correspondente está em
 `habbux-tyvo.service`; as credenciais ficam fora do repositório em
 `/etc/habbux/tyvo-online.env`.
 
+Quando os uploads de tema estiverem habilitados, criar
+`/var/lib/habbux-tyvo/login-theme-assets` com dono `habbux:habbux`, modo `0755`,
+e usar grupo `www-data` e modo `0750` na pasta pai `/var/lib/habbux-tyvo`.
+Assim o Nginx lê somente os arquivos de nome validado sem receber permissão de
+escrita no diretório do serviço.
+
 Vhost específico: `infrastructure/nginx/tyvo.online.conf`. Instalação é manual:
 salvar cópia do vhost Tyvo antes de substituir, testar `nginx -t`, então recarregar.
 Não alterar outros vhosts nem configuração global. Avisar antes de toda publicação.
