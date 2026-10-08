@@ -7,7 +7,7 @@ const loginForm = $<HTMLFormElement>('#login-form'); const registerForm = $<HTML
 const identifier = $<HTMLInputElement>('#login-identifier'); const loginPassword = $<HTMLInputElement>('#login-password');
 const registerUsername = $<HTMLInputElement>('#register-username'); const registerEmail = $<HTMLInputElement>('#register-email'); const registerPassword = $<HTMLInputElement>('#register-password'); const registerConfirm = $<HTMLInputElement>('#register-confirm');
 const title = $<HTMLElement>('#auth-title'); const subtitle = $<HTMLElement>('#auth-subtitle'); const feedback = $<HTMLElement>('#auth-feedback'); const switchMode = $<HTMLButtonElement>('#switch-mode'); const switchCopy = $<HTMLElement>('#switch-copy'); const loginSubmit = $<HTMLButtonElement>('#login-submit'); const registerSubmit = $<HTMLButtonElement>('#register-submit');
-const connection = new CoreConnection(__HABBUX_WS_URL__, 0); let mode: AuthMode = 'LOGIN';
+const connection = new CoreConnection(__HABBUX_WS_URL__, 3); let mode: AuthMode = 'LOGIN';
 function setFeedback(message: string, kind: 'error' | 'success' = 'error'): void { feedback.textContent = message; feedback.dataset.kind = kind; }
 function setBusy(button: HTMLButtonElement, busy: boolean, label: string): void { button.disabled = busy; button.textContent = busy ? 'AGUARDE…' : label; loginSubmit.disabled = busy; registerSubmit.disabled = busy; }
 function waitForCoreReady(timeoutMs = 12_000): Promise<void> {
@@ -22,12 +22,18 @@ function waitForCoreReady(timeoutMs = 12_000): Promise<void> {
       unsubscribe();
       callback();
     };
+    connection.connect();
     unsubscribe = connection.subscribe((snapshot) => {
       if (snapshot.state === 'READY') finish(resolve);
       else if (snapshot.state === 'DISCONNECTED' && snapshot.error) finish(() => reject(new Error(snapshot.error!)));
     });
     if (finished) unsubscribe();
-    else timer = setTimeout(() => finish(() => reject(new Error('A conexão com o Habbux demorou para ficar pronta. Tente novamente.'))), timeoutMs);
+    else {
+      timer = setTimeout(() => finish(() => {
+        connection.disconnect();
+        reject(new Error('A conexão com o Habbux demorou para ficar pronta. Tente novamente.'));
+      }), timeoutMs);
+    }
   });
 }
 function renderMode(next: AuthMode): void { mode = next; const login = next === 'LOGIN'; loginForm.hidden = !login; registerForm.hidden = login; title.textContent = login ? 'Bem-vindo de volta' : 'Crie sua conta'; subtitle.textContent = login ? 'Entre na sua conta para continuar' : 'Comece sua jornada no Habbux'; switchCopy.textContent = login ? 'Novo no Habbux?' : 'Já possui uma conta?'; switchMode.textContent = login ? 'CRIAR UMA CONTA' : 'ENTRAR'; setFeedback(''); (login ? identifier : registerUsername).focus(); }
