@@ -4,8 +4,9 @@ import { Application, Container, Graphics, Rectangle } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { AvatarView } from './avatar-view';
-import { floorSidePolygon, roomToScreen, screenToRoom, tilePolygon, type IsoConfig, type IsoFloorSide } from './isometric';
+import { floorSidePolygon, roomToScreen, tilePolygon, type IsoConfig, type IsoFloorSide } from './isometric';
 import { reconcileEntityIds } from './renderer-model';
+import { resolveRoomTileAtScreen, type RoomTileHit } from './tile-interaction';
 
 const MAX_DPR = 2;
 const MANIFEST_PATH = '/client/assets/avatar/v1/manifest/avatar-manifest-v1.json';
@@ -22,11 +23,14 @@ export type RoomTileSelect = (x: number, y: number) => void;
 /** Pixi compositor for the room floor, entities and renderer diagnostics. */
 export class RoomRenderer {
   private readonly floorLayer = new Graphics();
+  private readonly floorHighlight = new Graphics();
   private readonly entityLayer = new Graphics();
   private readonly debugLayer = new Graphics();
   private readonly worldRoot = new Container();
   private readonly avatars = new Map<string, AvatarView>();
   private readonly onCanvasPointer = (event: PointerEvent): void => this.handlePointer(event);
+  private readonly onCanvasPointerMove = (event: PointerEvent): void => this.handlePointerMove(event);
+  private readonly onCanvasPointerLeave = (): void => this.clearTileHighlight();
   private app: Application | null = null;
   private provider: AvatarAssetProvider | null = null;
   private resizeObserver: ResizeObserver | null = null;
@@ -37,6 +41,10 @@ export class RoomRenderer {
   private floorSignature = '';
   private chatSignature = '';
   private disposed = false;
+  private hoveredTile: RoomTileHit | null = null;
+  private pointerInside = false;
+  private lastPointer = { x: 0, y: 0 };
+  private touchHighlightTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly host: HTMLElement;
   private readonly status: HTMLElement;
   private readonly onTileSelect: RoomTileSelect;
@@ -80,15 +88,18 @@ export class RoomRenderer {
     this.app = app;
     this.worldRoot.eventMode = 'none';
     this.floorLayer.label = 'floor-layer';
+    this.floorHighlight.label = 'floor-highlight';
     this.entityLayer.label = 'entity-layer';
     this.entityLayer.sortableChildren = true;
     this.debugLayer.label = 'debug-layer';
-    this.worldRoot.addChild(this.floorLayer, this.entityLayer, this.debugLayer);
+    this.worldRoot.addChild(this.floorLayer, this.floorHighlight, this.entityLayer, this.debugLayer);
     app.stage.addChild(this.worldRoot);
     app.canvas.className = 'room-renderer-canvas';
     app.canvas.setAttribute('role', 'img');
     app.canvas.setAttribute('aria-label', 'Quarto isométrico do Habbux');
     app.canvas.addEventListener('pointerdown', this.onCanvasPointer, { passive: false });
+    app.canvas.addEventListener('pointermove', this.onCanvasPointerMove, { passive: true });
+    app.canvas.addEventListener('pointerleave', this.onCanvasPointerLeave, { passive: true });
     this.host.append(app.canvas);
     this.host.classList.add('room-viewport-ready');
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -120,6 +131,9 @@ export class RoomRenderer {
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.app?.canvas.removeEventListener('pointerdown', this.onCanvasPointer);
+    this.app?.canvas.removeEventListener('pointermove', this.onCanvasPointerMove);
+    this.app?.canvas.removeEventListener('pointerleave', this.onCanvasPointerLeave);
+    this.clearTouchHighlightTimer();
     for (const avatar of this.avatars.values()) avatar.dispose();
     this.avatars.clear();
     this.provider?.dispose();
@@ -133,6 +147,7 @@ export class RoomRenderer {
     this.currentRoom = room;
     if (!room || !this.provider) {
       this.floorLayer.clear();
+      this.clearTileHighlight();
       this.debugLayer.clear();
       for (const avatar of this.avatars.values()) avatar.dispose();
       this.avatars.clear();
@@ -146,6 +161,7 @@ export class RoomRenderer {
     }
     this.syncAvatars(room);
     this.drawDebug(room);
+    if (this.pointerInside) this.updateTileHighlight(this.lastPointer.x, this.lastPointer.y);
   }
 
   private syncAvatars(room: RoomState): void {
@@ -261,18 +277,67 @@ export class RoomRenderer {
       for (const avatar of this.avatars.values()) avatar.setIsoConfig(this.config);
     }
     this.worldRoot.hitArea = new Rectangle(0, 0, width, height);
+    if (this.pointerInside) this.updateTileHighlight(this.lastPointer.x, this.lastPointer.y);
   }
 
   private handlePointer(event: PointerEvent): void {
     if (!this.currentRoom || event.button !== 0) return;
-    const rect = this.host.getBoundingClientRect();
-    const point = screenToRoom(event.clientX - rect.left, event.clientY - rect.top, this.config);
-    const x = Math.round(point.x);
-    const y = Math.round(point.y);
-    if (x < 0 || x >= this.currentRoom.width || y < 0 || y >= this.currentRoom.height) return;
-    if (!this.currentRoom.walkability[y * this.currentRoom.width + x]) return;
+    const point = this.pointerPoint(event);
+    this.pointerInside = true;
+    this.lastPointer = point;
+    const hit = this.updateTileHighlight(point.x, point.y);
+    if (event.pointerType === 'touch') {
+      this.clearTouchHighlightTimer();
+      this.touchHighlightTimer = setTimeout(() => {
+        this.touchHighlightTimer = null;
+        this.clearTileHighlight();
+      }, 450);
+    }
+    if (!hit?.walkable) return;
     event.preventDefault();
-    this.onTileSelect(x, y);
+    this.onTileSelect(hit.x, hit.y);
+  }
+
+  private handlePointerMove(event: PointerEvent): void {
+    if (!this.currentRoom || event.pointerType === 'touch') return;
+    const point = this.pointerPoint(event);
+    this.pointerInside = true;
+    this.lastPointer = point;
+    this.updateTileHighlight(point.x, point.y);
+  }
+
+  private pointerPoint(event: PointerEvent): { readonly x: number; readonly y: number } {
+    const rect = this.host.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  }
+
+  private updateTileHighlight(screenX: number, screenY: number): RoomTileHit | null {
+    const room = this.currentRoom;
+    if (!room) return null;
+    const hit = resolveRoomTileAtScreen(screenX, screenY, room, this.config);
+    if (hit?.x === this.hoveredTile?.x && hit?.y === this.hoveredTile?.y
+        && hit?.walkable === this.hoveredTile?.walkable && hit?.elevation === this.hoveredTile?.elevation) return hit;
+    this.hoveredTile = hit;
+    this.floorHighlight.clear();
+    if (!hit) return null;
+    const center = roomToScreen(hit.x, hit.y, hit.elevation, this.config);
+    const polygon = tilePolygon(center, this.config).flatMap((point) => [point.x, point.y]);
+    this.floorHighlight.poly(polygon)
+      .fill({ color: hit.walkable ? 0xb9ecff : 0xff8d9b, alpha: hit.walkable ? 0.22 : 0.18 })
+      .stroke({ color: hit.walkable ? 0xd9f7ff : 0xffb2bb, width: Math.max(1, this.config.scale), alpha: 0.82 });
+    return hit;
+  }
+
+  private clearTileHighlight(): void {
+    this.pointerInside = false;
+    this.hoveredTile = null;
+    this.floorHighlight.clear();
+  }
+
+  private clearTouchHighlightTimer(): void {
+    if (this.touchHighlightTimer === null) return;
+    clearTimeout(this.touchHighlightTimer);
+    this.touchHighlightTimer = null;
   }
 }
 

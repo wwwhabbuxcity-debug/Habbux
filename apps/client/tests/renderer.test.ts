@@ -9,6 +9,8 @@ import { parseAvatarManifest } from '../src/renderer/avatar-manifest.ts';
 import { avatarPartSpritePosition, resolveAvatarCompositionOffsetX, resolveAvatarFootAnchorX, resolveAvatarPartPlacement } from '../src/renderer/avatar-composition.ts';
 import { avatarMovementDurationMs, interpolateAvatarElevation, interpolateAvatarPosition, isAdjacentAvatarStep, reconcileEntityIds } from '../src/renderer/renderer-model.ts';
 import { avatarAnchor, floorSidePolygon, roomToScreen, screenToRoom, tilePolygon } from '../src/renderer/isometric.ts';
+import { resolveRoomTileAtScreen } from '../src/renderer/tile-interaction.ts';
+import type { RoomState } from '../src/room/room-state.ts';
 
 test('velocidade usa 500 ms no cardinal e 707 ms no diagonal do grid', () => {
   assert.equal(avatarMovementDurationMs(1, 0), 500);
@@ -17,6 +19,12 @@ test('velocidade usa 500 ms no cardinal e 707 ms no diagonal do grid', () => {
   assert.equal(avatarMovementDurationMs(-1, -1), 707);
   assert.equal(isAdjacentAvatarStep(1, 1), true);
   assert.equal(isAdjacentAvatarStep(2, 0), false);
+});
+
+test('caminhos longos preservam a duração de cada segmento', () => {
+  assert.equal(Array.from({ length: 5 }, () => avatarMovementDurationMs(1, 0)).reduce((sum, value) => sum + value, 0), 2_500);
+  assert.equal(Array.from({ length: 10 }, () => avatarMovementDurationMs(1, 0)).reduce((sum, value) => sum + value, 0), 5_000);
+  assert.equal(Array.from({ length: 5 }, () => avatarMovementDurationMs(1, 1)).reduce((sum, value) => sum + value, 0), 3_535);
 });
 
 test('projeção isométrica volta ao tile original e gera losango fechado', () => {
@@ -143,4 +151,18 @@ test('corpo, pernas e sapatos têm quatro regiões WALK distintas nas oito dire�
 
 test('reconciliação remove entidades que saíram e preserva as que continuam na sala', () => {
   assert.deepEqual(reconcileEntityIds(['a', 'b'], ['b', 'c']), { added: ['c'], removed: ['a'] });
+});
+
+test('hit test isométrico encontra tile, bloqueio e elevação sem divergir da projeção', () => {
+  const room: RoomState = {
+    roomId: '1', name: 'teste', capacity: 10, modelId: 'test', spawn: { x: 0, y: 0 }, door: { x: 0, y: 0, direction: 0 }, occupants: [],
+    width: 3, height: 3, walkability: [true, true, true, true, true, true, true, true, true],
+    elevations: [0, 0, -1, 0, 3, 0, 0, 0, 0],
+  };
+  const config = { tileWidth: 64, tileHeight: 32, elevationHeight: 16, scale: 1.25, origin: { x: 120, y: 80 } } as const;
+  const elevated = roomToScreen(1, 1, 3, config);
+  assert.deepEqual(resolveRoomTileAtScreen(elevated.x, elevated.y, room, config), { x: 1, y: 1, elevation: 3, walkable: true });
+  const blockedRoom: RoomState = { ...room, walkability: [true, true, true, true, false, true, true, true, true] };
+  assert.equal(resolveRoomTileAtScreen(elevated.x, elevated.y, blockedRoom, config)?.walkable, false);
+  assert.equal(resolveRoomTileAtScreen(-100, -100, room, config), null);
 });
