@@ -7,7 +7,9 @@ import { isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { resolveAvatarDirection } from './avatar-direction';
 import { interpolateAvatarElevation, interpolateAvatarPosition } from './renderer-model';
 
-const WALK_DURATION_MS = 260;
+// RoomConfig.defaults() emits one authoritative position every 100 ms.
+// The visual step must finish before the next authoritative tile arrives.
+const WALK_DURATION_MS = 100;
 const WALK_FRAME_DURATION_MS = WALK_DURATION_MS / 4;
 const BUBBLE_DURATION_MS = 4_500;
 
@@ -187,6 +189,7 @@ export class AvatarView {
   private positionContainer(): void {
     const point = roomToScreen(this.renderX, this.renderY, this.renderZ, this.isoConfig);
     this.container.position.set(point.x, point.y);
+    this.container.scale.set(this.isoConfig.scale);
     this.container.zIndex = isoDepth(this.renderY, this.renderX, this.renderZ);
   }
 }

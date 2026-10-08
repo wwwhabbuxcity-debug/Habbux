@@ -39,6 +39,15 @@ test('animação de caminhada usa clock compartilhado e não cria timer por avat
   assert.deepEqual(animation.snapshot(), { action: 'std', frame: 0, elapsedMs: 0 });
 });
 
+test('animação percorre os quatro frames durante um passo autoritativo', () => {
+  const animation = new AvatarAnimationController(25);
+  animation.setMoving(true);
+  assert.equal(animation.update(24, 4).frame, 0);
+  assert.equal(animation.update(1, 4).frame, 1);
+  assert.equal(animation.update(50, 4).frame, 3);
+  assert.equal(animation.update(25, 4).frame, 0);
+});
+
 test('manifest normalizado valida sheets, regiões, layers, direções e frames sem /tmp em runtime', async () => {
   const file = resolve(process.cwd(), 'apps/client/public/assets/avatar/v1/manifest/avatar-manifest-v1.json');
   const parsed: unknown = JSON.parse(await readFile(file, 'utf8'));
@@ -66,6 +75,22 @@ test('partes sem WALK permanecem visíveis e respeitam direções frontais do ma
   assert.ok(head, 'hd deve usar o frame std durante wlk');
   assert.equal(head?.frame.region.includes(':h_std_hd_'), true);
   assert.equal(faceBack, undefined, 'face não deve ser inventada em direção traseira');
+});
+
+test('corpo, pernas e sapatos têm quatro regiões WALK distintas nas oito direções', async () => {
+  const file = resolve(process.cwd(), 'apps/client/public/assets/avatar/v1/manifest/avatar-manifest-v1.json');
+  const manifest = parseAvatarManifest(JSON.parse(await readFile(file, 'utf8')));
+  for (const part of ['bd', 'lg', 'sh'] as const) {
+    const action = manifest.parts[part].actions.wlk;
+    assert.ok(action, `${part} precisa de WALK`);
+    for (const gender of ['male', 'female'] as const) {
+      for (let direction = 0; direction < 8; direction++) {
+        const selected = [...Array(4).keys()].map((frame) => resolveAvatarFrameSelection(manifest, gender, part, 'wlk', direction, frame));
+        assert.ok(selected.every(Boolean), `${part}/${gender}/${direction} tem frame ausente`);
+        assert.equal(new Set(selected.map((frame) => frame!.frame.region)).size, 4, `${part}/${gender}/${direction} repete região WALK`);
+      }
+    }
+  }
 });
 
 test('reconciliação remove entidades que saíram e preserva as que continuam na sala', () => {
