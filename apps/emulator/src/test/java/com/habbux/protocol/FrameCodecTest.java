@@ -44,7 +44,7 @@ class FrameCodecTest {
     @Test
     void registryIdsRemainInSyncWithJavaEnums() throws IOException {
         String json = new String(getClass().getClassLoader().getResourceAsStream("protocol.json").readAllBytes(), StandardCharsets.UTF_8);
-        Matcher matcher = Pattern.compile("\\{ \\\"id\\\": (\\d+), \\\"name\\\": \\\"([A-Z_]+)\\\"").matcher(json);
+        Matcher matcher = Pattern.compile("\\{\\s*\"id\"\\s*:\\s*(\\d+)\\s*,\\s*\"name\"\\s*:\\s*\"([A-Z_]+)\"").matcher(json);
         int count = 0;
         while (matcher.find()) {
             CoreMessage message = CoreMessage.valueOf(matcher.group(2));

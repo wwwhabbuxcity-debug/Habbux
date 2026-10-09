@@ -1,0 +1,2152 @@
+{
+  "schemaVersion": 1,
+  "source": "Live Gallaxys database, read-only metadata",
+  "found": 64,
+  "authorized": 0,
+  "externalConverted": 0,
+  "legacyPreserved": 63,
+  "legacySha256": "7d35274051005f0111684376724b87741a61cc4f65e5d688ed09428ffedfc5be",
+  "originalConverted": 3,
+  "models": [
+    {
+      "sourceTable": "room_models",
+      "sourceId": "cinema_a",
+      "name": "cinema_a",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "2618ee642ae62e96b4b178fb9cb8186731fada5cfb57562033eee016d297770a",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        24
+      ],
+      "height": 29,
+      "validTiles": 491,
+      "maxElevation": 3,
+      "door": {
+        "x": 20,
+        "y": 27,
+        "direction": 0
+      },
+      "width": 24,
+      "blockedTiles": 205,
+      "reachableTiles": 491,
+      "connected": true,
+      "spawn": {
+        "x": 20,
+        "y": 27
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "custom_model",
+      "name": "custom_model",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "d9a4bfad6638f8477545177cf6948fa44c067b7bacf9ebd769e00c23d8da68e7",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        29
+      ],
+      "height": 13,
+      "validTiles": 147,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 0,
+        "direction": 2
+      },
+      "geometryValid": false,
+      "validationError": "door has no adjacent walkable spawn"
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "dusty_lounge",
+      "name": "dusty_lounge",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "bf7210ed428c6e1c348ca2a528cd127d96d935c9d330b8ec5356a84d4713fc31",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        29
+      ],
+      "height": 25,
+      "validTiles": 431,
+      "maxElevation": 3,
+      "door": {
+        "x": 14,
+        "y": 1,
+        "direction": 4
+      },
+      "width": 29,
+      "blockedTiles": 294,
+      "reachableTiles": 421,
+      "connected": false,
+      "spawn": {
+        "x": 14,
+        "y": 1
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "infobus_bus",
+      "name": "infobus_bus",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "091ba34483146468f85a89a416022e0a10368bbd94d81ba6fac9b3f2cd3f2336",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        19
+      ],
+      "height": 12,
+      "validTiles": 138,
+      "maxElevation": 0,
+      "door": {
+        "x": 16,
+        "y": 11,
+        "direction": 2
+      },
+      "width": 19,
+      "blockedTiles": 90,
+      "reachableTiles": 137,
+      "connected": false,
+      "spawn": {
+        "x": 16,
+        "y": 11
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_0",
+      "name": "model_0",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "9af9de757628493e288f7b4dc53b22ea285fd67bcedd3ed3cf4e2fab2e29971b",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        69
+      ],
+      "height": 10,
+      "validTiles": 209,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 4,
+        "direction": 2
+      },
+      "width": 69,
+      "blockedTiles": 481,
+      "reachableTiles": 65,
+      "connected": false,
+      "spawn": {
+        "x": 0,
+        "y": 4
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_1",
+      "name": "model_1",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "6992066fd6aa20fc62a7de7a16a5c34c09cc7a738b432fdf3a89dd318de4b5d0",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        34
+      ],
+      "height": 49,
+      "validTiles": 1010,
+      "maxElevation": 15,
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "width": 34,
+      "blockedTiles": 656,
+      "reachableTiles": 902,
+      "connected": false,
+      "spawn": {
+        "x": 0,
+        "y": 10
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_2",
+      "name": "model_2",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "4d8650cd72f7b08a8c6d26bf2ecf0b52b06898e0b124ac4dc7c47b180d10850e",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        29
+      ],
+      "height": 68,
+      "validTiles": 1045,
+      "maxElevation": 19,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 29,
+      "blockedTiles": 927,
+      "reachableTiles": 1045,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_3",
+      "name": "model_3",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "6dabb28e4af41ca17c2f666e310bbff26c1235446e17fa335594f6b9bf2d050e",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        17
+      ],
+      "height": 15,
+      "validTiles": 184,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "width": 17,
+      "blockedTiles": 71,
+      "reachableTiles": 184,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 10
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_4",
+      "name": "model_4",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "8f8dba0b8bb15a8d39231ba1471abe80e46d39768fe6acf1c0ff902570debe91",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        23
+      ],
+      "height": 20,
+      "validTiles": 283,
+      "maxElevation": 9,
+      "door": {
+        "x": 0,
+        "y": 12,
+        "direction": 2
+      },
+      "width": 23,
+      "blockedTiles": 177,
+      "reachableTiles": 183,
+      "connected": false,
+      "spawn": {
+        "x": 0,
+        "y": 12
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_5",
+      "name": "model_5",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "13efc67f7e639655ac89e86e5c3e2c45b912db820fb0f0f51d545c17b1fb0953",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        34
+      ],
+      "height": 34,
+      "validTiles": 1025,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "width": 34,
+      "blockedTiles": 131,
+      "reachableTiles": 1025,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 10
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_6",
+      "name": "model_6",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "dee2aa3c5c866df5144d4421c692e44e490fe979892ef5cbf65628f11cb73776",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        39
+      ],
+      "height": 32,
+      "validTiles": 800,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 39,
+      "blockedTiles": 448,
+      "reachableTiles": 800,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_7",
+      "name": "model_7",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "4fa4f943238c3b0173b245275ea16ae9fe40f5e893c981733f10404cecc884b5",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        25
+      ],
+      "height": 30,
+      "validTiles": 353,
+      "maxElevation": 20,
+      "door": {
+        "x": 0,
+        "y": 17,
+        "direction": 2
+      },
+      "width": 25,
+      "blockedTiles": 397,
+      "reachableTiles": 177,
+      "connected": false,
+      "spawn": {
+        "x": 0,
+        "y": 17
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_8",
+      "name": "model_8",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "5734246baf789f70f2640bf98dd23e04c4b5a4d7992e9111df00bd54d19a12bd",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        35
+      ],
+      "height": 34,
+      "validTiles": 887,
+      "maxElevation": 5,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 35,
+      "blockedTiles": 303,
+      "reachableTiles": 887,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_9",
+      "name": "model_9",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "df5c58949e1072ba5247ad8dd6a16852e3a76c14f4b42bad5eca72bc9f9cc65a",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        24
+      ],
+      "height": 44,
+      "validTiles": 925,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 17,
+        "direction": 2
+      },
+      "width": 24,
+      "blockedTiles": 131,
+      "reachableTiles": 925,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 17
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_a",
+      "name": "model_a",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "d43cfcfdfed9dba0376f3c5330897002175ebf228b0e03d6fd44619671102eb2",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 105,
+      "maxElevation": 0,
+      "door": {
+        "x": 3,
+        "y": 5,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 87,
+      "reachableTiles": 105,
+      "connected": true,
+      "spawn": {
+        "x": 3,
+        "y": 5
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_b",
+      "name": "model_b",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "963d72f01b3515c3c64c8d3b5403c2fee57dd91a9776ab1b9fc92519ffc86d7a",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 95,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 5,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 97,
+      "reachableTiles": 95,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 5
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_b2g",
+      "name": "model_b2g",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "088ab3d80cbc3f04ab4e6df32e23e9e516630ced687d5b0fba3094383eafc2b1",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        14
+      ],
+      "height": 19,
+      "validTiles": 192,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 0,
+        "direction": 2
+      },
+      "width": 14,
+      "blockedTiles": 74,
+      "reachableTiles": 192,
+      "connected": true,
+      "spawn": {
+        "x": 1,
+        "y": 1
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_basa",
+      "name": "model_basa",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "cbc8843c1261c5d0245017b1f6bdee35a2a0f566d7e591aea96dd04cdee9d0aa",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        22
+      ],
+      "height": 19,
+      "validTiles": 330,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 22,
+      "blockedTiles": 88,
+      "reachableTiles": 330,
+      "connected": true,
+      "spawn": {
+        "x": 1,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_c",
+      "name": "model_c",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "1e2b5426f2b04ea000d2f7046b4bd84ccd76f11e6fded585df9b71eaf6ab53b3",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 37,
+      "maxElevation": 0,
+      "door": {
+        "x": 4,
+        "y": 7,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 155,
+      "reachableTiles": 37,
+      "connected": true,
+      "spawn": {
+        "x": 4,
+        "y": 7
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_d",
+      "name": "model_d",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "c929ddc363df65c90899681e21f1f0c4eaec326ca9b5f8fc07e0cbf8d0e05aaf",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 85,
+      "maxElevation": 0,
+      "door": {
+        "x": 4,
+        "y": 7,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 107,
+      "reachableTiles": 85,
+      "connected": true,
+      "spawn": {
+        "x": 4,
+        "y": 7
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_e",
+      "name": "model_e",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "2e505efb484526cdae2272683c2b4dcc73e5d58d48bf3fa6a3f20c5d69a7c9d2",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 81,
+      "maxElevation": 0,
+      "door": {
+        "x": 1,
+        "y": 5,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 111,
+      "reachableTiles": 81,
+      "connected": true,
+      "spawn": {
+        "x": 1,
+        "y": 5
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_f",
+      "name": "model_f",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "85e39248bdb0483560ed27c650a5004fe74de2ab7d140e25198b6711bf39b09c",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 81,
+      "maxElevation": 0,
+      "door": {
+        "x": 2,
+        "y": 5,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 111,
+      "reachableTiles": 81,
+      "connected": true,
+      "spawn": {
+        "x": 2,
+        "y": 5
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_g",
+      "name": "model_g",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "e39786a7e8787126abd4c33c97bfefc5a741bdf95b1b60323c4fbf77cf7569f6",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 17,
+      "validTiles": 81,
+      "maxElevation": 1,
+      "door": {
+        "x": 1,
+        "y": 7,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 123,
+      "reachableTiles": 81,
+      "connected": true,
+      "spawn": {
+        "x": 1,
+        "y": 7
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_h",
+      "name": "model_h",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "429087252f887138a9a5ecc09c39540f0a6c467908b7727009f43170d958d3e7",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 16,
+      "validTiles": 75,
+      "maxElevation": 1,
+      "door": {
+        "x": 4,
+        "y": 4,
+        "direction": 2
+      },
+      "width": 12,
+      "blockedTiles": 117,
+      "reachableTiles": 75,
+      "connected": true,
+      "spawn": {
+        "x": 4,
+        "y": 4
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_i",
+      "name": "model_i",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "12c82ae969ec9dafb09bc3e64bb433c0fbb9bb2b761d81f13c2a014ac6ad2263",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        17
+      ],
+      "height": 28,
+      "validTiles": 417,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "width": 17,
+      "blockedTiles": 59,
+      "reachableTiles": 417,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 10
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_j",
+      "name": "model_j",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "5a2e5655084107fc2f1fc6d5bf51fae4ebf040771eb0e8c7fb9402f683418932",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        21
+      ],
+      "height": 24,
+      "validTiles": 321,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "width": 21,
+      "blockedTiles": 183,
+      "reachableTiles": 321,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 10
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_k",
+      "name": "model_k",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "407c5bf7767807976309f80ee8747b54ccd8219e74d21740d9f2ba490026e513",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        25
+      ],
+      "height": 28,
+      "validTiles": 449,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 13,
+        "direction": 2
+      },
+      "width": 25,
+      "blockedTiles": 251,
+      "reachableTiles": 449,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 13
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_l",
+      "name": "model_l",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "20e1ba244f90b5448631c2aac7ac0e98e98b571767a9db2efb0d05d7b498bae4",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        21
+      ],
+      "height": 22,
+      "validTiles": 353,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 16,
+        "direction": 2
+      },
+      "width": 21,
+      "blockedTiles": 109,
+      "reachableTiles": 353,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 16
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_m",
+      "name": "model_m",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "3b89079b76676ee17e3abd5d41efb14392333edef44c179b279c9de9ae2c1b72",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        29
+      ],
+      "height": 30,
+      "validTiles": 385,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 29,
+      "blockedTiles": 485,
+      "reachableTiles": 385,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_n",
+      "name": "model_n",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "e98acdf58b30503c06d11a4eece175b0e9218137565c1a1bcf176bad6e0002a4",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        21
+      ],
+      "height": 22,
+      "validTiles": 373,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 16,
+        "direction": 2
+      },
+      "width": 21,
+      "blockedTiles": 89,
+      "reachableTiles": 337,
+      "connected": false,
+      "spawn": {
+        "x": 0,
+        "y": 16
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_o",
+      "name": "model_o",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "e5508019716fe8cac350cc51f16ae1975c56aea6bb573b3e875f0d580e31796c",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        25
+      ],
+      "height": 28,
+      "validTiles": 417,
+      "maxElevation": 1,
+      "door": {
+        "x": 0,
+        "y": 18,
+        "direction": 2
+      },
+      "width": 25,
+      "blockedTiles": 283,
+      "reachableTiles": 417,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 18
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_opening",
+      "name": "model_opening",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "9f5d0285ff79d20420a9908332f4ac0fd4e84ec919ca6ebaf550c80f9d18d986",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        19
+      ],
+      "height": 26,
+      "validTiles": 369,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 23,
+        "direction": 2
+      },
+      "width": 19,
+      "blockedTiles": 125,
+      "reachableTiles": 369,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 23
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_oscar",
+      "name": "model_oscar",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "39c017ce19f39dc94eebe42d01b3248f3449484ba5205f4b42f74afde99c6855",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        64
+      ],
+      "height": 29,
+      "validTiles": 320,
+      "maxElevation": 1,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 64,
+      "blockedTiles": 1536,
+      "reachableTiles": 320,
+      "connected": true,
+      "spawn": {
+        "x": 1,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_p",
+      "name": "model_p",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "3591e1a85a1accc18d09667d9c8ca49d0ff29ee7e6aaa65b88aa4f82818136f7",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        19
+      ],
+      "height": 26,
+      "validTiles": 353,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 23,
+        "direction": 2
+      },
+      "width": 19,
+      "blockedTiles": 141,
+      "reachableTiles": 353,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 23
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_q",
+      "name": "model_q",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "0098f0ed81729fdf61011205e652db601c22554f2359568d4b65a43f6197cbb7",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        19
+      ],
+      "height": 26,
+      "validTiles": 305,
+      "maxElevation": 2,
+      "door": {
+        "x": 10,
+        "y": 4,
+        "direction": 2
+      },
+      "width": 19,
+      "blockedTiles": 189,
+      "reachableTiles": 305,
+      "connected": true,
+      "spawn": {
+        "x": 10,
+        "y": 4
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_r",
+      "name": "model_r",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "ced9601b299d5e57a9d3ef7a7e45eee16f033d4eb60428d92313ba24585c291d",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        25
+      ],
+      "height": 26,
+      "validTiles": 337,
+      "maxElevation": 4,
+      "door": {
+        "x": 10,
+        "y": 4,
+        "direction": 2
+      },
+      "width": 25,
+      "blockedTiles": 313,
+      "reachableTiles": 337,
+      "connected": true,
+      "spawn": {
+        "x": 10,
+        "y": 4
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_room_15",
+      "name": "model_room_15",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "ff0a558585db3d4fdbf02bc1a26d527fba785dc8e9d06b70840a50e224930177",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        24
+      ],
+      "height": 36,
+      "validTiles": 620,
+      "maxElevation": 35,
+      "door": {
+        "x": 3,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 24,
+      "blockedTiles": 244,
+      "reachableTiles": 433,
+      "connected": false,
+      "spawn": {
+        "x": 3,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_s",
+      "name": "model_s",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "32c3a7ae371b5330eb5d46e36251dc24efd154f34fe58eb02fc2b14b5111bf78",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        6
+      ],
+      "height": 8,
+      "validTiles": 36,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 6,
+      "blockedTiles": 12,
+      "reachableTiles": 36,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_t",
+      "name": "model_t",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "1161e7a9048bd3dfc44a74f64375621c7cb108b93f2d2d40de0a995cd0478551",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        29
+      ],
+      "height": 28,
+      "validTiles": 541,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 29,
+      "blockedTiles": 271,
+      "reachableTiles": 541,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_u",
+      "name": "model_u",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "64f748f169b139057e933da30a1b95ba5132108ae7358793d5835ccbad370f7d",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        24
+      ],
+      "height": 36,
+      "validTiles": 749,
+      "maxElevation": 1,
+      "door": {
+        "x": 0,
+        "y": 17,
+        "direction": 2
+      },
+      "width": 24,
+      "blockedTiles": 115,
+      "reachableTiles": 749,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 17
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_v",
+      "name": "model_v",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "d3c13739a6d856aaa43a8bf1c2ac4a40a28c6535baeee0ab7cb60ef7fed3f950",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        20
+      ],
+      "height": 30,
+      "validTiles": 439,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 20,
+      "blockedTiles": 161,
+      "reachableTiles": 439,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_w",
+      "name": "model_w",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "963615b1ea05a05f57acd3888f6e51b0355c9230e9c8d0765a31d8a08526c299",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        27
+      ],
+      "height": 27,
+      "validTiles": 513,
+      "maxElevation": 2,
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 27,
+      "blockedTiles": 216,
+      "reachableTiles": 513,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_x",
+      "name": "model_x",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "7bd3a879d9188398bf0841eb50e18fffa05e9708c8ebd0cbf031eecc21a87675",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        20
+      ],
+      "height": 26,
+      "validTiles": 397,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 12,
+        "direction": 2
+      },
+      "width": 20,
+      "blockedTiles": 123,
+      "reachableTiles": 397,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 12
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_y",
+      "name": "model_y",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "59d1cb76bae48c0fbde2421e8245461c45bae5e0fdc62ef945c6b1b4122c7f13",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        28
+      ],
+      "height": 24,
+      "validTiles": 441,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 28,
+      "blockedTiles": 231,
+      "reachableTiles": 441,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "model_z",
+      "name": "model_z",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "84973a6ed9cd43309159990c560b7fa784c6c551b670243a8c12e9758ba53858",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        31
+      ],
+      "height": 20,
+      "validTiles": 457,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 9,
+        "direction": 2
+      },
+      "width": 31,
+      "blockedTiles": 163,
+      "reachableTiles": 97,
+      "connected": false,
+      "spawn": {
+        "x": 0,
+        "y": 9
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "netcafe",
+      "name": "netcafe",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "ccfa1c577074995f4bf1f4f282648dc38533551bf85c2b56f96984f041036cd0",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        25
+      ],
+      "height": 24,
+      "validTiles": 400,
+      "maxElevation": 1,
+      "door": {
+        "x": 22,
+        "y": 12,
+        "direction": 2
+      },
+      "width": 25,
+      "blockedTiles": 200,
+      "reachableTiles": 396,
+      "connected": false,
+      "spawn": {
+        "x": 22,
+        "y": 12
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "newbie_lobby",
+      "name": "newbie_lobby",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "099d02c4f9dbb1c493220d8ad54d569bdfbe51f239010e5d2803c6591d24ad46",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        22
+      ],
+      "height": 28,
+      "validTiles": 371,
+      "maxElevation": 0,
+      "door": {
+        "x": 2,
+        "y": 11,
+        "direction": 2
+      },
+      "width": 22,
+      "blockedTiles": 245,
+      "reachableTiles": 371,
+      "connected": true,
+      "spawn": {
+        "x": 2,
+        "y": 11
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "old_skool",
+      "name": "old_skool",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "0a1bfbd76985ed69c55a07eeedffe0cd775b204c6a3f10b8d3428dbd69b8f49c",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        17
+      ],
+      "height": 25,
+      "validTiles": 371,
+      "maxElevation": 0,
+      "door": {
+        "x": 2,
+        "y": 1,
+        "direction": 2
+      },
+      "width": 17,
+      "blockedTiles": 54,
+      "reachableTiles": 359,
+      "connected": false,
+      "spawn": {
+        "x": 2,
+        "y": 1
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "orient",
+      "name": "orient",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "e0f33038543b462c5dc766f7c03779b855c7857ecb7fd222e1ad7e4ea5952088",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        36
+      ],
+      "height": 31,
+      "validTiles": 432,
+      "maxElevation": 1,
+      "door": {
+        "x": 35,
+        "y": 22,
+        "direction": 6
+      },
+      "width": 36,
+      "blockedTiles": 684,
+      "reachableTiles": 429,
+      "connected": false,
+      "spawn": {
+        "x": 35,
+        "y": 22
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "park_a",
+      "name": "park_a",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "4842de9d5bb1b60e7ff18ca4cc9920c4b4fc877cf0e76413f6dc299de1cda793",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        44
+      ],
+      "height": 34,
+      "validTiles": 662,
+      "maxElevation": 1,
+      "door": {
+        "x": 2,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 44,
+      "blockedTiles": 834,
+      "reachableTiles": 662,
+      "connected": true,
+      "spawn": {
+        "x": 2,
+        "y": 15
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "park_b",
+      "name": "park_b",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "56417cd3c450e10ce2c64a63ae7187b232f5de746fffc1ef455b7ea6fd927710",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        12
+      ],
+      "height": 6,
+      "validTiles": 66,
+      "maxElevation": 0,
+      "door": {
+        "x": 11,
+        "y": 2,
+        "direction": 6
+      },
+      "width": 12,
+      "blockedTiles": 6,
+      "reachableTiles": 66,
+      "connected": true,
+      "spawn": {
+        "x": 11,
+        "y": 2
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "picnic",
+      "name": "picnic",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "3a4c323a7efa8e32ec2a3f13bd6cedaa89867a41d85eefb296383ce0ce0edc32",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        38
+      ],
+      "height": 44,
+      "validTiles": 1423,
+      "maxElevation": 3,
+      "door": {
+        "x": 16,
+        "y": 5,
+        "direction": 4
+      },
+      "width": 38,
+      "blockedTiles": 249,
+      "reachableTiles": 1418,
+      "connected": false,
+      "spawn": {
+        "x": 16,
+        "y": 5
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "pizza",
+      "name": "pizza",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "c09a11856ca340ae7094aba42e9809f0f9611c1d2b13d84280daa29b1dc9a476",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        16
+      ],
+      "height": 28,
+      "validTiles": 379,
+      "maxElevation": 1,
+      "door": {
+        "x": 5,
+        "y": 27,
+        "direction": 2
+      },
+      "width": 16,
+      "blockedTiles": 69,
+      "reachableTiles": 368,
+      "connected": false,
+      "spawn": {
+        "x": 5,
+        "y": 27
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "pub_a",
+      "name": "pub_a",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "a66959f3db39dcf2ff37e324da6d5eca8487fa39b61c3999c76f5d49398a0696",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        25
+      ],
+      "height": 31,
+      "validTiles": 433,
+      "maxElevation": 3,
+      "door": {
+        "x": 15,
+        "y": 25,
+        "direction": 2
+      },
+      "width": 25,
+      "blockedTiles": 342,
+      "reachableTiles": 433,
+      "connected": true,
+      "spawn": {
+        "x": 15,
+        "y": 25
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "rooftop",
+      "name": "rooftop",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "9dfa6ecd7c3da075f50570bd6c036113868fdce4c65085eaadb22231be8ab2d2",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        20
+      ],
+      "height": 18,
+      "validTiles": 267,
+      "maxElevation": 4,
+      "door": {
+        "x": 17,
+        "y": 12,
+        "direction": 2
+      },
+      "width": 20,
+      "blockedTiles": 93,
+      "reachableTiles": 267,
+      "connected": true,
+      "spawn": {
+        "x": 17,
+        "y": 12
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "rooftop_2",
+      "name": "rooftop_2",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "c9050bb674feb26c0703b79107349fddf36e4c21c00af071a02ce871abd5c4c6",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        9
+      ],
+      "height": 12,
+      "validTiles": 88,
+      "maxElevation": 0,
+      "door": {
+        "x": 4,
+        "y": 9,
+        "direction": 2
+      },
+      "width": 9,
+      "blockedTiles": 20,
+      "reachableTiles": 84,
+      "connected": false,
+      "spawn": {
+        "x": 4,
+        "y": 9
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "snowstorm_arena_1",
+      "name": "snowstorm_arena_1",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "2a6b74cafe323f28a620cfc11c072b1ebd1ddcd9ca30df8ac37c42efc6e3a923",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        50
+      ],
+      "height": 50,
+      "validTiles": 1308,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 0,
+        "direction": 2
+      },
+      "geometryValid": false,
+      "validationError": "door has no adjacent walkable spawn"
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "star_lounge",
+      "name": "star_lounge",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "a2895f615f07859c592c203bc630cdae409f19bc9451b1cdcee504e792b1230f",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        50
+      ],
+      "height": 50,
+      "validTiles": 394,
+      "maxElevation": 4,
+      "door": {
+        "x": 37,
+        "y": 36,
+        "direction": 2
+      },
+      "width": 50,
+      "blockedTiles": 2106,
+      "reachableTiles": 394,
+      "connected": true,
+      "spawn": {
+        "x": 37,
+        "y": 36
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "tearoom",
+      "name": "tearoom",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "620f606b698ff05c48ab92109cf19835b4afacc998e481d6f78c7d7359bbd3e6",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        22
+      ],
+      "height": 22,
+      "validTiles": 394,
+      "maxElevation": 3,
+      "door": {
+        "x": 21,
+        "y": 19,
+        "direction": 6
+      },
+      "width": 22,
+      "blockedTiles": 90,
+      "reachableTiles": 378,
+      "connected": false,
+      "spawn": {
+        "x": 21,
+        "y": 19
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "theater",
+      "name": "theater",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "a81126813fe9f52ee5a44610280d42e3793fad2f76e85a3cd70f2b50db3f9482",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        23
+      ],
+      "height": 30,
+      "validTiles": 438,
+      "maxElevation": 4,
+      "door": {
+        "x": 20,
+        "y": 27,
+        "direction": 0
+      },
+      "width": 23,
+      "blockedTiles": 252,
+      "reachableTiles": 438,
+      "connected": true,
+      "spawn": {
+        "x": 20,
+        "y": 27
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models",
+      "sourceId": "the_den",
+      "name": "the_den",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "e2a8d6011a318bf5366cd746bb30d14d53c89e2e37e2f303b87fecca001ee185",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models-reference.json",
+      "widths": [
+        16,
+        20
+      ],
+      "height": 46,
+      "validTiles": 616,
+      "maxElevation": 31,
+      "door": {
+        "x": 3,
+        "y": 22,
+        "direction": 0
+      },
+      "geometryValid": false,
+      "validationError": "heightmap must be rectangular, bounded 1..96"
+    },
+    {
+      "sourceTable": "room_models_custom",
+      "sourceId": 9,
+      "name": "custom_9",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models_custom read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "22d46ea718683c1f6a82ea253e25efd929e991acc61a9baeb320f03f64420f43",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models_custom-reference.json",
+      "widths": [
+        13
+      ],
+      "height": 16,
+      "validTiles": 105,
+      "maxElevation": 0,
+      "door": {
+        "x": 3,
+        "y": 5,
+        "direction": 2
+      },
+      "width": 13,
+      "blockedTiles": 103,
+      "reachableTiles": 105,
+      "connected": true,
+      "spawn": {
+        "x": 3,
+        "y": 5
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models_custom",
+      "sourceId": 10,
+      "name": "custom_10",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models_custom read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "30fc425fb3ed8772ba6bfa7e3d18e108895da2030e6e861a3cff34b9e1a0b5b3",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models_custom-reference.json",
+      "widths": [
+        22
+      ],
+      "height": 16,
+      "validTiles": 133,
+      "maxElevation": 0,
+      "door": {
+        "x": 21,
+        "y": 3,
+        "direction": 2
+      },
+      "width": 22,
+      "blockedTiles": 219,
+      "reachableTiles": 1,
+      "connected": false,
+      "spawn": {
+        "x": 21,
+        "y": 3
+      },
+      "geometryValid": true
+    },
+    {
+      "sourceTable": "room_models_custom",
+      "sourceId": 13,
+      "name": "custom_13",
+      "status": "UNKNOWN",
+      "runtimeImport": "BLOCKED",
+      "provenance": "gallaxys_polaris.room_models_custom read-only SELECT",
+      "licenseEvidence": "No model-specific authorization found; code GPL does not establish data rights",
+      "heightmapSha256": "767a223a7e32c661ca65734c0969fcc37a7bad63fe5aa3e1f1b1cb710a1cead0",
+      "heightmapReference": "/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/reference/room_models_custom-reference.json",
+      "widths": [
+        29
+      ],
+      "height": 30,
+      "validTiles": 485,
+      "maxElevation": 0,
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "width": 29,
+      "blockedTiles": 385,
+      "reachableTiles": 485,
+      "connected": true,
+      "spawn": {
+        "x": 0,
+        "y": 15
+      },
+      "geometryValid": true
+    }
+  ],
+  "originals": [
+    {
+      "id": "hbx_courtyard_v3",
+      "width": 5,
+      "height": 4,
+      "rows": [
+        "00000",
+        "00000",
+        "00000",
+        "00000"
+      ],
+      "elevations": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "door": {
+        "x": 0,
+        "y": 1,
+        "direction": 2
+      },
+      "spawn": {
+        "x": 0,
+        "y": 1
+      },
+      "validTiles": 20,
+      "blockedTiles": 0,
+      "reachableTiles": 20,
+      "connected": true,
+      "maxElevation": 0,
+      "minElevation": 0,
+      "provenance": {
+        "status": "ORIGINAL",
+        "author": "Habbux project contributors",
+        "license": "Project internal use; original geometry",
+        "source": "tools/room-models/originals.json",
+        "evidence": "Created independently for master integration V3; no external heightmap used."
+      },
+      "heightmapSha256": "b8290c6c15925a4905437d172eb46731a0b06449e31bb0d6d8bc8c8ca86895a3"
+    },
+    {
+      "id": "hbx_terrace_v3",
+      "width": 5,
+      "height": 4,
+      "rows": [
+        "00011",
+        "00011",
+        "00011",
+        "00011"
+      ],
+      "elevations": [
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1
+      ],
+      "door": {
+        "x": 0,
+        "y": 1,
+        "direction": 2
+      },
+      "spawn": {
+        "x": 0,
+        "y": 1
+      },
+      "validTiles": 20,
+      "blockedTiles": 0,
+      "reachableTiles": 20,
+      "connected": true,
+      "maxElevation": 1,
+      "minElevation": 0,
+      "provenance": {
+        "status": "ORIGINAL",
+        "author": "Habbux project contributors",
+        "license": "Project internal use; original geometry",
+        "source": "tools/room-models/originals.json",
+        "evidence": "Created independently for master integration V3; no external heightmap used."
+      },
+      "heightmapSha256": "814b91c478d735d85d3d1c9afa595d4ad82749dc4cf04bb0707604ea1049cbd9"
+    },
+    {
+      "id": "hbx_alcove_v3",
+      "width": 5,
+      "height": 5,
+      "rows": [
+        "xx000",
+        "xx000",
+        "00000",
+        "000xx",
+        "000xx"
+      ],
+      "elevations": [
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        -1,
+        -1
+      ],
+      "door": {
+        "x": 0,
+        "y": 2,
+        "direction": 2
+      },
+      "spawn": {
+        "x": 0,
+        "y": 2
+      },
+      "validTiles": 17,
+      "blockedTiles": 8,
+      "reachableTiles": 17,
+      "connected": true,
+      "maxElevation": 0,
+      "minElevation": 0,
+      "provenance": {
+        "status": "ORIGINAL",
+        "author": "Habbux project contributors",
+        "license": "Project internal use; original geometry",
+        "source": "tools/room-models/originals.json",
+        "evidence": "Created independently for master integration V3; no external heightmap used."
+      },
+      "heightmapSha256": "906ee7df3c08572ebd07b040b793a268cee5c3effe5839c28da7fcaa3d50994e"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Original Habbux models V3; provenance in originals.json
+hbx_courtyard_v3	5	4	0	1	2	00000,00000,00000,00000
+hbx_terrace_v3	5	4	0	1	2	00011,00011,00011,00011
+hbx_alcove_v3	5	5	0	2	2	xx000,xx000,00000,000xx,000xx

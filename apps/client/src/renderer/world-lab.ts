@@ -1,6 +1,7 @@
-import type { RoomState } from '../room/room-state';
+import type { RoomState, RoomMovementStep } from '../room/room-state';
 import { RoomRenderer } from './room-renderer';
 import { DEFAULT_ROOM_STYLE } from './room-surfaces';
+import { DEFAULT_ROOM_MATERIALS, type RoomMaterialConfiguration } from './room-materials';
 
 export type WorldLabScenario = 'empty' | 'walls' | 'floor' | 'elevation' | 'stand' | 'horizontal' | 'left' | 'vertical' | 'diagonal' | 'turn' | 'long' | 'near-wall' | 'occlusion';
 interface LabControl {
@@ -12,6 +13,10 @@ interface LabControl {
   fixture(room: RoomState): void;
   facing(direction: number): void;
   footDebug(enabled: boolean): void;
+  materials(configuration: RoomMaterialConfiguration): void;
+  resetMaterials(): void;
+  announce(step: RoomMovementStep & { readonly userId: string }): void;
+  commit(userId: string, x: number, y: number, z: number): void;
 }
 declare global { interface Window { habbuxWorldLab?: LabControl } }
 
@@ -68,6 +73,16 @@ export async function mountWorldLab(host: HTMLElement): Promise<() => void> {
     fixture:next=>{renderer.setRoom(null);room=next;renderer.setRoom(room);renderer.stepDiagnostics(0);},
     facing:direction=>renderer.setDiagnosticsDirection(direction),
     footDebug:enabled=>renderer.setFootDiagnostics(enabled),
+    materials:configuration=>{renderer.setMaterials(configuration);renderer.stepDiagnostics(0);},
+    resetMaterials:()=>{renderer.setMaterials(DEFAULT_ROOM_MATERIALS);renderer.stepDiagnostics(0);},
+    announce:movement=>{
+      room={...room,occupants:room.occupants.map(o=>o.userId===movement.userId?{...o,movement}:o)};
+      renderer.setRoom(room);
+    },
+    commit:(userId,x,y,z)=>{
+      room={...room,occupants:room.occupants.map(o=>o.userId===userId?{...o,x,y,z}:o)};
+      renderer.setRoom(room);
+    },
     destination:(x,y)=>{
       // This fixture driver does not replace server pathfinding. Only adjacent
       // valid diagnostic steps are allowed; the network room remains separate.

@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "hbx_courtyard_v3",
+      "heightmap": [
+        "00000",
+        "00000",
+        "00000",
+        "00000"
+      ],
+      "door": {
+        "x": 0,
+        "y": 1,
+        "direction": 2
+      },
+      "provenance": {
+        "status": "ORIGINAL",
+        "author": "Habbux project contributors",
+        "license": "Project internal use; original geometry",
+        "source": "tools/room-models/originals.json",
+        "evidence": "Created independently for master integration V3; no external heightmap used."
+      }
+    },
+    {
+      "id": "hbx_terrace_v3",
+      "heightmap": [
+        "00011",
+        "00011",
+        "00011",
+        "00011"
+      ],
+      "door": {
+        "x": 0,
+        "y": 1,
+        "direction": 2
+      },
+      "provenance": {
+        "status": "ORIGINAL",
+        "author": "Habbux project contributors",
+        "license": "Project internal use; original geometry",
+        "source": "tools/room-models/originals.json",
+        "evidence": "Created independently for master integration V3; no external heightmap used."
+      }
+    },
+    {
+      "id": "hbx_alcove_v3",
+      "heightmap": [
+        "xx000",
+        "xx000",
+        "00000",
+        "000xx",
+        "000xx"
+      ],
+      "door": {
+        "x": 0,
+        "y": 2,
+        "direction": 2
+      },
+      "provenance": {
+        "status": "ORIGINAL",
+        "author": "Habbux project contributors",
+        "license": "Project internal use; original geometry",
+        "source": "tools/room-models/originals.json",
+        "evidence": "Created independently for master integration V3; no external heightmap used."
+      }
+    }
+  ]
+}

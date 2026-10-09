@@ -1,6 +1,7 @@
 package com.habbux.network;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -102,9 +103,10 @@ class CoreChannelHandlerTest {
         assertFalse(bucket.tryAcquire(10_000_000_000L), "refill remains bounded by the burst capacity");
     }
 
-    @Test
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans = {false, true})
     @org.junit.jupiter.api.Timeout(8)
-    void authenticatedSessionJoinsReceivesSnapshotAndLeaveRemovesPresence() throws Exception {
+    void authenticatedSessionJoinsReceivesSnapshotAndLeaveRemovesPresence(boolean announced) throws Exception {
         byte[] cells = new byte[9];
         Arrays.fill(cells, (byte) 1);
         Instant now = Instant.now();
@@ -124,7 +126,14 @@ class CoreChannelHandlerTest {
                 new AppConfig("test", 1, 5_000, "127.0.0.1", 0, 65_536, 10_000, 30, 1, 3, 30, 60, Set.of()),
                 registry, null, rooms));
         try {
-            channel.writeInbound(roomRequest(CoreMessage.ROOM_JOIN, java.nio.ByteBuffer.allocate(8).putLong(room.id().value()).array()));
+            channel.writeInbound(roomRequest(CoreMessage.ROOM_JOIN, java.nio.ByteBuffer.allocate(8).putLong(Long.MAX_VALUE).array()));
+            HabbuxFrame capability = awaitOutbound(channel);
+            assertEquals(CoreMessage.ROOM_JOIN_FAILURE.id(), capability.messageId());
+            assertArrayEquals(new byte[] {5}, capability.payload());
+            assertEquals(Session.RoomState.NONE, session.roomState());
+            assertEquals(0, rooms.activeRoom(room.id()).map(com.habbux.room.RoomRuntime::presenceCount).orElse(0));
+            channel.writeInbound(roomRequest(announced ? CoreMessage.ROOM_JOIN_MOVEMENT : CoreMessage.ROOM_JOIN,
+                    java.nio.ByteBuffer.allocate(8).putLong(room.id().value()).array()));
             assertEquals(CoreMessage.ROOM_JOIN_SUCCESS.id(), awaitOutbound(channel).messageId());
             HabbuxFrame snapshot = awaitOutbound(channel);
             assertEquals(CoreMessage.ROOM_SNAPSHOT.id(), snapshot.messageId());
@@ -134,6 +143,11 @@ class CoreChannelHandlerTest {
 
             channel.writeInbound(roomRequest(CoreMessage.ROOM_MOVE, new byte[] {2, 0}));
             for (int expectedX = 1; expectedX <= 2; expectedX++) {
+                if (announced) {
+                    HabbuxFrame step = awaitOutbound(channel);
+                    assertEquals(CoreMessage.ROOM_USER_STEP.id(), step.messageId());
+                    assertEquals(26, step.payload().length);
+                }
                 HabbuxFrame position = awaitOutbound(channel);
                 assertEquals(CoreMessage.ROOM_USER_POSITION.id(), position.messageId());
                 java.nio.ByteBuffer payload = java.nio.ByteBuffer.wrap(position.payload());

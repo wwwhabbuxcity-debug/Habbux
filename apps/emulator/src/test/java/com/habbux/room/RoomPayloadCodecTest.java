@@ -10,6 +10,16 @@ import org.junit.jupiter.api.Test;
 
 class RoomPayloadCodecTest {
     @Test
+    void announcedSegmentAndTerminalHaveStableBigEndianPayloads() {
+        var frame = RoomPayloadCodec.encode(new RoomOutbound.Step(42, 1, 0, 0, 0, 1, 1, 0, 707, 650));
+        assertEquals(28, frame.messageId());
+        assertArrayEquals(hex("000000000000002a000000000000000100000001010002c3028a"), frame.payload());
+        var stop = RoomPayloadCodec.encode(new RoomOutbound.Step(42, 2, 1, 1, 0, 1, 1, 0, 0, 0));
+        assertEquals(26, stop.payload().length);
+        assertArrayEquals(hex("000000000000002a000000000000000201010001010000000000"), stop.payload());
+    }
+
+    @Test
     void decodesPositiveBigEndianRoomIdsAndRejectsMalformedJoinAndLeave() {
         assertEquals(new RoomId(42), RoomPayloadCodec.decodeJoin(hex("000000000000002a")));
         assertThrows(RoomPayloadCodec.MalformedRoomPayloadException.class, () -> RoomPayloadCodec.decodeJoin(new byte[7]));

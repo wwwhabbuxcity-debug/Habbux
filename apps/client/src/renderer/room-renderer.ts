@@ -1,11 +1,12 @@
 // Adaptador oficial do PixiJS 8 para ambientes sem unsafe-eval no CSP.
 import 'pixi.js/unsafe-eval';
-import { Application, Container, Graphics, Rectangle } from 'pixi.js';
+import { Application, Container, Graphics, Rectangle, Sprite } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { AvatarView } from './avatar-view';
 import { DEFAULT_ISO_CONFIG, isoDepth, roomToScreen, tilePolygon, type IsoConfig } from './isometric';
-import { buildRoomSurfaces, DEFAULT_ROOM_STYLE, fitRoomConfig, shadeColor, type RoomSurfaceStyle } from './room-surfaces';
+import { buildRoomSurfaces, DEFAULT_ROOM_STYLE, fitRoomConfig, shadeColor, resolveRoomSurfaceStyle, materialsForStyle, type RoomSurfaceStyle } from './room-surfaces';
+import { validateRoomMaterials, type RoomMaterialConfiguration } from './room-materials';
 import { reconcileEntityIds } from './renderer-model';
 import { resolveRoomTileAtScreen, type RoomTileHit } from './tile-interaction';
 
@@ -29,6 +30,7 @@ export class RoomRenderer {
   private readonly surfaceObjects: Graphics[] = [];
   private surfaceCount = 0;
   private surfaceBuilds = 0;
+  private geometryBuildMs = 0;
   private viewportWidth = 0;
   private viewportHeight = 0;
   private readonly debugLayer = new Graphics();
@@ -64,8 +66,9 @@ export class RoomRenderer {
     host: HTMLElement,
     status: HTMLElement,
     onTileSelect: RoomTileSelect,
-    private readonly style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE,
+    private style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE,
   ) {
+    this.style = resolveRoomSurfaceStyle(style);
     this.host = host;
     this.status = status;
     this.onTileSelect = onTileSelect;
@@ -157,6 +160,15 @@ export class RoomRenderer {
     this.host.classList.remove('room-viewport-ready');
   }
 
+  setMaterials(materials: RoomMaterialConfiguration): void {
+    this.setStyle({ ...this.style, materials: validateRoomMaterials(materials) });
+  }
+
+  setStyle(style: RoomSurfaceStyle): void {
+    this.style = resolveRoomSurfaceStyle(style);
+    if (this.currentRoom && this.app) this.resize(true);
+  }
+
   setDiagnosticsClock(paused: boolean): void { if (paused) this.app?.stop(); else this.app?.start(); }
 
   stepDiagnostics(deltaMs: number): void { this.update(deltaMs); if (this.footDebug) this.drawDebug(this.currentRoom); this.app?.render(); }
@@ -168,7 +180,7 @@ export class RoomRenderer {
   }
 
   diagnostics(): object {
-    return { config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceCount, surfaceBuilds: this.surfaceBuilds, hover: this.hoveredTile,
+    return { surfaceInstructions: countSurfaceInstructions([this.floorLayer, ...this.surfaceObjects]), materials: materialsForStyle(this.style), geometryBuildMs: this.geometryBuildMs, ...countRenderResources(this.worldRoot), config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceCount, surfaceBuilds: this.surfaceBuilds, hover: this.hoveredTile,
       renderOrder: this.entityLayer.children.map(child => ({ label: child.label, depth: child.zIndex })),
       avatars: [...this.avatars.values()].map(avatar => avatar.diagnostics()) };
   }
@@ -208,8 +220,9 @@ export class RoomRenderer {
         this.entityLayer.addChild(avatar.container);
       } else {
         avatar.setIsoConfig(this.config);
-        avatar.setPosition(occupant.x, occupant.y, occupant.z ?? room.elevations[occupant.y * room.width + occupant.x] ?? 0);
+        if (!occupant.movement) avatar.setPosition(occupant.x, occupant.y, occupant.z ?? room.elevations[occupant.y * room.width + occupant.x] ?? 0);
       }
+      if (occupant.movement) avatar.setMovement(occupant.movement);
     }
     const removedIds = reconcileEntityIds([...this.avatars.keys()], [...activeIds]).removed;
     for (const userId of removedIds) {
@@ -233,10 +246,12 @@ export class RoomRenderer {
     this.floorLayer.cacheAsTexture(false);
     this.floorLayer.clear();
     this.clearSurfaces();
+    const buildStart = performance.now();
+    const materials = materialsForStyle(this.style);
     const surfaces = buildRoomSurfaces(room, this.config, this.style);
     this.surfaceBuilds++;
     this.surfaceCount = surfaces.walls.length + surfaces.floors.filter(f => f.elevation > 0).length;
-    const colorLine = shadeColor(this.style.floorColor, 0.60);
+    const colorLine = this.style.materials ? materials.floor.secondaryColor : shadeColor(this.style.floorColor, 0.60);
     for (const floor of surfaces.floors) {
       const g = floor.elevation > 0 ? new Graphics() : this.floorLayer;
       if (g !== this.floorLayer) {
@@ -246,20 +261,24 @@ export class RoomRenderer {
         this.surfaceObjects.push(g);
       }
       for (const side of floor.sides) {
-        g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(side.color);
+        g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(this.style.materials ? { color: side.color, alpha: materials.floor.opacity } : side.color);
+        if (materials.floor.finish === 'plain') continue;
         const [a,b] = side.polygon;
-        g.moveTo(a!.x,a!.y).lineTo(b!.x,b!.y).stroke({color:shadeColor(this.style.floorColor,1.12),width:this.config.scale,alpha:0.4});
+        g.moveTo(a!.x,a!.y).lineTo(b!.x,b!.y).stroke({color:shadeColor(this.style.floorColor,1.12),width:this.config.scale,alpha: 0.4 * materials.floor.opacity});
       }
       const top = floor.top.polygon;
-      g.poly(top.flatMap(p => [p.x, p.y])).fill(floor.top.color);
+      g.poly(top.flatMap(p => [p.x, p.y])).fill(this.style.materials ? { color: floor.top.color, alpha: materials.floor.opacity } : floor.top.color);
       // World-aligned material: four-cell staggered boards, or large stone slabs.
       // No outline around each interaction tile. Geometry is built on resize only.
-      const wood = this.style.floorMaterial === 'wood';
-      if (wood || floor.y % 2 === 0) g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[1]!.x, top[1]!.y)
-        .stroke({ color: colorLine, width: this.config.scale, alpha: 0.10 });
-      if (wood ? (floor.x + (floor.y % 2) * 2) % 4 === 0 : floor.x % 2 === 0) {
+      const wood = materials.floor.texture?.kind === 'boards';
+      const pattern = !!materials.floor.texture;
+      const repeat = materials.floor.repeatScale;
+      const boundary = (coordinate: number, period: number): boolean => Math.floor(coordinate / period) !== Math.floor((coordinate - 1) / period);
+      if (pattern && boundary(floor.y, (wood ? 1 : 2) * repeat)) g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[1]!.x, top[1]!.y)
+        .stroke({ color: colorLine, width: this.config.scale, alpha: 0.10 * materials.floor.opacity });
+      if (pattern && boundary(floor.x + (wood ? (Math.floor(floor.y / repeat) % 2) * 2 * repeat : 0), (wood ? 4 : 2) * repeat)) {
         g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[3]!.x, top[3]!.y)
-          .stroke({ color: colorLine, width: this.config.scale, alpha: 0.09 });
+          .stroke({ color: colorLine, width: this.config.scale, alpha: 0.09 * materials.floor.opacity });
       }
       if (wood && this.config.scale >= 0.5 && (floor.x + floor.y) % 4 === 0) {
         for (const fraction of [0.28,0.72]) {
@@ -267,7 +286,7 @@ export class RoomRenderer {
           const b = roomToScreen(floor.x+0.35,floor.y-0.5+fraction,floor.elevation,this.config);
           g.moveTo(a.x,a.y).lineTo(b.x,b.y);
         }
-        g.stroke({color:colorLine,width:this.config.scale*0.5,alpha:0.035});
+        g.stroke({color:colorLine,width:this.config.scale*0.5,alpha: 0.035 * materials.floor.opacity});
       }
       // Contact shadows follow real wall boundaries, including recesses. All
       // strips stay inside this tile; hit geometry and floor elevation are shared.
@@ -278,7 +297,7 @@ export class RoomRenderer {
         const inward = roomToScreen(floor.x + (side === 'x' ? 0.10 : 0), floor.y + (side === 'y' ? 0.10 : 0), floor.elevation, this.config);
         const center = roomToScreen(floor.x, floor.y, floor.elevation, this.config);
         const dx = inward.x - center.x, dy = inward.y - center.y;
-        g.poly([a.x,a.y,b.x,b.y,b.x+dx,b.y+dy,a.x+dx,a.y+dy]).fill({color:0x27343c,alpha:0.12});
+        g.poly([a.x,a.y,b.x,b.y,b.x+dx,b.y+dy,a.x+dx,a.y+dy]).fill({color:0x27343c,alpha: 0.12 * materials.floor.opacity});
       }
     }
     for (const wall of surfaces.walls) {
@@ -291,7 +310,7 @@ export class RoomRenderer {
         g.zIndex = wall.depth;
       }
       for (const face of [wall.startEnd, wall.end, wall.front, wall.cap]) {
-        if (face) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(face.color);
+        if (face) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(this.style.materials ? { color: face.color, alpha: materials.wall.opacity } : face.color);
       }
       const [a, b] = wall.base;
       const [, , topB, topA] = wall.front.polygon;
@@ -299,19 +318,21 @@ export class RoomRenderer {
       const lowerA = {x:a!.x,y:a!.y+(topA!.y-a!.y)*0.28};
       const lowerB = {x:b!.x,y:b!.y+(topB!.y-b!.y)*0.28};
       g.poly([a!.x,a!.y,b!.x,b!.y,lowerB.x,lowerB.y,lowerA.x,lowerA.y])
-        .fill({color:shadeColor(wall.front.color,0.65),alpha:0.09});
-      const trimHeight = this.style.floorThickness * this.config.elevationHeight * this.config.scale;
-      g.poly([a!.x, a!.y, b!.x, b!.y, b!.x, b!.y - trimHeight, a!.x, a!.y - trimHeight])
-        .fill(shadeColor(this.style.wallColor, 0.66));
-      g.moveTo(a!.x, a!.y - trimHeight).lineTo(b!.x, b!.y - trimHeight)
-        .stroke({ color: shadeColor(this.style.wallColor, 1.15), width: Math.max(0.5, this.config.scale), alpha: 0.65 });
-      // Continuous cornice and restrained plaster grain from original vector
-      // geometry; no Gallaxys textures or runtime dependency.
-      g.poly([topA!.x,topA!.y,topB!.x,topB!.y,topB!.x,topB!.y+trimHeight/2,topA!.x,topA!.y+trimHeight/2])
-        .fill({color:shadeColor(wall.front.color,0.72),alpha:0.18});
-      g.moveTo(topA!.x,topA!.y).lineTo(topB!.x,topB!.y)
-        .stroke({color:shadeColor(wall.front.color,1.2),width:this.config.scale,alpha:0.5});
-      if (this.style.wallMaterial === 'plaster' && this.config.scale >= 0.5) {
+        .fill({color:shadeColor(wall.front.color,0.65),alpha: 0.09 * materials.wall.opacity});
+      if (materials.wall.finish === 'trimmed') {
+        const trimHeight = this.style.floorThickness * this.config.elevationHeight * this.config.scale;
+        g.poly([a!.x, a!.y, b!.x, b!.y, b!.x, b!.y - trimHeight, a!.x, a!.y - trimHeight])
+          .fill(this.style.materials ? { color: shadeColor(this.style.wallColor, materials.wall.lighting.edge), alpha: materials.wall.opacity } : shadeColor(this.style.wallColor, 0.66));
+        g.moveTo(a!.x, a!.y - trimHeight).lineTo(b!.x, b!.y - trimHeight)
+          .stroke({ color: shadeColor(this.style.wallColor, 1.15), width: Math.max(0.5, this.config.scale), alpha: 0.65 * materials.wall.opacity });
+        // Continuous cornice and restrained plaster grain from original vector
+        // geometry; no Gallaxys textures or runtime dependency.
+        g.poly([topA!.x,topA!.y,topB!.x,topB!.y,topB!.x,topB!.y+trimHeight/2,topA!.x,topA!.y+trimHeight/2])
+          .fill({color:shadeColor(wall.front.color,0.72),alpha: 0.18 * materials.wall.opacity});
+        g.moveTo(topA!.x,topA!.y).lineTo(topB!.x,topB!.y)
+          .stroke({color:shadeColor(wall.front.color,1.2),width:this.config.scale,alpha: 0.5 * materials.wall.opacity});
+      }
+      if (materials.wall.texture?.kind === 'grain' && this.config.scale >= 0.5) {
         const seed = wall.x * 31 + wall.y * 17 + (wall.side === 'x' ? 11 : 0);
         for (let i=0;i<3;i++) {
           const along = 0.12+((seed+i*13)%29)/38;
@@ -320,12 +341,12 @@ export class RoomRenderer {
           const y = a!.y+(b!.y-a!.y)*along+(topA!.y-a!.y)*height;
           g.moveTo(x,y).lineTo(x+2*this.config.scale,y);
         }
-        g.stroke({color:shadeColor(wall.front.color,0.7),width:this.config.scale,alpha:0.06});
+        g.stroke({color:this.style.materials ? materials.wall.secondaryColor : shadeColor(wall.front.color,0.7),width:this.config.scale,alpha: 0.06 * materials.wall.opacity});
       }
-      if (this.style.wallMaterial === 'panel') {
+      if (materials.wall.texture?.kind === 'panels' && Math.floor((wall.side === 'x' ? wall.y : wall.x) / materials.wall.repeatScale) !== Math.floor(((wall.side === 'x' ? wall.y : wall.x) - 1) / materials.wall.repeatScale)) {
         const p = wall.front.polygon;
         g.moveTo(p[0]!.x, p[0]!.y).lineTo(p[3]!.x, p[3]!.y)
-          .stroke({ color: shadeColor(this.style.wallColor, 0.7), width: this.config.scale, alpha: 0.25 });
+          .stroke({ color: this.style.materials ? materials.wall.secondaryColor : shadeColor(this.style.wallColor, 0.7), width: this.config.scale, alpha: 0.25 * materials.wall.opacity });
       }
       if (!exterior) {
         this.entityLayer.addChild(g);
@@ -339,6 +360,7 @@ export class RoomRenderer {
       this.floorLayer.cacheAsTexture({resolution: Math.min(window.devicePixelRatio || 1, MAX_DPR), antialias: false});
     }
     this.entityLayer.sortChildren();
+    this.geometryBuildMs = performance.now() - buildStart;
   }
 
   private drawDebug(_room: RoomState | null): void {
@@ -452,4 +474,27 @@ function sameIsoConfig(left: IsoConfig, right: IsoConfig): boolean {
 
 function countDisplayObjects(container: Container): number {
   return 1 + container.children.reduce((sum, child) => sum + countDisplayObjects(child), 0);
+}
+
+function countRenderResources(root: Container): { spriteCount: number; textureSourceCount: number } {
+  let spriteCount = 0;
+  const sources = new Set<object>();
+  const visit = (node: Container): void => {
+    if (node instanceof Sprite) { spriteCount++; sources.add(node.texture.source); }
+    for (const child of node.children) visit(child);
+  };
+  visit(root);
+  return { spriteCount, textureSourceCount: sources.size };
+}
+
+function countSurfaceInstructions(surfaces: readonly Graphics[]): { fills: number; strokes: number; textures: number; pathInstructions: number } {
+  const result = { fills: 0, strokes: 0, textures: 0, pathInstructions: 0 };
+  for (const surface of surfaces) for (const instruction of surface.context.instructions) {
+    if (instruction.action === 'texture') result.textures++;
+    else {
+      if (instruction.action === 'fill') result.fills++; else result.strokes++;
+      result.pathInstructions += instruction.data.path.instructions.length;
+    }
+  }
+  return result;
 }

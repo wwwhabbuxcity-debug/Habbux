@@ -175,3 +175,34 @@ simultâneas; `npm run core:load-smoke` executa separadamente clientes locais.
 Esses ensaios verificam o Core funcional e cleanup no ambiente observado. Não
 representam capacidade máxima, jogadores ativos, desempenho de salas ou escala de
 produção.
+
+## Extensão WALK V8 compatível
+
+`ROOM_JOIN` (13) e `ROOM_USER_POSITION` (20) preservam seus payloads. O ID de
+quarto `9223372036854775807` fica reservado à sondagem: uma sessão autenticada
+sem sala envia ROOM_JOIN desse ID. Servidor com WALK V8 responde
+ROOM_JOIN_FAILURE (15) categoria5 (`MOVEMENT_SUPPORTED`) sem criar runtime nem
+alterar associação. Categoria legada1..4 significa fallback para ROOM_JOIN do
+ID real; nenhum erro de Auth/movimento é resposta de sondagem.
+
+Após categoria5, `ROOM_JOIN_MOVEMENT` (27) usa uint64 roomId e opta por anúncios.
+Sessões legadas recebem somente posições/entrada/saída/chat conhecidos.
+Logout/reconnect limpam o resultado da sondagem; sair de sala mantém a capacidade
+na mesma identidade/conexão. A entrada conserva os mesmos sucesso e snapshot.
+
+`ROOM_USER_STEP` (28) tem **26 bytes**, big-endian:
+
+| Campo | Bytes | Limite |
+| --- | --- | --- |
+| userId | uint64 / 8 | positivo |
+| sequence | uint64 / 8 | positivo, <= MAX_SAFE_INTEGER no client, por presença |
+| fromX, fromY, fromZ, x, y, z | 6 × uint8 | coordenadas dentro da grade, Z0..35 |
+| durationMs | uint16 / 2 | 500 cardinal, 707 diagonal, zero terminal |
+| remainingMs | uint16 / 2 | 1..duration; zero no terminal |
+
+Sequência é monotônica durante uma presença e reinicia ao sair/entrar. Passos
+repetidos/antigos são ignorados. Um passo futuro não atualiza ocupação lógica:
+endpoint20 continua fazendo commit. O anúncio reserva destino e cantos do
+diagonal; mudança de destino afeta apenas a cauda. Snapshot seguido de anúncio
+com remainingMs permite observar um passo em andamento. Terminal no endpoint
+já anunciado deixa esse passo acabar; correção divergente limpa a apresentação.

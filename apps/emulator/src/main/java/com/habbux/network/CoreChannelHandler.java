@@ -48,6 +48,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
     private ScheduledFuture<?> handshakeDeadline;
     private ScheduledFuture<?> authDeadline;
     private int messagesBeforeReady;
+    private boolean movementAnnouncements;
     private long authWindowStartedAt;
     private int authRequestsInWindow;
     private static final int AUTH_REQUEST_LIMIT = 5;
@@ -165,7 +166,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             case AUTH_LOGIN -> handleLogin(ctx, session, frame);
             case AUTH_REGISTER -> handleRegistration(ctx, session, frame);
             case AUTH_LOGOUT -> handleLogout(ctx, session, frame);
-            case ROOM_JOIN -> handleRoomJoin(ctx, session, frame);
+            case ROOM_JOIN, ROOM_JOIN_MOVEMENT -> handleRoomJoin(ctx, session, frame);
             case ROOM_LEAVE -> handleRoomLeave(ctx, session, frame);
             case ROOM_MOVE -> handleRoomMove(ctx, session, frame);
             case ROOM_CHAT -> handleRoomChat(ctx, session, frame);
@@ -363,6 +364,11 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
             client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.ALREADY_IN_ROOM));
             return;
         }
+        if (roomId.value() == Long.MAX_VALUE) {
+            client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.MOVEMENT_SUPPORTED));
+            return;
+        }
+        movementAnnouncements = frame.messageId() == CoreMessage.ROOM_JOIN_MOVEMENT.id();
         if (roomManager == null) {
             client.send(new RoomOutbound.JoinFailed(RoomOutbound.JoinFailure.UNAVAILABLE));
             return;
@@ -469,7 +475,7 @@ final class CoreChannelHandler extends SimpleChannelInboundHandler<WebSocketFram
 
     private RoomClient roomClient(ChannelHandlerContext ctx) {
         return message -> dispatchToEventLoop(ctx, () -> {
-            if (!ctx.channel().isActive()) return;
+            if (!ctx.channel().isActive() || (message instanceof RoomOutbound.Step && !movementAnnouncements)) return;
             try { writeFrame(ctx, RoomPayloadCodec.encode(message)); }
             catch (RuntimeException invalid) {
                 LOG.atError().addKeyValue("event", "room.outbound_invalid")

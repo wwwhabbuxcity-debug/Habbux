@@ -1,6 +1,7 @@
 package com.habbux.room;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,7 +11,8 @@ class RoomModelTest {
     @Test
     void loadsAllApprovedValidModelsAndPreservesInvalidModelExclusion() {
         RoomModelRegistry registry = RoomModelRegistry.loadDefault();
-        assertEquals(63, registry.models().size());
+        assertEquals(66, registry.models().size());
+        assertTrue(registry.find("hbx_terrace_v3").isPresent());
         assertTrue(registry.find("model_s").isPresent());
         assertFalse(registry.find("the_den").isPresent());
         assertEquals("model_s", registry.findVirtual(new RoomId(registry.virtualRoomId("model_s"))).orElseThrow().id());
@@ -53,6 +55,19 @@ class RoomModelTest {
         RoomGridDefinition grid = new RoomGridDefinition(2, 2, new byte[]{1,1,1,1},
                 new byte[]{0,2,0,0}, 0, 0, "test", 0, 0, 2);
         assertFalse(grid.canTraverse(0, 0, 1, 1));
+    }
+
+    @Test
+    void strictOriginalBoundaryRejectsDisconnectedAndRemoteSpawnModels() {
+        RoomModelDefinition islands = new RoomModelDefinition("hbx_test", 3, 1,
+                new byte[]{0, -1, 0}, 0, 0, 2);
+        assertThrows(IllegalArgumentException.class, () -> RoomModelValidator.validateConnected(islands));
+        RoomModelDefinition remote = new RoomModelDefinition("hbx_remote", 3, 3,
+                new byte[]{-1,-1,-1,-1,-1,-1,-1,-1,0}, 0, 0, 2);
+        assertThrows(IllegalArgumentException.class, () -> RoomModelValidator.validateConnected(remote));
+        RoomModelDefinition stairs = new RoomModelDefinition("hbx_stairs", 2, 2,
+                new byte[]{0,1,1,2}, 0, 0, 2);
+        RoomModelValidator.validateConnected(stairs);
     }
 
 }

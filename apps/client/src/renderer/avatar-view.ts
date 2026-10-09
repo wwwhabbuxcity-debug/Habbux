@@ -1,5 +1,5 @@
 import { Container, Graphics, Sprite, Text } from 'pixi.js';
-import type { RoomOccupant } from '../room/room-state';
+import type { RoomOccupant, RoomMovementStep } from '../room/room-state';
 import { AvatarAnimationController, WALK_FRAME_DURATION_MS } from './avatar-animation';
 import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart, AvatarFootAnchor } from './avatar-manifest';
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
@@ -66,6 +66,11 @@ export class AvatarView {
 
   setPosition(x: number, y: number, z = 0, snap = false): void {
     this.movement.setPosition(x, y, z, snap);
+    this.positionContainer();
+  }
+
+  setMovement(step: RoomMovementStep): void {
+    this.movement.announce(step);
     this.positionContainer();
   }
 

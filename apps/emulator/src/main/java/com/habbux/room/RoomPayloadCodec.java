@@ -97,11 +97,18 @@ public final class RoomPayloadCodec {
                 case FULL -> 2;
                 case ALREADY_IN_ROOM -> 3;
                 case UNAVAILABLE -> 4;
+                case MOVEMENT_SUPPORTED -> 5;
             };
             return frame(CoreMessage.ROOM_JOIN_FAILURE, new byte[] {(byte) category});
         }
         if (message instanceof RoomOutbound.Left) return frame(CoreMessage.ROOM_LEAVE_SUCCESS, new byte[0]);
         if (message instanceof RoomOutbound.Snapshot snapshot) return encodeSnapshot(snapshot.snapshot());
+        if (message instanceof RoomOutbound.Step step) {
+            return frame(CoreMessage.ROOM_USER_STEP, ByteBuffer.allocate(26).putLong(step.userId()).putLong(step.sequence())
+                    .put((byte) step.fromX()).put((byte) step.fromY()).put((byte) step.fromZ())
+                    .put((byte) step.x()).put((byte) step.y()).put((byte) step.z())
+                    .putShort((short) step.durationMs()).putShort((short) step.remainingMs()).array());
+        }
         if (message instanceof RoomOutbound.Position position) {
             return frame(CoreMessage.ROOM_USER_POSITION, ByteBuffer.allocate(11).putLong(position.userId())
                     .put((byte) position.x()).put((byte) position.y()).put((byte) position.z()).array());

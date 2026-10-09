@@ -28,6 +28,7 @@ public final class RoomRuntime {
     private final RoomMetadata metadata;
     private final RoomMailbox mailbox;
     private final Presence[] occupantByCell;
+    private final Presence[] reservationByCell;
     private final int[] searchQueue;
     private final int[] searchParent;
     private final int[] searchGenerationByCell;
@@ -60,6 +61,7 @@ public final class RoomRuntime {
         this.maxChatCodePoints = Math.min(maxChatCodePoints, RoomPayloadCodec.MAX_CHAT_CODE_POINTS);
         chatRateLimitNanos = java.util.concurrent.TimeUnit.MILLISECONDS.toNanos(chatRateLimitMillis);
         occupantByCell = new Presence[cellCount];
+        reservationByCell = new Presence[cellCount];
         searchQueue = new int[cellCount];
         searchParent = new int[cellCount];
         searchGenerationByCell = new int[cellCount];
@@ -121,6 +123,10 @@ public final class RoomRuntime {
             }
             client.send(new RoomOutbound.Joined(metadata.id(), x, y));
             client.send(new RoomOutbound.Snapshot(snapshot()));
+            long joinedAt = System.nanoTime();
+            for (Presence current : presences.values()) {
+                if (current.path != null) client.send(stepAnnouncement(current, joinedAt));
+            }
             result.complete(JoinOutcome.JOINED);
         });
         if (!accepted) {
@@ -138,6 +144,7 @@ public final class RoomRuntime {
                 presenceByUserId.remove(removed.userId, removed);
                 int cell = removed.y * metadata.grid().width() + removed.x;
                 occupantByCell[cell] = null;
+                releaseStep(removed);
                 if (removed.path != null) {
                     removed.path = null;
                     movingPresences.remove(removed);
@@ -179,13 +186,15 @@ public final class RoomRuntime {
                 result.complete(MoveOutcome.INVALID_DESTINATION);
                 return;
             }
-            if (start == destination) {
+            if (start == destination && presence.path == null) {
                 stopMovement(presence);
                 lastActivityNanos = System.nanoTime();
                 result.complete(MoveOutcome.ARRIVED);
                 return;
             }
-            PathResult path = findPath(presence, start, destination);
+            boolean wasMoving = presence.path != null;
+            int pathStart = wasMoving ? presence.path[presence.pathIndex] : start;
+            PathResult path = pathStart == destination ? PathResult.success(new int[0]) : findPath(presence, pathStart, destination);
             if (path.failure != null) {
                 presence.client.send(new RoomOutbound.ActionFailed(path.failure));
                 result.complete(switch (path.failure) {
@@ -198,11 +207,19 @@ public final class RoomRuntime {
                 });
                 return;
             }
-            boolean wasMoving = presence.path != null;
-            presence.path = path.cells;
+            if (wasMoving) {
+                int[] replacement = new int[path.cells.length + 1];
+                replacement[0] = pathStart;
+                System.arraycopy(path.cells, 0, replacement, 1, path.cells.length);
+                presence.path = replacement;
+            } else {
+                presence.path = path.cells;
+            }
             presence.pathIndex = 0;
             if (!wasMoving) {
-                presence.nextStepAtNanos = System.nanoTime() + movementStepNanos(presence);
+                long startedAt = System.nanoTime();
+                presence.nextStepAtNanos = startedAt + movementStepNanos(presence);
+                announceStep(presence, startedAt);
                 movingPresences.addLast(presence);
             }
             movingCount = movingPresences.size();
@@ -270,6 +287,7 @@ public final class RoomRuntime {
                     presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.INVALID_DESTINATION));
                     continue;
                 }
+                releaseStep(presence);
                 int oldCell = presence.y * metadata.grid().width() + presence.x;
                 occupantByCell[oldCell] = null;
                 presence.x = nextCell % metadata.grid().width();
@@ -286,8 +304,15 @@ public final class RoomRuntime {
                 } else {
                     // Carry the deadline, not the rounded tick arrival. Otherwise
                     // every 707 ms diagonal becomes 800 ms and the drift grows.
-                    presence.nextStepAtNanos += movementStepNanos(presence);
-                    movingPresences.addLast(presence);
+                    int next = presence.path[presence.pathIndex];
+                    if (!canStep(presence, presence.x, presence.y, next % metadata.grid().width(), next / metadata.grid().width())) {
+                        stopMovement(presence);
+                        presence.client.send(new RoomOutbound.ActionFailed(RoomOutbound.ActionFailure.INVALID_DESTINATION));
+                    } else {
+                        presence.nextStepAtNanos += movementStepNanos(presence);
+                        announceStep(presence, nowNanos);
+                        movingPresences.addLast(presence);
+                    }
                 }
             }
             movingCount = movingPresences.size();
@@ -305,6 +330,7 @@ public final class RoomRuntime {
             movingPresences.clear();
             movingCount = 0;
             Arrays.fill(occupantByCell, null);
+            Arrays.fill(reservationByCell, null);
             state = State.CLOSED;
             onUnloaded.run();
             result.complete(true);
@@ -323,6 +349,7 @@ public final class RoomRuntime {
             movingCount = 0;
             presenceCount = 0;
             Arrays.fill(occupantByCell, null);
+            Arrays.fill(reservationByCell, null);
             state = State.CLOSED;
             mailbox.closeAdmission();
             result.complete(null);
@@ -385,12 +412,17 @@ public final class RoomRuntime {
     private boolean canStep(Presence presence, int x, int y, int nx, int ny) {
         RoomGridDefinition grid = metadata.grid();
         if (!grid.canTraverse(x, y, nx, ny)) return false;
+        Presence reserved = reservationByCell[ny * grid.width() + nx];
+        if (reserved != null && reserved != presence) return false;
         Presence target = occupantByCell[ny * grid.width() + nx];
         if (target != null && target != presence) return false;
         if (x != nx && y != ny) {
             Presence sideX = occupantByCell[y * grid.width() + nx];
             Presence sideY = occupantByCell[ny * grid.width() + x];
-            if ((sideX != null && sideX != presence) || (sideY != null && sideY != presence)) return false;
+            Presence reservedX = reservationByCell[y * grid.width() + nx];
+            Presence reservedY = reservationByCell[ny * grid.width() + x];
+            if ((sideX != null && sideX != presence) || (sideY != null && sideY != presence)
+                    || (reservedX != null && reservedX != presence) || (reservedY != null && reservedY != presence)) return false;
         }
         return true;
     }
@@ -415,10 +447,49 @@ public final class RoomRuntime {
         return searchGeneration;
     }
 
+    private void announceStep(Presence presence, long nowNanos) {
+        int cell = presence.path[presence.pathIndex];
+        int width = metadata.grid().width();
+        presence.reservedCells[0] = cell;
+        presence.reservedCount = 1;
+        if (cell % width != presence.x && cell / width != presence.y) {
+            presence.reservedCells[presence.reservedCount++] = presence.y * width + cell % width;
+            presence.reservedCells[presence.reservedCount++] = (cell / width) * width + presence.x;
+        }
+        for (int index = 0; index < presence.reservedCount; index++) reservationByCell[presence.reservedCells[index]] = presence;
+        presence.movementSequence++;
+        RoomOutbound.Step step = stepAnnouncement(presence, nowNanos);
+        for (Presence recipient : presences.values()) recipient.client.send(step);
+    }
+
+    private RoomOutbound.Step stepAnnouncement(Presence presence, long nowNanos) {
+        int cell = presence.path[presence.pathIndex];
+        RoomGridDefinition grid = metadata.grid();
+        int x = cell % grid.width(), y = cell / grid.width();
+        int duration = (int) movementStepMillis(x - presence.x, y - presence.y);
+        int remaining = (int) Math.max(1, Math.min(duration,
+                TimeUnit.NANOSECONDS.toMillis(Math.max(0, presence.nextStepAtNanos - nowNanos))));
+        return new RoomOutbound.Step(presence.userId, presence.movementSequence, presence.x, presence.y,
+                grid.elevationAt(presence.x, presence.y), x, y, grid.elevationAt(x, y), duration, remaining);
+    }
+
+    private void releaseStep(Presence presence) {
+        for (int index = 0; index < presence.reservedCount; index++) {
+            int cell = presence.reservedCells[index];
+            if (reservationByCell[cell] == presence) reservationByCell[cell] = null;
+        }
+        presence.reservedCount = 0;
+    }
+
     private void stopMovement(Presence presence) {
         if (presence.path == null) return;
+        releaseStep(presence);
         presence.path = null;
         presence.pathIndex = 0;
+        int z = metadata.grid().elevationAt(presence.x, presence.y);
+        RoomOutbound.Step stop = new RoomOutbound.Step(presence.userId, ++presence.movementSequence,
+                presence.x, presence.y, z, presence.x, presence.y, z, 0, 0);
+        for (Presence recipient : presences.values()) recipient.client.send(stop);
         movingPresences.remove(presence);
         movingCount = movingPresences.size();
     }
@@ -435,7 +506,7 @@ public final class RoomRuntime {
             int cell = searchQueue[read++];
             int x = cell % grid.width();
             int y = cell / grid.width();
-            if (grid.isWalkable(x, y) && occupantByCell[cell] == null) return cell;
+            if (grid.isWalkable(x, y) && occupantByCell[cell] == null && reservationByCell[cell] == null) return cell;
             for (int direction = 0; direction < DX.length; direction++) {
                 int nx = x + DX[direction];
                 int ny = y + DY[direction];
@@ -476,6 +547,9 @@ public final class RoomRuntime {
         private int[] path;
         private int pathIndex;
         private long nextStepAtNanos;
+        private long movementSequence;
+        private final int[] reservedCells = new int[3];
+        private int reservedCount;
         private long lastChatNanos;
         private Presence(UUID sessionId, long userId, String username, int x, int y, RoomClient client) {
             this.sessionId = sessionId;

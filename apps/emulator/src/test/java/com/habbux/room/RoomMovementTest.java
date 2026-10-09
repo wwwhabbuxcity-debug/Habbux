@@ -38,7 +38,7 @@ class RoomMovementTest {
 
     @Test
     @Timeout(8)
-    void newDestinationReplacesCurrentPathFromAuthoritativePosition() throws Exception {
+    void newDestinationPreservesAnnouncedLegAndReplacesOnlyFuturePath() throws Exception {
         RoomMetadata room = metadata(98, 2, 5, 5, filled(25));
         RoomManager manager = manager(id -> java.util.Optional.of(room), room.capacity(), 128, 1_000);
         BlockingQueue<RoomOutbound> output = new LinkedBlockingQueue<>();
@@ -47,15 +47,23 @@ class RoomMovementTest {
             join(manager, room, sessionId, 1, output);
             assertEquals(RoomRuntime.MoveOutcome.MOVING,
                     manager.move(room.id(), sessionId, 0, 4, output::add).get(1, TimeUnit.SECONDS));
+            RoomOutbound.Step guaranteed = (RoomOutbound.Step) output.poll(1, TimeUnit.SECONDS);
+            assertEquals(0, guaranteed.fromX());
+            assertEquals(0, guaranteed.fromY());
+            assertEquals(1, guaranteed.sequence());
             assertEquals(RoomRuntime.MoveOutcome.MOVING,
                     manager.move(room.id(), sessionId, 4, 4, output::add).get(1, TimeUnit.SECONDS));
 
             int x = 0;
             int y = 0;
-            for (int step = 0; step < 4; step++) {
+            for (int step = 0; step < 8 && (x != 4 || y != 4); step++) {
                 String[] coordinates = awaitPosition(output).split(",");
                 int nextX = Integer.parseInt(coordinates[0]);
                 int nextY = Integer.parseInt(coordinates[1]);
+                if (step == 0) {
+                    assertEquals(guaranteed.x(), nextX, "retarget cannot rewrite promised endpoint");
+                    assertEquals(guaranteed.y(), nextY, "retarget cannot rewrite promised endpoint");
+                }
                 assertEquals(1, Math.max(Math.abs(nextX - x), Math.abs(nextY - y)),
                         "movement stays adjacent");
                 x = nextX;
@@ -180,6 +188,7 @@ class RoomMovementTest {
             join(manager, room, sessionId, 1, output);
             assertEquals(RoomRuntime.MoveOutcome.MOVING,
                     manager.move(room.id(), sessionId, 4, 4, output::add).get(1, TimeUnit.SECONDS));
+            assertTrue(output.poll(1, TimeUnit.SECONDS) instanceof RoomOutbound.Step);
             manager.leave(room.id(), sessionId, output::add, false).get(1, TimeUnit.SECONDS);
             assertEquals(0, manager.activeRoom(room.id()).orElseThrow().presenceCount());
             assertEquals(0, manager.activeRoom(room.id()).orElseThrow().movingCount());
@@ -351,6 +360,49 @@ class RoomMovementTest {
                 assertEquals(0, manager.activeRoom(room.id()).orElseThrow().movingCount());
             } finally { assertTrue(manager.close(Duration.ofSeconds(3))); }
         }
+    }
+
+    @Test
+    @Timeout(8)
+    void advertisedTargetIsReservedAndLeaveReleasesIt() throws Exception {
+        RoomMetadata room = metadata(79, 3, 3, 3, filled(9));
+        RoomManager manager = manager(id -> java.util.Optional.of(room), 3, 128, 1_000);
+        BlockingQueue<RoomOutbound> first = new LinkedBlockingQueue<>(), second = new LinkedBlockingQueue<>();
+        UUID a = UUID.randomUUID(), b = UUID.randomUUID();
+        try {
+            join(manager, room, a, 1, first);
+            join(manager, room, b, 2, second);
+            first.clear(); second.clear();
+            assertEquals(RoomRuntime.MoveOutcome.MOVING, manager.move(room.id(), a, 0, 1, first::add).get(1, TimeUnit.SECONDS));
+            RoomOutbound.Step advertised = (RoomOutbound.Step) first.poll(1, TimeUnit.SECONDS);
+            assertEquals(0, advertised.x()); assertEquals(1, advertised.y());
+            assertEquals(RoomRuntime.MoveOutcome.UNREACHABLE, manager.move(room.id(), b, 0, 1, second::add).get(1, TimeUnit.SECONDS));
+            manager.leave(room.id(), a, first::add, false).get(1, TimeUnit.SECONDS);
+            assertEquals(RoomRuntime.MoveOutcome.MOVING, manager.move(room.id(), b, 0, 1, second::add).get(1, TimeUnit.SECONDS));
+            assertEquals("0,1", awaitPosition(second));
+        } finally { assertTrue(manager.close(Duration.ofSeconds(3))); }
+    }
+
+    @Test
+    @Timeout(8)
+    void diagonalAnnouncesOnlyAfterReservingBothCornerCellsAndJoiningAvoidsThem() throws Exception {
+        RoomMetadata room = metadata(78, 3, 3, 3, filled(9));
+        RoomManager manager = manager(id -> java.util.Optional.of(room), 3, 128, 1_000);
+        BlockingQueue<RoomOutbound> first = new LinkedBlockingQueue<>(), second = new LinkedBlockingQueue<>();
+        UUID a = UUID.randomUUID(), b = UUID.randomUUID();
+        try {
+            join(manager, room, a, 1, first); first.clear();
+            assertEquals(RoomRuntime.MoveOutcome.MOVING, manager.move(room.id(), a, 1, 1, first::add).get(1, TimeUnit.SECONDS));
+            RoomOutbound.Step advertised = (RoomOutbound.Step) first.poll(1, TimeUnit.SECONDS);
+            assertEquals(707, advertised.durationMs());
+            join(manager, room, b, 2, second);
+            // Spawn searches around all three reserved cells, not inside the diagonal sweep.
+            RoomOutbound.Step ongoing = (RoomOutbound.Step) second.poll(1, TimeUnit.SECONDS);
+            assertEquals(1, ongoing.userId());
+            assertEquals(RoomRuntime.MoveOutcome.UNREACHABLE, manager.move(room.id(), b, 1, 0, second::add).get(1, TimeUnit.SECONDS));
+            assertEquals("1,1", awaitPosition(first));
+            assertEquals(RoomRuntime.MoveOutcome.MOVING, manager.move(room.id(), b, 1, 0, second::add).get(1, TimeUnit.SECONDS));
+        } finally { assertTrue(manager.close(Duration.ofSeconds(3))); }
     }
 
     private static RoomManager manager(RoomLoader loader, int capacity, int maxPathLength, int tickMillis) {

@@ -1,7 +1,9 @@
+import { DEFAULT_ROOM_MATERIALS, validateRoomMaterials, type RoomMaterialConfiguration } from './room-materials.ts';
 import type { RoomState } from '../room/room-state.ts';
 import { DEFAULT_ISO_CONFIG, floorSidePolygon, isoDepth, roomToScreen, tilePolygon, type IsoConfig, type IsoPoint } from './isometric.ts';
 
 export interface RoomSurfaceStyle {
+  readonly materials?: RoomMaterialConfiguration;
   readonly floorColor: number;
   readonly floorMaterial: 'wood' | 'stone';
   readonly floorThickness: number; // elevation units
@@ -16,6 +18,20 @@ export const DEFAULT_ROOM_STYLE: RoomSurfaceStyle = Object.freeze({
   floorColor: 0xb6a080, floorMaterial: 'wood', floorThickness: 0.5,
   wallColor: 0x9ab5bd, wallMaterial: 'plaster', wallHeight: 8, wallThickness: 0.16, walls: true, cacheBackground: false,
 });
+export function resolveRoomSurfaceStyle(style: RoomSurfaceStyle): RoomSurfaceStyle {
+  if (!style.materials) return style;
+  const materials = validateRoomMaterials(style.materials);
+  return { ...style, materials, floorColor: materials.floor.mainColor, wallColor: materials.wall.mainColor,
+    floorMaterial: materials.floor.texture?.kind === 'slabs' ? 'stone' : 'wood',
+    wallMaterial: materials.wall.texture?.kind === 'panels' ? 'panel' : 'plaster',
+    floorThickness: materials.floorThickness, wallThickness: materials.wallThickness, wallHeight: materials.wallHeight, walls: materials.walls };
+}
+export function materialsForStyle(style: RoomSurfaceStyle): RoomMaterialConfiguration {
+  return style.materials ?? { ...DEFAULT_ROOM_MATERIALS,
+    floor: { ...DEFAULT_ROOM_MATERIALS.floor, mainColor: style.floorColor, texture: { ...DEFAULT_ROOM_MATERIALS.floor.texture!, kind: style.floorMaterial === 'wood' ? 'boards' : 'slabs' } },
+    wall: { ...DEFAULT_ROOM_MATERIALS.wall, mainColor: style.wallColor, texture: { ...DEFAULT_ROOM_MATERIALS.wall.texture!, kind: style.wallMaterial === 'plaster' ? 'grain' : 'panels' } },
+    floorThickness: style.floorThickness, wallHeight: style.wallHeight, wallThickness: style.wallThickness, walls: style.walls };
+}
 export interface SurfaceFace {
   readonly polygon: readonly IsoPoint[];
   readonly color: number;
@@ -46,6 +62,8 @@ function elevationAt(room: RoomState, x: number, y: number): number | null {
 
 /** All room faces share tile vertices, camera scale and elevation projection. */
 export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE): RoomSurfaces {
+  style = resolveRoomSurfaceStyle(style);
+  const material = materialsForStyle(style);
   const floors: FloorSurface[] = [];
   const walls: WallSurface[] = [];
   // One ceiling and one outer vertex per junction. Front panels keep their own
@@ -75,12 +93,14 @@ export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: Roo
         // Exterior slabs also reach below lower terraces: no floating platforms.
         const bottom = neighbor ?? -style.floorThickness;
         const depth = (z - bottom) * config.elevationHeight * config.scale;
-        sides.push({ polygon: floorSidePolygon(top, side, depth), color: shadeColor(style.floorColor, side === 'x' ? 0.62 : 0.76) });
+        sides.push({ polygon: floorSidePolygon(top, side, depth), color: shadeColor(style.floorColor, material.floor.lighting[side]) });
       }
       // Material boards span several grid cells. Grid boundaries are interaction
       // geometry, not a checkerboard texture.
-      const variation = style.floorMaterial === 'wood' ? ((Math.floor((x + (y % 2) * 2) / 4) + y) % 3) * 0.008 : 0;
-      floors.push({ x, y, elevation: z, top: { polygon: top, color: shadeColor(style.floorColor, 1 - variation) }, sides, depth: isoDepth(x, y) - 0.25 });
+      const repeat = material.floor.repeatScale;
+      const row = Math.floor(y / repeat);
+      const variation = material.floor.texture?.kind === 'boards' ? ((Math.floor((x + (row % 2) * 2 * repeat) / (4 * repeat)) + row) % 3) * 0.008 : 0;
+      floors.push({ x, y, elevation: z, top: { polygon: top, color: shadeColor(style.floorColor, material.floor.lighting.cap * (1 - variation)) }, sides, depth: isoDepth(x, y) - 0.25 });
       if (!style.walls) continue;
       for (const side of ['x', 'y'] as const) {
         if (elevationAt(room, x - (side === 'x' ? 1 : 0), y - (side === 'y' ? 1 : 0)) !== null) continue;
@@ -99,10 +119,10 @@ export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: Roo
         const outerBase = outer(b, z);
         const continued = junctions.get(key(b.x, b.y))!.edges > 1;
         walls.push({ x, y, side, base: [p0, p1], depth: isoDepth(x, y) - 0.5,
-          front: { polygon: [p0, p1, t1, t0], color: shadeColor(style.wallColor, side === 'x' ? 0.80 : 1) },
-          cap: { polygon: [t0, t1, outer1, outer0], color: shadeColor(style.wallColor, 1.12) },
-          end: continued ? null : { polygon: [p1, outerBase, outer1, t1], color: shadeColor(style.wallColor, 0.66) },
-          startEnd: junctions.get(key(a.x, a.y))!.edges > 1 ? null : { polygon: [p0, outer(a, z), outer0, t0], color: shadeColor(style.wallColor, 0.66) },
+          front: { polygon: [p0, p1, t1, t0], color: shadeColor(style.wallColor, material.wall.lighting[side]) },
+          cap: { polygon: [t0, t1, outer1, outer0], color: shadeColor(style.wallColor, material.wall.lighting.cap) },
+          end: continued ? null : { polygon: [p1, outerBase, outer1, t1], color: shadeColor(style.wallColor, material.wall.lighting.edge) },
+          startEnd: junctions.get(key(a.x, a.y))!.edges > 1 ? null : { polygon: [p0, outer(a, z), outer0, t0], color: shadeColor(style.wallColor, material.wall.lighting.edge) },
         });
       }
     }
@@ -114,6 +134,7 @@ export function buildRoomSurfaces(room: RoomState, config: IsoConfig, style: Roo
 
 /** Fit every surface, including tall interior tiles, without applying Z twice. */
 export function fitRoomConfig(room: RoomState, width: number, height: number, style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE): IsoConfig {
+  style = resolveRoomSurfaceStyle(style);
   const surfaces = buildRoomSurfaces(room, DEFAULT_ISO_CONFIG, style);
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   const include = (p: IsoPoint): void => { minX = Math.min(minX, p.x); minY = Math.min(minY, p.y); maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y); };

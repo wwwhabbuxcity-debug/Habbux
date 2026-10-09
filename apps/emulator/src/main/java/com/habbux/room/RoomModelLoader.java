@@ -13,7 +13,15 @@ public final class RoomModelLoader {
     private RoomModelLoader() { }
 
     public static List<RoomModelDefinition> loadDefault() {
-        InputStream resource = RoomModelLoader.class.getResourceAsStream("/room-models-v1/models.tsv");
+        List<RoomModelDefinition> models = new ArrayList<>(loadResource("/room-models-v1/models.tsv"));
+        List<RoomModelDefinition> originals = loadResource("/room-models-v3/originals.tsv");
+        originals.forEach(RoomModelValidator::validateConnected);
+        models.addAll(originals);
+        return List.copyOf(models);
+    }
+
+    private static List<RoomModelDefinition> loadResource(String path) {
+        InputStream resource = RoomModelLoader.class.getResourceAsStream(path);
         if (resource == null) throw new IllegalStateException("room model resource is missing");
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
             List<RoomModelDefinition> models = new ArrayList<>();

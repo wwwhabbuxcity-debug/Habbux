@@ -1,4 +1,12 @@
+export interface RoomMovementStep {
+  readonly sequence: number;
+  readonly fromX: number; readonly fromY: number; readonly fromZ: number;
+  readonly x: number; readonly y: number; readonly z: number;
+  readonly durationMs: number; readonly remainingMs: number;
+}
+
 export interface RoomOccupant {
+  readonly movement?: RoomMovementStep;
   readonly userId: string;
   readonly username: string;
   readonly x: number;
@@ -145,6 +153,25 @@ export function decodeRoomPosition(payload: Uint8Array): { readonly userId: stri
   return Object.freeze({ userId, x, y, z });
 }
 
+export function decodeRoomMovementStep(payload: Uint8Array): RoomMovementStep & { readonly userId: string } {
+  const reader = new PayloadReader(payload);
+  const userId = readUserId(reader, 'usuário');
+  const sequence = Number(reader.readBigUint64());
+  const fromX = reader.readUint8(), fromY = reader.readUint8(), fromZ = reader.readUint8();
+  const x = reader.readUint8(), y = reader.readUint8(), z = reader.readUint8();
+  const durationMs = reader.readUint16(), remainingMs = reader.readUint16();
+  reader.finish();
+  const dx = x - fromX, dy = y - fromY;
+  const expectedDuration = dx !== 0 && dy !== 0 ? 707 : 500;
+  if (!Number.isSafeInteger(sequence) || sequence < 1 || fromZ > 35 || z > 35
+      || (durationMs === 0 ? (dx !== 0 || dy !== 0 || z !== fromZ || remainingMs !== 0)
+        : ((dx === 0 && dy === 0) || Math.abs(dx) > 1 || Math.abs(dy) > 1
+          || durationMs !== expectedDuration || remainingMs < 1 || remainingMs > durationMs))) {
+    throw new Error('Segmento autoritativo inválido.');
+  }
+  return Object.freeze({ userId, sequence, fromX, fromY, fromZ, x, y, z, durationMs, remainingMs });
+}
+
 export function decodeRoomChat(payload: Uint8Array): RoomChatMessage {
   const reader = new PayloadReader(payload);
   const userId = readUserId(reader, 'usuário');
@@ -240,7 +267,9 @@ function hasValidSurrogates(value: string): boolean {
 class PayloadReader {
   private offset = 0;
   private readonly view: DataView;
-  constructor(private readonly payload: Uint8Array) {
+  private readonly payload: Uint8Array;
+  constructor(payload: Uint8Array) {
+    this.payload = payload;
     this.view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
   }
   readUint8(): number { this.require(1); return this.view.getUint8(this.offset++); }

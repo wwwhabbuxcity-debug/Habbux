@@ -2,6 +2,7 @@ import {
   decodeRoomActionFailure,
   decodeRoomChat,
   decodeRoomPosition,
+  decodeRoomMovementStep,
   decodeRoomModelSnapshot,
   decodeRoomSnapshot,
   decodeRoomUserJoined,
@@ -42,6 +43,8 @@ export const CORE_MESSAGE = {
   ROOM_CHAT: 24,
   ROOM_USER_CHAT: 25,
   ROOM_MODEL_SNAPSHOT: 26,
+  ROOM_JOIN_MOVEMENT: 27,
+  ROOM_USER_STEP: 28,
 } as const;
 export const AUTH_FAILURE_CATEGORY = {
   INVALID_REQUEST: 1,
@@ -54,7 +57,7 @@ const SOCKET_TIMEOUT_MS = 12_000;
 const ROOM_SERVER_MESSAGE_IDS: ReadonlySet<number> = new Set([
   CORE_MESSAGE.ROOM_JOIN_SUCCESS, CORE_MESSAGE.ROOM_JOIN_FAILURE, CORE_MESSAGE.ROOM_LEAVE_SUCCESS,
   CORE_MESSAGE.ROOM_SNAPSHOT, CORE_MESSAGE.ROOM_USER_JOIN, CORE_MESSAGE.ROOM_USER_LEAVE,
-  CORE_MESSAGE.ROOM_MODEL_SNAPSHOT, CORE_MESSAGE.ROOM_USER_POSITION, CORE_MESSAGE.ROOM_USER_CHAT, CORE_MESSAGE.ROOM_ACTION_FAILURE,
+  CORE_MESSAGE.ROOM_USER_STEP, CORE_MESSAGE.ROOM_MODEL_SNAPSHOT, CORE_MESSAGE.ROOM_USER_POSITION, CORE_MESSAGE.ROOM_USER_CHAT, CORE_MESSAGE.ROOM_ACTION_FAILURE,
 ]);
 
 type DebugFields = Record<string, boolean | number | string | null>;
@@ -147,6 +150,8 @@ export class CoreConnection {
   private pendingAuth: { resolve: (result: CoreAuthResult) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   private pendingLogout: { resolve: (success: boolean) => void; timer: ReturnType<typeof setTimeout> } | null = null;
   private pendingRoomJoinId: string | null = null;
+  private movementSupported: boolean | null = null;
+  private movementProbePending = false;
   private pendingRoomJoinPosition: { readonly x: number; readonly y: number } | null = null;
   private roomCommandTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -225,11 +230,15 @@ export class CoreConnection {
   joinRoom(roomId: string | bigint): void {
     const socket = this.readyRoomSocket();
     if (this.snapshot.roomStatus !== 'NONE') throw new Error('Esta sessão já está entrando em um quarto.');
+    if (BigInt(roomId) === 9223372036854775807n) throw new Error('ID reservado para negociação.');
     const payload = encodeRoomId(roomId);
     this.pendingRoomJoinId = BigInt(roomId).toString();
     this.setSnapshot({ ...this.snapshot, roomStatus: 'JOINING', roomError: null });
     try {
-      socket.send(encodeFrame(CORE_MESSAGE.ROOM_JOIN, payload));
+      this.movementProbePending = this.movementSupported === null;
+      socket.send(encodeFrame(this.movementProbePending ? CORE_MESSAGE.ROOM_JOIN
+        : this.movementSupported ? CORE_MESSAGE.ROOM_JOIN_MOVEMENT : CORE_MESSAGE.ROOM_JOIN,
+        this.movementProbePending ? encodeRoomId(9223372036854775807n) : payload));
       this.startRoomCommandTimeout(socket, 'JOIN');
     } catch (error) {
       this.clearRoomCommand();
@@ -354,6 +363,8 @@ export class CoreConnection {
     }
     if (frame.messageId === CORE_MESSAGE.SERVER_HELLO && this.snapshot.state === 'HANDSHAKING' && frame.payload.byteLength === 16) {
       this.reconnectAttempts = 0;
+      this.movementSupported = null;
+      this.movementProbePending = false;
       this.setSnapshot({ ...this.snapshot, state: 'READY',
         sessionId: [...frame.payload].map((byte) => byte.toString(16).padStart(2, '0')).join(''),
         rttMs: null, error: null, authState: 'ANONYMOUS', userId: null, username: null });
@@ -385,6 +396,7 @@ export class CoreConnection {
       clearTimeout(this.pendingLogout.timer);
       this.pendingLogout.resolve(true);
       this.pendingLogout = null;
+      this.movementSupported = null;
       this.clearRoomCommand();
       this.setSnapshot({ ...this.snapshot, authState: 'ANONYMOUS', userId: null, username: null, error: null,
         roomStatus: 'NONE', room: null, roomError: null, roomChat: [] });
@@ -425,6 +437,18 @@ export class CoreConnection {
         return;
       }
       if (messageId === CORE_MESSAGE.ROOM_JOIN_FAILURE) {
+        if (this.movementProbePending) {
+          if (payload.byteLength !== 1 || (payload[0] ?? 0) < 1 || (payload[0] ?? 0) > 5
+              || this.snapshot.roomStatus !== 'JOINING' || !this.pendingRoomJoinId) {
+            throw new Error('Resposta de negociação inválida.');
+          }
+          this.movementProbePending = false;
+          this.movementSupported = payload[0] === 5;
+          socket.send(encodeFrame(this.movementSupported ? CORE_MESSAGE.ROOM_JOIN_MOVEMENT : CORE_MESSAGE.ROOM_JOIN,
+            encodeRoomId(this.pendingRoomJoinId)));
+          this.startRoomCommandTimeout(socket, 'JOIN');
+          return;
+        }
         if (payload.byteLength !== 1 || this.snapshot.roomStatus !== 'JOINING' || this.pendingRoomJoinId === null) {
           throw new Error('Falha de entrada inesperada.');
         }
@@ -495,6 +519,25 @@ export class CoreConnection {
         this.setSnapshot({ ...this.snapshot, room: updated });
         return;
       }
+      if (messageId === CORE_MESSAGE.ROOM_USER_STEP) {
+        const movement = decodeRoomMovementStep(payload);
+        const index = room.occupants.findIndex((occupant) => occupant.userId === movement.userId);
+        if (index < 0 || !this.movementSupported
+            || movement.x >= room.width || movement.y >= room.height
+            || movement.fromX >= room.width || movement.fromY >= room.height
+            || !room.walkability[movement.y * room.width + movement.x]
+            || !room.walkability[movement.fromY * room.width + movement.fromX]
+            || movement.z !== room.elevations[movement.y * room.width + movement.x]
+            || movement.fromZ !== room.elevations[movement.fromY * room.width + movement.fromX]) {
+          throw new Error('Segmento recebido inválido para o quarto.');
+        }
+        const current = room.occupants[index]!;
+        if (current.movement && movement.sequence <= current.movement.sequence) return;
+        const occupants = room.occupants.map((occupant, other) => other === index
+          ? Object.freeze({ ...occupant, movement }) : occupant);
+        this.setSnapshot({ ...this.snapshot, room: Object.freeze({ ...room, occupants: Object.freeze(occupants) }) });
+        return;
+      }
       if (messageId === CORE_MESSAGE.ROOM_USER_POSITION) {
         const position = decodeRoomPosition(payload);
         const index = room.occupants.findIndex((occupant) => occupant.userId === position.userId);
@@ -552,6 +595,7 @@ export class CoreConnection {
     this.clearRoomCommandTimer();
     this.pendingRoomJoinId = null;
     this.pendingRoomJoinPosition = null;
+    this.movementProbePending = false;
   }
 
   private onClose(socket: WebSocket, event?: CloseEvent): void {

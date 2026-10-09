@@ -276,7 +276,7 @@ test('reconnect uses bounded attempts and can be disabled', async () => {
   }
 });
 
-test('client joins a room, applies authoritative presence and movement, exchanges chat, and leaves', async () => {
+for (const supportsMovement of [false, true]) test(`client joins (${supportsMovement ? 'announced' : 'legacy server'}), applies presence/movement/chat and leaves`, async () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'WebSocket');
   let socket;
   class RecordingSocket {
@@ -314,6 +314,13 @@ test('client joins a room, applies authoritative presence and movement, exchange
     connection.joinRoom(42n);
     let outbound = client.decodeFrame(socket.sent.at(-1));
     assert.equal(outbound.messageId, client.CORE_MESSAGE.ROOM_JOIN);
+    assert.equal(new DataView(outbound.payload.buffer).getBigUint64(0, false), 9223372036854775807n);
+    // The probe never joins a room or drops authentication.
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_JOIN_FAILURE, Uint8Array.of(supportsMovement ? 5 : 1)) });
+    outbound = client.decodeFrame(socket.sent.at(-1));
+    assert.equal(outbound.messageId, supportsMovement ? client.CORE_MESSAGE.ROOM_JOIN_MOVEMENT : client.CORE_MESSAGE.ROOM_JOIN);
+    assert.equal(snapshot.authState, 'AUTHENTICATED');
+    assert.equal(snapshot.roomStatus, 'JOINING');
     assert.equal(new DataView(outbound.payload.buffer).getBigUint64(0, false), 42n);
     const joined = new Uint8Array(10);
     new DataView(joined.buffer).setBigUint64(0, 42n, false);
@@ -324,6 +331,16 @@ test('client joins a room, applies authoritative presence and movement, exchange
     assert.equal(snapshot.room.name, 'Test Room');
     assert.deepEqual(snapshot.room.occupants.map(({ username }) => username), ['alice']);
 
+    if (supportsMovement) {
+      const future = new Uint8Array(26), view = new DataView(future.buffer);
+      view.setBigUint64(0, 42n); view.setBigUint64(8, 1n); future.set([0,0,0,1,0,0],16);
+      view.setUint16(22,500); view.setUint16(24,500);
+      socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_USER_STEP, future) });
+      assert.equal(snapshot.room.occupants[0].x,0); // future tile is not an authoritative commit
+      assert.equal(snapshot.room.occupants[0].movement.x,1);
+      socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_USER_STEP, future) });
+      assert.equal(snapshot.room.occupants[0].movement.sequence,1);
+    }
     connection.moveRoom(1, 0);
     outbound = client.decodeFrame(socket.sent.at(-1));
     assert.equal(outbound.messageId, client.CORE_MESSAGE.ROOM_MOVE);
@@ -350,6 +367,17 @@ test('client joins a room, applies authoritative presence and movement, exchange
     socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.ROOM_LEAVE_SUCCESS) });
     assert.equal(snapshot.roomStatus, 'NONE');
     assert.equal(snapshot.room, null);
+    const logout = connection.logout();
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.AUTH_LOGOUT_SUCCESS) });
+    assert.equal(await logout,true);
+    const relogin = connection.login('alice','correct horse');
+    socket.onmessage({ data: client.encodeFrame(client.CORE_MESSAGE.AUTH_SUCCESS,identity) });
+    await relogin;
+    assert.throws(() => connection.joinRoom(9223372036854775807n), /reservado/u);
+    connection.joinRoom(42n);
+    outbound=client.decodeFrame(socket.sent.at(-1));
+    assert.equal(outbound.messageId,client.CORE_MESSAGE.ROOM_JOIN);
+    assert.equal(new DataView(outbound.payload.buffer).getBigUint64(0,false),9223372036854775807n);
     connection.dispose();
   } finally {
     if (descriptor) Object.defineProperty(globalThis, 'WebSocket', descriptor);
@@ -387,4 +415,44 @@ function roomSnapshotPayload({ secondUser = false, invalidName = false } = {}) {
   if (secondUser) occupants.push(concat(uint64(42), Uint8Array.of(1, 0, 0, 5), new TextEncoder().encode('alice')));
   return concat(uint64(42), Uint8Array.of(0, name.length), name,
     Uint8Array.of(2, 2, 4, 1, 1, 1, 1, occupants.length), ...occupants);
+}
+
+for (const invalidResponse of ['bad-category','auth-error','probe-timeout']) {
+  test(`movement negotiation ${invalidResponse} closes safely without fallback or authentication replay`, async () => {
+    const descriptor=Object.getOwnPropertyDescriptor(globalThis,'WebSocket');
+    const realSetTimeout=globalThis.setTimeout;
+    let socket, timeout;
+    class ProbeSocket {
+      static OPEN=1;readyState=0;sent=[];
+      constructor(){socket=this;}
+      send(data){this.sent.push(data.slice(0));}
+      close(code,reason){this.closed={code,reason};this.readyState=3;this.onclose?.({code,reason});}
+    }
+    Object.defineProperty(globalThis,'WebSocket',{configurable:true,value:ProbeSocket});
+    if(invalidResponse==='probe-timeout') globalThis.setTimeout=(callback,ms,...args)=>{
+      if(ms===5000){timeout=callback;return realSetTimeout(()=>{},0);}
+      return realSetTimeout(callback,ms,...args);
+    };
+    let connection;
+    try {
+      connection=new client.CoreConnection('ws://localhost/ws',0);
+      let snapshot;connection.subscribe(value=>snapshot=value);connection.connect();
+      socket.readyState=1;socket.onopen();
+      socket.onmessage({data:client.encodeFrame(client.CORE_MESSAGE.SERVER_HELLO,new Uint8Array(16))});
+      const login=connection.login('alice','correct horse');
+      const identity=concat(uint64(42),Uint8Array.of(0,5),new TextEncoder().encode('alice'));
+      socket.onmessage({data:client.encodeFrame(client.CORE_MESSAGE.AUTH_SUCCESS,identity)});await login;
+      connection.joinRoom(42n);
+      const count=socket.sent.length;
+      if(invalidResponse==='bad-category') socket.onmessage({data:client.encodeFrame(client.CORE_MESSAGE.ROOM_JOIN_FAILURE,Uint8Array.of(6))});
+      else if(invalidResponse==='auth-error') socket.onmessage({data:client.encodeFrame(client.CORE_MESSAGE.AUTH_FAILURE,Uint8Array.of(1))});
+      else {assert.equal(typeof timeout,'function');timeout();}
+      assert.ok(socket.closed);assert.equal(socket.sent.length,count);
+      assert.equal(snapshot.roomStatus,'NONE');assert.equal(snapshot.room,null);
+      assert.equal(snapshot.authState,'ANONYMOUS');
+    } finally {
+      connection?.dispose();globalThis.setTimeout=realSetTimeout;
+      if(descriptor) Object.defineProperty(globalThis,'WebSocket',descriptor);else delete globalThis.WebSocket;
+    }
+  });
 }
