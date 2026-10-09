@@ -1,6 +1,6 @@
 # HABBUX — GALLAXYS MIGRATION V5
 
-Data: 2026-10-08. Baseline `b18627814286053b00d4d7d011347fac8d90aef4`.
+Data: 2026-10-09. Baseline `b18627814286053b00d4d7d011347fac8d90aef4`.
 Implementação em `/var/www/tyvo.online`; Gallaxys consultado somente em leitura.
 
 - MODELOS ENCONTRADOS: **64**.
@@ -25,9 +25,9 @@ Implementação em `/var/www/tyvo.online`; Gallaxys consultado somente em leitur
   preservados. Medição em SwiftShader, sem promessa para hardware físico.
 - TESTES: client **188 PASS**, modelos **14 PASS**, protocolo **22 PASS**;
   Java **119 PASS / 4 SKIPPED**, zero falhas; typecheck/build PASS.
-- COMMIT: **aprovado pela dona; execução em andamento**, conforme Fase7 do pedido.
-- DEPLOY: **aprovado pela dona; execução em andamento**. A V5 exige somente
-  publicação dos dist e reinício de `habbux-tyvo` para carregar os novos modelos.
+- COMMIT: **`35fc65029817f1240e25a42bf560f0a68aa21793`**, enviado para `main`.
+- DEPLOY: **publicado em https://tyvo.online**, release `20261009T061343Z`;
+  somente `habbux-tyvo` reiniciado, com autorização. HTTPS/WSS/game/client PASS.
 - PENDÊNCIAS: três mapas inválidos; diferenças visuais descritas; GPU/celular
   físico e multiplayer autenticado não ensaiados.
 
@@ -141,7 +141,7 @@ Dados finais: `visual/performance/performance-v3.json` no backup; nome legado
 do runner reaproveitado. Refinamentos finais de caps/contorno dos modelos
 migrados não afetam a geometria/configuração das três cenas medidas.
 
-### Publicação preparada
+### Publicação e rollback
 
 Backup principal:
 `/root/backups/habbux-gallaxys-migration-v5-20261009T043548Z/`.
@@ -159,5 +159,28 @@ HTTPS200 e `public/gamedata` presente. Nenhum serviço Gallaxys, Nginx ou MariaD
 reiniciado, prioridade alterada ou arquivo de produção Gallaxys modificado.
 
 Autorização final recebida: **“Aprovar publicação e reinício do Habbux”**.
-Commit/push/main, publicação estática e restart exclusivamente Habbux estão
-aprovados. Os campos acima serão atualizados com as verificações públicas.
+Implementação commitada e enviada para `main`; dist publicados pelo script
+oficial, trocando `.deploy/current` atomicamente e preservando a release V4.
+JAR verificado instalado com dono `habbux`; SHA acima igual ao arquivo ativo.
+Somente `habbux-tyvo` reiniciado; PID2549369→2581331, listener127.0.0.1:3100,
+evento `emulator.ready`. Novo processo sem WARN/ERROR de aplicação no ensaio.
+O systemd registrou status143 no encerramento por SIGTERM do processo anterior;
+o novo processo está ativo, e a aplicação encerrou suas filas/pool normalmente.
+
+Depois do deploy: `/`, `/game/` e `/client/` HTTPS200, HTML igual ao dist e
+`Cache-Control: no-cache`; WSS READY em desktop1280/DPR1 e mobile390/DPR2.
+Reload com cache PASS; caminhada local/remota em fixtures com jitter0/50 ms
+mantém gap0 ms e erro físico do apoio0 px. Nenhum erro JavaScript, requisição
+HTTP falha ou overflow. Sessão autenticada continua NOT RUN.
+
+V5 pública: **67 arquivos** conferidos por SHA-256 contra o candidato, incluindo
+todos os58 PNGs, catálogos, perfil de animação e fontes/licenças GPL selecionadas.
+Catálogo de62 opções com último ID127 nos dois tamanhos. Duas salas migradas
+representativas por viewport renderizam duas texturas reais, projeção32,
+perfil WALK convertido e apoio0 px, sem rebuild durante avanço do clock.
+Evidências: `visual/public/postdeploy.json`, `visual/public/public-v5.json` e
+dez capturas públicas no backup principal; `checks/emulator-after-deploy.log`.
+
+Os seis serviços conferidos seguem ativos. Polaris, imager, voice, Nginx e
+MariaDB mantêm exatamente os PIDs anteriores; HTTPS Gallaxys200 e
+`public/gamedata` presente. Nenhum serviço Gallaxys foi reiniciado.
