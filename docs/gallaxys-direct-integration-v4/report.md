@@ -1,7 +1,7 @@
 # HABBUX — GALLAXYS DIRECT INTEGRATION V4
 
 - WALK: quatro frames/82 ms, oito direções; cadência e fases preservadas.
-- MOVIMENTO: pré-anúncio V3, reservas e autoridade preservados; sem alteração de protocolo ou servidor.
+- MOVIMENTO: pré-anúncio V3, reservas e autoridade preservados; quatro ensaios públicos com fixtures/local+remoto: gap0 ms, foot error0.
 - AVATAR: preparação nativa compartilhada de frames e posições; 13 partes, 7 atlas, 364 regiões existentes. Nenhum novo sprite externo importado.
 - MODELOS ENCONTRADOS: 64 Gallaxys, inventário V3 reaproveitado.
 - MODELOS IMPORTADOS: 0 novos; falta identificar titularidade/licença dos conjuntos. Mantidos 66 modelos Habbux, incluindo 3 originais.
@@ -11,9 +11,9 @@
 - RECURSOS BLOQUEADOS: mapas e pixels sem comprovação individual; detalhes abaixo.
 - PERFORMANCE: ABBA/SwiftShader, dez avatares: desktop 27,86→30,00 FPS; mobile 47,74→54,39 FPS. Sem regressão nas duas cenas medidas.
 - TESTES: typecheck/build/protocolo/modelos/Maven PASS; números e limitações abaixo.
-- VISUAL: 42 novas capturas, oito direções e três modelos em desktop/mobile; seis comparações do padrão com pixels idênticos. Referências Gallaxys já existentes, sem equivalência autenticada.
-- COMMIT: implementação e revisão final registrados após validação/publicação.
-- DEPLOY: publicação estática em tyvo.online preparada; conclusão registrada após smoke público.
+- VISUAL: 64 capturas novas (42 específicas, 12 comparação padrão, 10 públicas); 16 referências Gallaxys reutilizadas. Sem equivalência autenticada.
+- COMMIT: `1ad35a87b9b70140261e3c59f125dc6cb60e2f9d` implementa a V4; fechamento deste relatório em commit separado, push main.
+- DEPLOY: tyvo.online, release `20261009T040503Z`; HTTPS/WSS/game/client PASS, sem restart.
 - PENDÊNCIAS: direitos dos recursos externos; sessão autenticada comparável e GPU física.
 
 ## Conversão e integração efetivas
@@ -88,6 +88,10 @@ de destino fictício para recursos não importados.
   frames WALK e STAND, 6 ensaios de modelo/material, 14 cenas de movimento,
   hover e touch nos três modelos. Foot error físico <1e-8; sem rebuild estático
   durante os ensaios de movimento; nenhum erro JavaScript nas capturas.
+- Após publicar, quatro ensaios no client HTTPS real, desktop/mobile com atraso
+  simulado0/50 ms e duas presenças em fixture: transição cardinal→diagonal sem
+  pausa (gap0 ms), foot error0 e endpoints corretos. São fixtures do renderer
+  publicado, não sessão multiplayer autenticada. WSS público atingiu READY.
 - Seis pares de cenas padrão antes/depois, desktop/mobile: SHA-256 dos pixels
   RGBA idêntico. Comparação preserva padrão, não afirma paridade Gallaxys.
 - A seleção de cores preserva paredes ocultas, alturas, espessuras e padrões
@@ -146,7 +150,16 @@ reutilizados dos backups V2; não são assets publicados. Figuras/paletas e
 contextos diferem; ausência de sessão Gallaxys autenticada impede declarar
 equivalência visual. Capturas novas ficam fora do Git e do dist.
 
-Deploy previsto somente estático pelo script oficial, preservando release
-anterior. JAR em uso continua SHA-256
+Deploy efetuado somente estático pelo script oficial, release
+`/var/www/tyvo.online/.deploy/releases/20261009T040503Z`, preservando release
+anterior. `/`, `/game/`, `/client/` retornaram200; HTML público conferido contra
+dist e Cache-Control no-cache. Desktop/mobile: WSS READY, reload com cache PASS,
+nenhum erro JS, requisição falha ou overflow de página. Verificação pública
+salva em `visual/public/postdeploy.json`; sem conta/sessão autenticada criada.
+
+Os seis serviços permaneceram ativos e com os mesmos PIDs, confirmado por cmp
+dos snapshots antes/depois. Habbux PID2549369; Polaris PID1808934. HTTPS Gallaxys
+200 e public/gamedata preservado. Portas locais3124/3125 de teste encerradas.
+JAR em uso continua SHA-256
 `78a2dcebd1328bc5dd159035a74b5f977c222e1b7c63f9acfaa4091393beff47`;
 não há mudança Java, novos modelos de servidor ou motivo para restart.
