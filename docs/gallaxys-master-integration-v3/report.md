@@ -206,7 +206,34 @@ heightmaps de referência, logs, capturas e rollback.sh (bash -n validado).
 Rollback restaura symlink/release e JAR, reiniciando somente Habbux após aviso.
 Não há migration nova, mudança de prioridade ou reinício Gallaxys.
 
-Commit, push, release e verificações operacionais serão preenchidos após execução.
+Implementação: **566f386**; push para `main` concluído e verificado.
+Release: `/var/www/tyvo.online/.deploy/releases/20261009T024604Z`.
+Script oficial publicou somente dist e trocou symlink atomicamente, preservando
+releases anteriores. JAR instalado por troca de arquivo e somente `habbux-tyvo`
+reiniciado após aviso. Sem restart/reload de Gallaxys, Nginx ou MariaDB.
+
+- SHA-256 build/JAR ativo: `78a2dcebd1328bc5dd159035a74b5f977c222e1b7c63f9acfaa4091393beff47`.
+- Log `emulator.ready`, listener loopback3100, sem ERROR/Exception na inicialização.
+- `/`, `/game/`, `/client/`: HTTPS200. HTML web/client por SHA-256 igual ao dist.
+  Cache-Control no-cache; páginas privadas package/AGENTS404, .git/.env403.
+- Browser real público: **10 PNGs adicionais**, WSS READY em desktop1280/mobile390,
+  reload com cache PASS, zero JS errors/requisições HTTP falhadas e sem overflow.
+  Dois avatares STAND/WALK nas fixtures públicas, apoio físico0. Nenhum cadastro,
+  conta real ou sessão pública autenticada usada; esta última permanece NOT RUN.
+- `habbux-tyvo`, `gallaxys-polaris`, `gallaxys-imager`, `gallaxys-voice`, Nginx e
+  MariaDB ativos. Polaris mantém **PID1808934**; Gallaxys HTTPS200 e gamedata presente.
+  Habbux passou de PID2511249 para2549369. Prioridades dos serviços intactas.
+- Evidências operacionais: `visual/public/postdeploy.json`, `services-after.txt`,
+  `habbux-postdeploy.log`, `published-release.txt`, `implementation-head.txt` no backup.
+- Galeria consolidada: `/root/backups/habbux-gallaxys-master-integration-v3-20261009T021559Z/index.html`.
+  Total **222 PNGs novos**: 200 de integração +12 de comparação default +10 públicos.
+- Preview público: `https://tyvo.online/client/?avatar-lab=1`. Sessão `/game/`
+  continua com sua proteção de login anterior; não houve mudança de HUD/CMS.
+
+Documentação operacional consolidada em commit posterior; não muda artefatos
+validados nem requer republicação/reinício. Checkout Habbux sincronizado por
+fast-forward, preservando os commits anteriores. Servidores temporários de
+fixtures em loopback encerrados ao concluir as verificações.
 
 ## Pendências que impedem PASS integral
 
