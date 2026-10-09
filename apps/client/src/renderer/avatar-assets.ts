@@ -11,7 +11,11 @@ export interface AvatarResolvedFrame {
   readonly texture: Texture;
   readonly frame: AvatarFrameDefinition;
   readonly mirrored: boolean;
+  readonly spriteX: number;
+  readonly spriteY: number;
 }
+
+export type AvatarTextureLoader = (url: string) => Promise<Texture>;
 
 /** Boundary between the renderer and the current PNG atlas implementation. */
 export interface AvatarAssetProvider {
@@ -74,24 +78,48 @@ export async function loadAvatarManifest(url: string): Promise<AvatarManifest> {
   }
 }
 
-export function createAvatarAssetProvider(manifest: AvatarManifest, assetBaseUrl: string): AvatarAssetProvider {
-  return new PngAvatarAssetProvider(manifest, assetBaseUrl);
+export function createAvatarAssetProvider(manifest: AvatarManifest, assetBaseUrl: string, loader: AvatarTextureLoader = url => Assets.load<Texture>(url)): AvatarAssetProvider {
+  return new PngAvatarAssetProvider(manifest, assetBaseUrl, loader);
 }
 
 class PngAvatarAssetProvider implements AvatarAssetProvider {
   private readonly sheetTextures = new Map<string, Promise<Texture>>();
   private readonly regionTextures = new Map<string, Promise<Texture>>();
   private readonly resolvedRegions = new Map<string, Texture>();
+  // Native fixed lookup compiled once per gender, shared by every room avatar.
+  // Each direction keeps its native frame count, including static fallbacks.
+  private readonly partIndices = new Map<AvatarPart, number>();
+  private readonly preparedFrames = new Map<AvatarGender, readonly (readonly (AvatarResolvedFrame | undefined)[])[]>();
+  private readonly preloads = new Map<AvatarGender, Promise<void>>();
+  private disposed = false;
   readonly manifest: AvatarManifest;
   private readonly assetBaseUrl: string;
+  private readonly loader: AvatarTextureLoader;
 
-  constructor(manifest: AvatarManifest, assetBaseUrl: string) {
+  constructor(manifest: AvatarManifest, assetBaseUrl: string, loader: AvatarTextureLoader) {
     this.manifest = manifest;
     this.assetBaseUrl = assetBaseUrl;
+    this.loader = loader;
+    for (const part of manifest.layerOrder) for (const action of ['std', 'wlk'] as const) {
+      if ((manifest.parts[part].actions[action]?.frameCount ?? 1) > 64) throw new Error('Avatar frame count exceeds native limit.');
+    }
+    manifest.layerOrder.forEach((part, index) => this.partIndices.set(part, index));
   }
 
-  async preload(gender: AvatarGender): Promise<void> {
-    const pending: Promise<Texture>[] = [];
+  preload(gender: AvatarGender): Promise<void> {
+    if (this.disposed) return Promise.reject(new Error('Avatar provider disposed.'));
+    const existing = this.preloads.get(gender);
+    if (existing) return existing;
+    const promise = this.prepareGender(gender).catch(cause => {
+      this.preloads.delete(gender);
+      throw cause;
+    });
+    this.preloads.set(gender, promise);
+    return promise;
+  }
+
+  private async prepareGender(gender: AvatarGender): Promise<void> {
+    const pending = new Set<Promise<Texture>>();
     for (const part of this.manifest.layerOrder) {
       const definition = this.manifest.parts[part];
       for (const action of ['std', 'wlk'] as const) {
@@ -103,29 +131,51 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
           if (!directionDefinition) continue;
           for (let frame = 0; frame < actionDefinition.frameCount; frame++) {
             const frameDefinition = directionDefinition.frames[String(frame)];
-            if (frameDefinition) pending.push(this.loadRegion(definition.sheet, frameDefinition.region));
+            if (frameDefinition) pending.add(this.loadRegion(definition.sheet, frameDefinition.region));
           }
         }
       }
     }
     await Promise.all(pending);
+    if (this.disposed) throw new Error('Avatar provider disposed.');
+    const frames: (readonly (AvatarResolvedFrame | undefined)[])[] = new Array(this.manifest.layerOrder.length * 16);
+    for (const [part, index] of this.partIndices) {
+      for (const action of ['std', 'wlk'] as const) for (let direction = 0; direction < 8; direction++) {
+        const count = (this.manifest.parts[part].actions[action] ?? this.manifest.parts[part].actions.std)?.frameCount ?? 1;
+        const directionFrames: (AvatarResolvedFrame | undefined)[] = new Array(count);
+        for (let frame = 0; frame < count; frame++) {
+          const selection = resolveAvatarFrameSelection(this.manifest, gender, part, action, direction, frame);
+          if (!selection) continue;
+          const texture = this.resolvedRegions.get(selection.frame.region);
+          if (!texture) continue;
+          directionFrames[frame] = Object.freeze({ texture, frame: selection.frame, mirrored: selection.mirrored,
+            spriteX: -selection.frame.offset.x + texture.width / 2,
+            spriteY: -selection.frame.offset.y + texture.height });
+        }
+        frames[index * 16 + (action === 'wlk' ? 8 : 0) + direction] = Object.freeze(directionFrames);
+      }
+    }
+    this.preparedFrames.set(gender, Object.freeze(frames));
   }
 
   getFrame(gender: AvatarGender, part: AvatarPart, action: AvatarAction, direction: number, frame: number): AvatarResolvedFrame | undefined {
-    const selection = resolveAvatarFrameSelection(this.manifest, gender, part, action, direction, frame);
-    if (!selection) return undefined;
-    const texture = this.resolvedRegions.get(selection.frame.region);
-    if (!texture) return undefined;
-    return { texture, frame: selection.frame, mirrored: selection.mirrored };
+    const index = this.partIndices.get(part);
+    if (this.disposed || index === undefined || !Number.isInteger(direction) || direction < 0 || direction > 7 || !Number.isInteger(frame) || frame < 0) return undefined;
+    const frames = this.preparedFrames.get(gender)?.[index * 16 + (action === 'wlk' ? 8 : 0) + direction];
+    return frames?.[frame % frames.length];
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     for (const texturePromise of this.regionTextures.values()) {
-      void texturePromise.then((texture) => texture.destroy(false));
+      void texturePromise.then((texture) => texture.destroy(false), () => {});
     }
     this.regionTextures.clear();
     this.resolvedRegions.clear();
     this.sheetTextures.clear();
+    this.preparedFrames.clear();
+    this.preloads.clear();
   }
 
   private loadRegion(sheetId: string, regionId: string): Promise<Texture> {
@@ -135,6 +185,7 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
     const sheet = this.manifest.sheets[sheetId];
     if (!region || !sheet) return Promise.reject(new Error(`Asset de avatar ausente: ${sheetId}:${regionId}`));
     const promise = this.loadSheet(sheetId).then((sheetTexture) => {
+      if (this.disposed) throw new Error('Avatar provider disposed.');
       const texture = new Texture({
         source: sheetTexture.source,
         frame: new Rectangle(region.x, region.y, region.width, region.height),
@@ -142,6 +193,9 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
       });
       this.resolvedRegions.set(regionId, texture);
       return texture;
+    }).catch(cause => {
+      this.regionTextures.delete(regionId);
+      throw cause;
     });
     this.regionTextures.set(regionId, promise);
     return promise;
@@ -153,11 +207,14 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
     const sheet = this.manifest.sheets[sheetId];
     if (!sheet) return Promise.reject(new Error(`Sheet de avatar ausente: ${sheetId}`));
     const url = new URL(sheet.src, this.assetBaseUrl).toString();
-    const promise = Assets.load<Texture>(url).then((texture) => {
+    const promise = this.loader(url).then((texture) => {
       // These are pixel-art sheets. Keep filtering stable at room zoom levels
       // so interpolation changes position, never the sprite's sharpness.
       texture.source.style.scaleMode = 'nearest';
       return texture;
+    }).catch(cause => {
+      this.sheetTextures.delete(sheetId);
+      throw cause;
     });
     this.sheetTextures.set(sheetId, promise);
     return promise;

@@ -5,7 +5,7 @@ import type { AvatarAction, AvatarGender, AvatarManifest, AvatarPart, AvatarFoot
 import { createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { avatarAnchor, isoDepth, roomToScreen, type IsoConfig } from './isometric';
 import { AvatarMovementController } from './avatar-movement';
-import { avatarPartSpritePosition, avatarPartTint, resolveAvatarPartLayer, resolveAvatarFootAnchor, applyAvatarFootAnchor, resolveAvatarPartPlacement } from './avatar-composition';
+import { avatarPartTint, resolveAvatarPartLayer, resolveAvatarFootAnchor, applyAvatarFootAnchor } from './avatar-composition';
 
 // The Room Engine still processes every 100 ms. Segment duration follows the
 // world-grid distance: 500 ms cardinal and 707 ms diagonal.
@@ -165,9 +165,7 @@ export class AvatarView {
       } else {
         sprite.texture = resolved.texture;
       }
-      const placement = resolveAvatarPartPlacement(resolved.frame, resolved.texture.width, resolved.texture.height);
-      const position = avatarPartSpritePosition(placement);
-      sprite.position.set(position.x, position.y);
+      sprite.position.set(resolved.spriteX, resolved.spriteY);
       sprite.scale.x = 1;
       sprite.zIndex = resolveAvatarPartLayer(part, this.movement.direction);
       sprite.tint = avatarPartTint(part);

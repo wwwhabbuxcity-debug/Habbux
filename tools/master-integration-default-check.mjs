@@ -16,6 +16,7 @@ try{
       const page=await context.newPage();await page.routeWebSocket('**/ws',s=>s.close());
       await page.goto(base+'/client/?avatar-lab=1',{waitUntil:'networkidle'});await page.waitForFunction(()=>window.habbuxWorldLab);
       await page.evaluate(scene=>{window.habbuxWorldLab.clock(true);window.habbuxWorldLab.scenario(scene,0);},scene);
+      await page.waitForFunction(()=>window.habbuxWorldLab.state().avatars.every(a=>a.ready));
       const pixels=await page.evaluate(async()=>{
         const lab=window.habbuxWorldLab;lab.step(0);
         const canvas=document.querySelector('.world-lab-viewport canvas'),gl=canvas.getContext('webgl2');

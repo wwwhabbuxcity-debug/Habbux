@@ -34,11 +34,30 @@ try{
       assert.ok(state.avatars.every(a=>a.foot.errorPhysicalPx<1e-8));
       await page.locator('.world-lab-viewport canvas').screenshot({path:resolve(output,`${width}-${scenario}.png`)});
     }
+    const continuity=[];
+    if(process.env.HABBUX_VERIFY_CONTINUITY==='1')for(const jitter of [0,50]){
+      await page.evaluate(()=>window.habbuxWorldLab.fixture({roomId:'public-v4-fixture',name:'V4 fixture',modelId:'fixture',width:12,height:12,capacity:10,spawn:{x:5,y:5},door:{x:0,y:0,direction:2},elevations:Array(144).fill(0),walkability:Array(144).fill(true),occupants:[{userId:'1',username:'Local fixture',x:5,y:5,z:0},{userId:'2',username:'Remote fixture',x:8,y:5,z:0}]}));
+      await page.waitForFunction(()=>window.habbuxWorldLab.state().avatars.every(a=>a.ready));
+      const measurement=await page.evaluate(jitter=>{
+        const lab=window.habbuxWorldLab;let gapMs=0,maxFootError=0;
+        function announce(sequence,diagonal){for(const [userId,offset] of [['1',0],['2',3]])lab.announce({userId,sequence,fromX:5+offset+(diagonal?1:0),fromY:5,fromZ:0,x:6+offset+(diagonal?1:0),y:diagonal?6:5,z:0,durationMs:diagonal?707:500,remainingMs:diagonal?707:500});}
+        for(let now=0;now<=1700;now+=10){
+          if(now===jitter)announce(1,false);
+          if(now===500+jitter){for(const [id,offset] of [['1',0],['2',3]])lab.commit(id,6+offset,5,0);announce(2,true);}
+          if(now===1300+jitter)for(const [id,offset] of [['1',0],['2',3]])lab.commit(id,7+offset,6,0);
+          lab.step(10);const avatars=lab.state().avatars;
+          if(now>=500+jitter&&now<=1200+jitter&&avatars.some(a=>!a.moving||a.action!=='wlk'))gapMs+=10;
+          maxFootError=Math.max(maxFootError,...avatars.map(a=>a.foot.errorPhysicalPx));
+        }
+        return{jitterMs:jitter,gapMs,maxFootError,end:lab.state().avatars.map(a=>({x:a.x,y:a.y}))};
+      },jitter);
+      assert.equal(measurement.gapMs,0);assert.ok(measurement.maxFootError<1e-8);assert.deepEqual(measurement.end,[{x:7,y:6},{x:10,y:6}]);continuity.push(measurement);
+    }
     // Repeat with this browser's existing HTTP cache; index is no-cache and JS hashed.
     await page.reload({waitUntil:'networkidle'});await page.waitForFunction(()=>document.querySelector('#connection-state')?.textContent==='READY');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     assert.deepEqual(errors,[]);assert.deepEqual(failedRequests,[]);
-    pages.push({width,wss:'READY',reloadWithCache:'PASS',errors,failedRequests,authenticatedRoom:'NOT RUN'});await context.close();
+    pages.push({width,wss:'READY',reloadWithCache:'PASS',errors,failedRequests,continuity,authenticatedRoom:'NOT RUN'});await context.close();
   }
   await writeFile(resolve(output,'postdeploy.json'),JSON.stringify({http,pages},null,2));console.log(JSON.stringify({http,pages}));
 }finally{await browser.close();}

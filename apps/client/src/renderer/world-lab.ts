@@ -1,3 +1,4 @@
+import { configureConvertedMaterials } from './gallaxys-material-presets';
 import type { RoomState, RoomMovementStep } from '../room/room-state';
 import { RoomRenderer } from './room-renderer';
 import { DEFAULT_ROOM_STYLE } from './room-surfaces';
@@ -14,6 +15,7 @@ interface LabControl {
   facing(direction: number): void;
   footDebug(enabled: boolean): void;
   materials(configuration: RoomMaterialConfiguration): void;
+  convertedMaterials(floorId: string, wallId: string): void;
   resetMaterials(): void;
   announce(step: RoomMovementStep & { readonly userId: string }): void;
   commit(userId: string, x: number, y: number, z: number): void;
@@ -74,6 +76,7 @@ export async function mountWorldLab(host: HTMLElement): Promise<() => void> {
     facing:direction=>renderer.setDiagnosticsDirection(direction),
     footDebug:enabled=>renderer.setFootDiagnostics(enabled),
     materials:configuration=>{renderer.setMaterials(configuration);renderer.stepDiagnostics(0);},
+    convertedMaterials:(floorId,wallId)=>{renderer.setMaterials(configureConvertedMaterials(floorId,wallId));renderer.stepDiagnostics(0);},
     resetMaterials:()=>{renderer.setMaterials(DEFAULT_ROOM_MATERIALS);renderer.stepDiagnostics(0);},
     announce:movement=>{
       room={...room,occupants:room.occupants.map(o=>o.userId===movement.userId?{...o,movement}:o)};

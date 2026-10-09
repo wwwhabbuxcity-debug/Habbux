@@ -6,6 +6,7 @@ import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider
 import { AvatarView } from './avatar-view';
 import { DEFAULT_ISO_CONFIG, isoDepth, roomToScreen, tilePolygon, type IsoConfig } from './isometric';
 import { buildRoomSurfaces, DEFAULT_ROOM_STYLE, fitRoomConfig, shadeColor, resolveRoomSurfaceStyle, materialsForStyle, type RoomSurfaceStyle } from './room-surfaces';
+import { resolveConvertedMaterialsForModel } from './gallaxys-material-presets';
 import { validateRoomMaterials, type RoomMaterialConfiguration } from './room-materials';
 import { reconcileEntityIds } from './renderer-model';
 import { resolveRoomTileAtScreen, type RoomTileHit } from './tile-interaction';
@@ -50,6 +51,8 @@ export class RoomRenderer {
   private currentRoom: RoomState | null = null;
   private pendingRoom: RoomState | null = null;
   private pendingChat: readonly RoomChatVisualMessage[] = [];
+  private readonly initialStyle: RoomSurfaceStyle;
+  private materialModelId: string | null = null;
   private floorSignature = '';
   private chatSignature = '';
   private disposed = false;
@@ -69,6 +72,7 @@ export class RoomRenderer {
     private style: RoomSurfaceStyle = DEFAULT_ROOM_STYLE,
   ) {
     this.style = resolveRoomSurfaceStyle(style);
+    this.initialStyle = this.style;
     this.host = host;
     this.status = status;
     this.onTileSelect = onTileSelect;
@@ -198,7 +202,12 @@ export class RoomRenderer {
       this.avatars.clear();
       return;
     }
-    const signature = `${room.roomId}:${room.width}x${room.height}:${room.walkability.join('')}:${room.elevations.join(',')}`;
+    if (room.modelId !== this.materialModelId) {
+      const materials = resolveConvertedMaterialsForModel(room.modelId, materialsForStyle(this.initialStyle));
+      this.style = materials ? resolveRoomSurfaceStyle({ ...this.initialStyle, materials }) : this.initialStyle;
+      this.materialModelId = room.modelId;
+    }
+    const signature = `${room.modelId}:${room.roomId}:${room.width}x${room.height}:${room.walkability.join('')}:${room.elevations.join(',')}`;
     if (signature !== this.floorSignature) {
       this.floorSignature = signature;
       this.clearTileHighlight();
