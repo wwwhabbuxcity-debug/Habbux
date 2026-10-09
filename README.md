@@ -7,8 +7,13 @@ Polaris, Arcturus, Morningstar, Nitro ou Octane. O Core abre WebSocket binário,
 autentica a identidade mínima e inclui Room Core para lifecycle, presença, grade
 estática, movimento autoritativo e chat textual. O Client tem uma UI diagnóstica
 para testar conexão, entrada em quarto, movimento e chat. Furniture Engine,
-catálogo, economia e conversor de assets ainda não existem. Nenhum código ou
-asset desses projetos foi incorporado.
+catálogo, economia e pipeline completo de assets ainda não existem. A migração
+seletiva V5 incorpora dados de modelos e animação sob GPL-3.0 por conversores
+offline próprios, além de três modelos custom declarados próprios e um ornamento
+de autoria Gallaxys. Código de runtime,
+protocolo e persistência continuam próprios. O escopo e as pendências de direitos
+dos PNGs legados estão em [ADR 0024](docs/adr/0024-selective-gallaxys-resource-migration.md)
+e [dependências e origens](THIRD_PARTY.md).
 
 Princípios: **desempenho, estabilidade, baixa latência, escala e manutenção**.
 Medir antes de otimizar; não prometer capacidade sem ensaio reproduzível.
@@ -24,8 +29,8 @@ O protocolo binário próprio possui registro canônico versionado e Core v1 de
 rede. Auth/User tem schema, JDBC, hashing e executor limitado. O Room Engine tem
 mailbox/workers limitados, persistência de metadados/grade estática, presença,
 pathfinding, movimento e chat textual em runtime. O pipeline futuro importa
-SWF/Nitro e gera HBX nativo; o client não
-interpretará esses formatos de importação. Web e futura API dependem de contratos,
+SWF/Nitro e gera HBX nativo; os conversores seletivos V5 já produzem TSV/JSON/PNG
+nativos offline, sem leitor SWF/Nitro no client. Web e futura API dependem de contratos,
 sem acesso ao estado interno do emulador. Não há microserviços adicionais nem
 frameworks de servidor adicionados por conveniência.
 
@@ -37,7 +42,7 @@ frameworks de servidor adicionados por conveniência.
 | `apps/client` | Bootstrap TypeScript/PixiJS, codec e painel de diagnóstico |
 | `apps/web` | Página mínima do projeto, sem produto definitivo |
 | `packages/protocol` | Registro único de IDs, framing e limites |
-| `asset-engine` | Pipeline conceitual de importação e geração HBX, sem ferramentas implementadas |
+| `asset-engine` | Pipeline completo HBX conceitual; conversores seletivos V5 implementados em `tools` |
 | `database` | Migrations Flyway para Auth/User e metadados estáticos de quartos |
 | `infrastructure` | Compose local opcional, vhost, deploy estático e observabilidade |
 | `tests`, `benchmarks` | Codec, integração, smoke limitado e baseline de codec |

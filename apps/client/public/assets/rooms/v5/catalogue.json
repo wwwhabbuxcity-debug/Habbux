@@ -1,0 +1,250 @@
+[
+  {
+    "roomId": "9000000000000000066",
+    "name": "Cantinho dos corações"
+  },
+  {
+    "roomId": "9000000000000000067",
+    "name": "Cinema A"
+  },
+  {
+    "roomId": "9000000000000000068",
+    "name": "Dusty Lounge"
+  },
+  {
+    "roomId": "9000000000000000069",
+    "name": "Infobus Bus"
+  },
+  {
+    "roomId": "9000000000000000070",
+    "name": "Quarto  0"
+  },
+  {
+    "roomId": "9000000000000000071",
+    "name": "Quarto  1"
+  },
+  {
+    "roomId": "9000000000000000072",
+    "name": "Quarto  2"
+  },
+  {
+    "roomId": "9000000000000000073",
+    "name": "Quarto  3"
+  },
+  {
+    "roomId": "9000000000000000074",
+    "name": "Quarto  4"
+  },
+  {
+    "roomId": "9000000000000000075",
+    "name": "Quarto  5"
+  },
+  {
+    "roomId": "9000000000000000076",
+    "name": "Quarto  6"
+  },
+  {
+    "roomId": "9000000000000000077",
+    "name": "Quarto  7"
+  },
+  {
+    "roomId": "9000000000000000078",
+    "name": "Quarto  8"
+  },
+  {
+    "roomId": "9000000000000000079",
+    "name": "Quarto  9"
+  },
+  {
+    "roomId": "9000000000000000080",
+    "name": "Quarto  A"
+  },
+  {
+    "roomId": "9000000000000000081",
+    "name": "Quarto  B"
+  },
+  {
+    "roomId": "9000000000000000082",
+    "name": "Quarto  B2G"
+  },
+  {
+    "roomId": "9000000000000000083",
+    "name": "Quarto  Basa"
+  },
+  {
+    "roomId": "9000000000000000084",
+    "name": "Quarto  C"
+  },
+  {
+    "roomId": "9000000000000000085",
+    "name": "Quarto  D"
+  },
+  {
+    "roomId": "9000000000000000086",
+    "name": "Quarto  E"
+  },
+  {
+    "roomId": "9000000000000000087",
+    "name": "Quarto  F"
+  },
+  {
+    "roomId": "9000000000000000088",
+    "name": "Quarto  G"
+  },
+  {
+    "roomId": "9000000000000000089",
+    "name": "Quarto  H"
+  },
+  {
+    "roomId": "9000000000000000090",
+    "name": "Quarto  I"
+  },
+  {
+    "roomId": "9000000000000000091",
+    "name": "Quarto  J"
+  },
+  {
+    "roomId": "9000000000000000092",
+    "name": "Quarto  K"
+  },
+  {
+    "roomId": "9000000000000000093",
+    "name": "Quarto  L"
+  },
+  {
+    "roomId": "9000000000000000094",
+    "name": "Quarto  M"
+  },
+  {
+    "roomId": "9000000000000000095",
+    "name": "Quarto  N"
+  },
+  {
+    "roomId": "9000000000000000096",
+    "name": "Quarto  O"
+  },
+  {
+    "roomId": "9000000000000000097",
+    "name": "Quarto  Opening"
+  },
+  {
+    "roomId": "9000000000000000098",
+    "name": "Quarto  Oscar"
+  },
+  {
+    "roomId": "9000000000000000099",
+    "name": "Quarto  P"
+  },
+  {
+    "roomId": "9000000000000000100",
+    "name": "Quarto  Q"
+  },
+  {
+    "roomId": "9000000000000000101",
+    "name": "Quarto  R"
+  },
+  {
+    "roomId": "9000000000000000102",
+    "name": "Quarto  Room 15"
+  },
+  {
+    "roomId": "9000000000000000103",
+    "name": "Quarto  S"
+  },
+  {
+    "roomId": "9000000000000000104",
+    "name": "Quarto  T"
+  },
+  {
+    "roomId": "9000000000000000105",
+    "name": "Quarto  U"
+  },
+  {
+    "roomId": "9000000000000000106",
+    "name": "Quarto  V"
+  },
+  {
+    "roomId": "9000000000000000107",
+    "name": "Quarto  W"
+  },
+  {
+    "roomId": "9000000000000000108",
+    "name": "Quarto  X"
+  },
+  {
+    "roomId": "9000000000000000109",
+    "name": "Quarto  Y"
+  },
+  {
+    "roomId": "9000000000000000110",
+    "name": "Quarto  Z"
+  },
+  {
+    "roomId": "9000000000000000111",
+    "name": "Netcafe"
+  },
+  {
+    "roomId": "9000000000000000112",
+    "name": "Newbie Lobby"
+  },
+  {
+    "roomId": "9000000000000000113",
+    "name": "Old Skool"
+  },
+  {
+    "roomId": "9000000000000000114",
+    "name": "Orient"
+  },
+  {
+    "roomId": "9000000000000000115",
+    "name": "Park A"
+  },
+  {
+    "roomId": "9000000000000000116",
+    "name": "Park B"
+  },
+  {
+    "roomId": "9000000000000000117",
+    "name": "Picnic"
+  },
+  {
+    "roomId": "9000000000000000118",
+    "name": "Pizza"
+  },
+  {
+    "roomId": "9000000000000000119",
+    "name": "Pub A"
+  },
+  {
+    "roomId": "9000000000000000120",
+    "name": "Rooftop"
+  },
+  {
+    "roomId": "9000000000000000121",
+    "name": "Rooftop 2"
+  },
+  {
+    "roomId": "9000000000000000122",
+    "name": "Star Lounge"
+  },
+  {
+    "roomId": "9000000000000000123",
+    "name": "Tearoom"
+  },
+  {
+    "roomId": "9000000000000000124",
+    "name": "Theater"
+  },
+  {
+    "roomId": "9000000000000000125",
+    "name": "Custom 9"
+  },
+  {
+    "roomId": "9000000000000000126",
+    "name": "Custom 10"
+  },
+  {
+    "roomId": "9000000000000000127",
+    "name": "Custom 13"
+  }
+]

@@ -86,7 +86,7 @@ export class AvatarView {
     const walkingMs = this.movement.update(deltaMs);
     if (walkingMs > 0) {
       this.animation.setMoving(true);
-      this.animation.advance(walkingMs, 4);
+      this.animation.advance(walkingMs, this.provider.walkFrameCount);
       this.positionContainer();
     }
     this.animation.setMoving(this.movement.moving);
@@ -129,7 +129,7 @@ export class AvatarView {
     const errorCssPx = Math.hypot(footScreen.x-tileCenter.x,footScreen.y-tileCenter.y);
     return { userId: this.userId, x: this.movement.x, y: this.movement.y, z: this.movement.z,
       direction: this.movement.direction, moving: this.movement.moving, queued: this.movement.queuedSegments,
-      action: this.currentAction, frame: this.currentFrame, ready: this.ready,
+      action: this.currentAction, frame: this.currentFrame, ready: this.ready, animationSource: this.provider.animationSource,
       parts: [...this.sprites].map(([part,sprite]) => ({part,visible:sprite.visible,alpha:sprite.alpha,layer:sprite.zIndex,x:sprite.x,y:sprite.y,texture:sprite.texture.label})),
       foot: {support,tileCenter,screen:{x:footScreen.x,y:footScreen.y},containerOrigin:{x:this.container.x,y:this.container.y},
         pivot:{x:this.composition.pivot.x,y:this.composition.pivot.y},bounds:{x:bounds.x,y:bounds.y,width:bounds.width,height:bounds.height},

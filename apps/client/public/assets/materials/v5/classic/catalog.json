@@ -1,0 +1,3238 @@
+{
+  "schemaVersion": 1,
+  "provenance": {
+    "status": "OWNER_DECLARED_OWNED",
+    "question": "Para resolver as pendências específicas de origem: os mapas custom_9, custom_10 e custom_13 foram criados por você? E os PNGs de pisos/paredes do Gallaxys são arte própria sua ou vieram do pacote Habbo/Octane? A autorização de acesso e migração dos seus recursos já está registrada.",
+    "ownerStatement": "ambos sao meu pode fazer total acesso",
+    "sourceRoot": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room",
+    "metadataSha256": "974b57acccdddd2cc25545ac14791c897aca05613a75972321f316542add5d78"
+  },
+  "textures": [
+    {
+      "id": "gallaxys-room-floor-64-1-v5",
+      "surface": "floor",
+      "url": "/client/assets/materials/v5/classic/floor-64-1.png",
+      "sha256": "481e9ab23f9ccb19e55e9c116b4f641040988bddd65711725b6e36c03e692bb6",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_floor_texture_64_0_floor_basic.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 2.0,
+      "verticalRepeatScale": 2.0,
+      "sourceTextureId": "floor_64_1",
+      "sourceAssetName": "floor_texture_64_0_floor_basic",
+      "sourceSha256": "888fee853018d2f5b307b3c521e6872da9422dcf0a19aa659b60b0cc657a711f",
+      "pixelSha256": "690ccce3df65c6437f4cef07b38a8b7334f242e2e3fa2b804d3c1826d844602e",
+      "width": 64,
+      "height": 64,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-floor-64-2-v5",
+      "surface": "floor",
+      "url": "/client/assets/materials/v5/classic/floor-64-2.png",
+      "sha256": "9d163ed76ef7406ffdee82498799bc952c83315c26f913cc05327d19578ef58f",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_floor_texture_64_1_floor_fuzzy1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "floor_64_2",
+      "sourceAssetName": "floor_texture_64_1_floor_fuzzy1",
+      "sourceSha256": "b81df1d91997602ba7454cccae68f04760dc7e407a5e9dd76366c0f3ced02ec4",
+      "pixelSha256": "c54c4edc4d56dd703b4980ddbc6b85a98229badada872c373bd02012ac6776b9",
+      "width": 32,
+      "height": 16,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-floor-64-3-v5",
+      "surface": "floor",
+      "url": "/client/assets/materials/v5/classic/floor-64-3.png",
+      "sha256": "e8447db3a7d481bac3aad17690fd871de82351f6a657432485c289b5c42f2bac",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_floor_texture_64_2_floor_basic.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 2.0,
+      "verticalRepeatScale": 2.0,
+      "sourceTextureId": "floor_64_3",
+      "sourceAssetName": "floor_texture_64_2_floor_basic",
+      "sourceSha256": "62ce90071c45cce89d732ab0b1de2b60c6717b2aea8c6ecb56bc70f5d9c91cbe",
+      "pixelSha256": "eb1bc54ec18bdf70bc5a110da8818636fea3269677057a38b04f7e12bc01ff5a",
+      "width": 64,
+      "height": 64,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-floor-64-4-v5",
+      "surface": "floor",
+      "url": "/client/assets/materials/v5/classic/floor-64-4.png",
+      "sha256": "01cb324ca0c1d5ca90c685fc4a86e4bf65610581dfbff19ef524bda79290114c",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_floor_texture_64_1_floor_tiles2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "floor_64_4",
+      "sourceAssetName": "floor_texture_64_1_floor_tiles2",
+      "sourceSha256": "bd035f66579f01be62401952cbcd7fa553f9a50635383bb7e32d8a5cdf51bbcf",
+      "pixelSha256": "b853402e6adb7277b0cb146f7d02ff8644c501a9faa5e33ba00e67752e3f6e9d",
+      "width": 32,
+      "height": 16,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-floor-64-5-v5",
+      "surface": "floor",
+      "url": "/client/assets/materials/v5/classic/floor-64-5.png",
+      "sha256": "9f9fc5c32888861eff937141237027aac5e78edba87df953fd989dc12edb5911",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_floor_texture_64_1_floor_tiles3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "floor_64_5",
+      "sourceAssetName": "floor_texture_64_1_floor_tiles3",
+      "sourceSha256": "c5b48dd3d1a2a1a06674c8236278486e96e5cb59e27a3fe6f93220f796d2fe9f",
+      "pixelSha256": "66a6ad4d853ce190712d791d384cd54fbb2b0065dc00f42f11388336c0e1b3c0",
+      "width": 32,
+      "height": 16,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-floor-64-6-v5",
+      "surface": "floor",
+      "url": "/client/assets/materials/v5/classic/floor-64-6.png",
+      "sha256": "29173ff2f1588c9671c8f7d07d675baa19f408ca65a82b9ef14eaec541fed8f5",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_floor_texture_64_1_floor_tiles5.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "floor_64_6",
+      "sourceAssetName": "floor_texture_64_1_floor_tiles5",
+      "sourceSha256": "fbff04321d90ae8192fd77feb1e7c7f8729e969e072d8e72e89a26e67b4315b1",
+      "pixelSha256": "f2c66a9afe82aae3e868835739efdd3e919d4d9374df6933e3794669b89fa40e",
+      "width": 32,
+      "height": 16,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-1-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-1.png",
+      "sha256": "c26be164d2995cdce1a26c118d14ebb434af539221714ea08d9b7ee60c4f18a8",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_lively.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_1",
+      "sourceAssetName": "wall_texture_64_0_wall_lively",
+      "sourceSha256": "575428e06283841c36fd2628f0e623cc44868fc7c31f2c78014d7b9c3be4317c",
+      "pixelSha256": "02987a2122f1bb484ca233846ebf55511d529748df5a64b81a4bf01a1ee4582e",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-2-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-2.png",
+      "sha256": "0acaa56dac13e8b3fa2f612a6d35edd00f041c2c0496ba7aaf8d2890e4552e00",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_white.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_2",
+      "sourceAssetName": "wall_texture_64_0_wall_white",
+      "sourceSha256": "8cdbe981c3237b231640f523f2658224d48afa79583f7f280dbd3b73049b0648",
+      "pixelSha256": "a023bd06c439394177799ba4acf2ea4327d547e269e963cf265ffc84438c7466",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-3-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-3.png",
+      "sha256": "aa0434af03a55349a324aa60dd12442a2441edef5b63620b9648d1055c430f66",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_tiles1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_3",
+      "sourceAssetName": "wall_texture_64_1_wall_tiles1",
+      "sourceSha256": "842c659db4bcbcb2070eededf44ea879e9a4472936d5fc151dac999eeedc40c4",
+      "pixelSha256": "022348fdf289e29fba2f65259af061b25bd3d3bb9f44d2e84bf1a8848dc0c8fa",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-4-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-4.png",
+      "sha256": "14eb133d9f91ba8d0e9732c4c310c5ba23be0b81a64f9e4587aa91e122a425f2",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_tiles2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_4",
+      "sourceAssetName": "wall_texture_64_1_wall_tiles2",
+      "sourceSha256": "02ba1b6cfb94e474094d06136bdcddbb20f2c3efbd9c3699ac1bd9f77961a8e6",
+      "pixelSha256": "45f57cb7e8c3995988bc22c8d8f5b3ca4446f3d2c1320fa9db87ce9bebf13764",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-5-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-5.png",
+      "sha256": "4030c7e087b645449334f8fedd08b6ba8857d87ec014d24d25f20f5555c5f091",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_stripes.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_5",
+      "sourceAssetName": "wall_texture_64_1_wall_stripes",
+      "sourceSha256": "0cc183ea21319e65fb6342bb348d04295233234bf677ab6eb1e65896798cb117",
+      "pixelSha256": "cc98941363fb69ce874e3469ee3ed5efbc7f49c729c17dccdea4e40737e11042",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-6-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-6.png",
+      "sha256": "ad6767465515a6f8cdb01a08f33971d8b8a2a2b40135b644574b7237daa8327f",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_half1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_6",
+      "sourceAssetName": "wall_texture_64_1_wall_half1",
+      "sourceSha256": "7019856f84bbb4aac9db3cebe32ebb55de3467ddd8bd53c0bb1a2872ad35c35c",
+      "pixelSha256": "ab58391239dbb203359c6300c749d35306314032984274c5cfc9e677599344ea",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-7-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-7.png",
+      "sha256": "3f50ecb939d3202501a19d1c590cd604a4a288bfae7a60541f8311aa71ecf417",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_half2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_7",
+      "sourceAssetName": "wall_texture_64_1_wall_half2",
+      "sourceSha256": "4d41a47bbc4c4f48a2746252f4ff3edfa68e10ebf97a00ef14d9baf4e19c19db",
+      "pixelSha256": "f005b7cd60c2441fbc06c909b722bef240e942a3ae82a7341b3de59a2ad8f228",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-8-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-8.png",
+      "sha256": "f720cabd99e8455c9614e16196100648781b1abb9b79a4381a3423f17647af91",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_half3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_8",
+      "sourceAssetName": "wall_texture_64_1_wall_half3",
+      "sourceSha256": "aae7c55cfd1b57aaa7a6bdd2db3192eb81c18158d55bd5c9bb06518f197d4eee",
+      "pixelSha256": "faf0e70dc547fd438dbffec6e44d6b6931fdc319f10e1541f76021c5ebf540fe",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-9-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-9.png",
+      "sha256": "1a85f48043c6583b835e3a807b76746d22d06eeec3d02169310f0ee43be0205f",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_1_wall_vstripes1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 6.8125,
+      "sourceTextureId": "wall_64_9",
+      "sourceAssetName": "wall_texture_64_1_wall_vstripes1",
+      "sourceSha256": "affe8fcf2a9c00ec735646bb28e0dfd20d94f573ca3ec721b1f54b778d1fa036",
+      "pixelSha256": "b61b73c937efab72d5af08803e7b9516256884333b7304ea36c2926c369f3c69",
+      "width": 32,
+      "height": 109,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-10-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-10.png",
+      "sha256": "acd9dc2ae58a41f9f4c67e9447d53b5f36c91ba38e39ba20c4b03d388d69eb58",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_10",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy1",
+      "sourceSha256": "64b05355f3388de6ddc216ff8bae5193f97781d9fd4165c1c17c1990f206a7c1",
+      "pixelSha256": "de738f133f19f9435219b3e4e7220d28aecb08a0d7acaae71c885cbe389ce754",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-11-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-11.png",
+      "sha256": "d9dfe10bca8f074a073c7dfd1764647c61f3a790cb827e19e599e7f3271df632",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_11",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy2",
+      "sourceSha256": "77cdb5ed22ad638bdadb8c0a0a18cdea3635e5dcac31df23ba296a88dfe8e9e8",
+      "pixelSha256": "172e1043fe0d8c627755d1dfdd1d8de66c02a8eec9131d41eacdf3c466dfca27",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-12-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-12.png",
+      "sha256": "462d688a9443c029da90e4b876680fccef137a3550c64c94a84584d556308963",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_12",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy3",
+      "sourceSha256": "e6120676a7747aeccf4d7f319410f2a740b90082dca8ef9ee991a80f7a054ccb",
+      "pixelSha256": "8c2e4f14d614172ba9a70fb429ab2682e82ba2fc26bcacafaf068ca1020f6f97",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-13-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-13.png",
+      "sha256": "5ba4447916ecb66f44831ac231b0bcf5f370399a2b41d319e510c6e61cc9fbbe",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy4.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_13",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy4",
+      "sourceSha256": "0b00fefe9c9823ea0c7fad572e9d7ac1ef0cdf73866899c8a2e30df43c6b1f36",
+      "pixelSha256": "e04467e1889e8586950303ee1bb15599ad4da43c634095f1ab55c54ca5a06e41",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-14-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-14.png",
+      "sha256": "722ba01db90be02689cc2a7f9b8eeaa81be4e6191810e4cef994d64b77a8ecfb",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy5.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_14",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy5",
+      "sourceSha256": "f9da3507e48dc577b274a498176a02729125b84749743f3ad50704c5da2f91c8",
+      "pixelSha256": "7ce58f7603e946ed816e0789c5119a0122f756e7daa1f97a40d4bfd3910abbf3",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-15-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-15.png",
+      "sha256": "f5b87d9a3705a9e43f9e3368a157899ba2d56bfc32964d977a4d572dccfeeaec",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy6.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_15",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy6",
+      "sourceSha256": "e4e435ff949236f780848e42cf67ae76f6e483bb500eaa83c1e4a76d29cb2c8f",
+      "pixelSha256": "a350fc7515dbdf9fd6b8ef6a5564344a07995e75eb45a653dcfc8d7477fc01ba",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-16-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-16.png",
+      "sha256": "ff9c69a272d2f8f79adf99d0719c9c30ce61ac29eae3a6892092cdfe03d79c21",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_0_wall_groovy7.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.5,
+      "sourceTextureId": "wall_64_16",
+      "sourceAssetName": "wall_texture_64_0_wall_groovy7",
+      "sourceSha256": "28f10ffd6b15af1c4decf3962517a1f29be835a3491cef06953572cbe7e3bac3",
+      "pixelSha256": "555faf73d83392e4872683eabcbc8a8b89f82de46e440e3db4cf855d2fbbe06e",
+      "width": 32,
+      "height": 8,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-17-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-17.png",
+      "sha256": "b04f8e2bfb899a12dfab9aa9b3a543377cf3665d20e18886cb198a6dcdf124f0",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_picture1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_17",
+      "sourceAssetName": "wall_texture_64_3_wall_picture1",
+      "sourceSha256": "bd9fda289db938ee39176d3938beac86b14458bf531076cc8465efc5a0e9ccd1",
+      "pixelSha256": "78f74607d8b083bb588488e977daa1f843624c6bbed95a59481c1183387761a7",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-18-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-18.png",
+      "sha256": "dbe5551d88ddc41aa85d4e1895d3dfa877796ea645326bd5ffb511ffde55e30d",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_picture2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_18",
+      "sourceAssetName": "wall_texture_64_3_wall_picture2",
+      "sourceSha256": "440b9a0c4f2acdb4851384d39254b412b5e7e6fab9cb81b0c97fd35c1175cc7d",
+      "pixelSha256": "2741396dfbdebb5db3b3222383cc24835f1722ce580e06f5712038859b9c4c3d",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-19-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-19.png",
+      "sha256": "79830c361257358a45b56ae1e0cebd3d40f5b5db5c0b6dc0c59af83b759e9519",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_chocolat.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_19",
+      "sourceAssetName": "wall_texture_64_3_wall_color_chocolat",
+      "sourceSha256": "54bb789b9a79fd30ea2185cec99c3a6dcafc8cf72acc0ec6c251fbd09fa235d0",
+      "pixelSha256": "118482a0be3ff78be6f3c425011b36b99b21b77a3ae3989406527bc8a284242b",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-20-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-20.png",
+      "sha256": "02e29a57857c1df6e7d407eb4082cebfd53d1b33e0bad902dd231597cdf28b80",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_wood.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_20",
+      "sourceAssetName": "wall_texture_64_3_wall_color_wood",
+      "sourceSha256": "148c3c79bb84e38087ae7bcaec4c282470a088d1fcda44afc46c6d2207dfa9c4",
+      "pixelSha256": "a109e1a13d5b7c85b49de2f4623f8f97a282ee47f422b4ee65d7d5727a415ad9",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-21-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-21.png",
+      "sha256": "1d91c42fca6dd10e4c25645d83314d3b226717e51c0ccf06fcde14db5d579ed4",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_stripes1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_21",
+      "sourceAssetName": "wall_texture_64_3_wall_color_stripes1",
+      "sourceSha256": "96238f18045c006a501a569f801757a682d59dc2cd6f861918321b0a109bf15b",
+      "pixelSha256": "0eba5ec1ff2be6b31dca7e243fcbf079485cf10700a7f14fc463a8acb552a3e8",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-22-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-22.png",
+      "sha256": "7fe1f2d4d413c8becee4462458358dbc82e8f27f5ce66a000860fe0cc0dd42da",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_stripes2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_22",
+      "sourceAssetName": "wall_texture_64_3_wall_color_stripes2",
+      "sourceSha256": "a2870355abd7b0fdfd4ed4cfd6e994b2ea42e324d44e550680096aeac5422f1c",
+      "pixelSha256": "7cb213354dc73170e491eb030bb43bbd3e37510d8dd012030c31963f1cf9a504",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-23-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-23.png",
+      "sha256": "b19713a2c23add6d401e3728a1772b1e5d95f97d07d0714b1972a206524c5473",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_stripes3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_23",
+      "sourceAssetName": "wall_texture_64_3_wall_color_stripes3",
+      "sourceSha256": "74918076724ec6533746b1302b9d97ad61f7438679cea5db39853b59206e87cd",
+      "pixelSha256": "8bc998919b1f4d4dd446dd6ef1fbddb85632cb0d5b72dc66a8f2708fd1eaee46",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-24-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-24.png",
+      "sha256": "61e909d8aa3aba3be65c4371ee5307208c680e23207b2e0d6e7fa2ae48a862ff",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_brick1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_24",
+      "sourceAssetName": "wall_texture_64_3_wall_color_brick1",
+      "sourceSha256": "d0dfdce4c61dd67c452a24317353055bb3e743def774893e615dca1dd75b26ec",
+      "pixelSha256": "699cb0ee8a5e1e31d875daa380aef0536d9138e52545054350236d5f3cc2a25b",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-25-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-25.png",
+      "sha256": "b414ee5fdb5b05af2007c438a6aba50fddda763eb558da7dc149b83055fe8829",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_brick2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_25",
+      "sourceAssetName": "wall_texture_64_3_wall_color_brick2",
+      "sourceSha256": "1d2a97a9d531f13a94b64422d6061740ec0864db8bc3c9a7969df2268e21cde5",
+      "pixelSha256": "658559f5a0f254783164849dcc5834ed746b733a8b1871756378bb4a07a74b82",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-26-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-26.png",
+      "sha256": "99156105b3524a9d74fb7d774187b2a64140828b33b106fe41c33da34aaaa489",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_brick3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_26",
+      "sourceAssetName": "wall_texture_64_3_wall_color_brick3",
+      "sourceSha256": "a70b86cb3c4a4b2a8682e331df74c34460281e19597ea3cdd8b2a8375a9fb080",
+      "pixelSha256": "f58438df78dfaa09f6083083bd3db073012232940297c32cf866e4929212b008",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-27-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-27.png",
+      "sha256": "44e0f9b1c1892c58abb9d6768bc65182effc15f2dea0371eb0d6571382ef76ab",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_ornament.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_27",
+      "sourceAssetName": "wall_texture_64_3_wall_color_ornament",
+      "sourceSha256": "fa92aff2a5791a913a3191b717c56de93f030003923272f1a1efe348d4cef17e",
+      "pixelSha256": "51c4ebc3ed36a13cd6baf85dd5f291540f6efa3236c063b26dd1f1f4cbaf3a1f",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-28-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-28.png",
+      "sha256": "0a71061915cea6214a58154b94bfa222d81e6f4984fdb159584ae825e3dae096",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_ornament2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_28",
+      "sourceAssetName": "wall_texture_64_3_wall_color_ornament2",
+      "sourceSha256": "d097cead33a424381962ac8d3905955b996d505264bbc2829087172cd5e9eae7",
+      "pixelSha256": "34eb0db8704fbc71cefc3370157f6bbc631918be16dfb23cedbf79b6af86f142",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-29-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-29.png",
+      "sha256": "b75a51dc4e5256819d03fa245a4adfc6255c4b78de88b8e4b4516343743924e2",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_ornament3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_29",
+      "sourceAssetName": "wall_texture_64_3_wall_color_ornament3",
+      "sourceSha256": "e12358da577ec016cefd0a360e9f09b21fbc67310e08232a1362a214610b3fa9",
+      "pixelSha256": "d1f6a7efea82ae666cb186044b71657fbb8441fb841ba3165f307ff78606a562",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-30-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-30.png",
+      "sha256": "c29da79adfbe191416c5c785a1dc095c9404cd6c124c1b8350abda35f80f9b6c",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_table.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_30",
+      "sourceAssetName": "wall_texture_64_3_wall_color_table",
+      "sourceSha256": "3c6f38c7a8ebd51d6121d93043b6d67ea874f04d19475b6f3d24c88c69e8257e",
+      "pixelSha256": "9cd19f27153c95589f7be00ed1e2890fa398408eafb90a53b9d0b2c0def38e18",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-31-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-31.png",
+      "sha256": "3ae2cf614cbc40c11045a16ec0c704cd446bc9ed9ac8709e9f56e5c62ff71d17",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_table2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_31",
+      "sourceAssetName": "wall_texture_64_3_wall_color_table2",
+      "sourceSha256": "79f6b99b9c636c98a22df87a98d27d3d79171dfca45e2eec341d2e7df28ad8ef",
+      "pixelSha256": "2d9426608f248f176617a88f6ba237316b281fedd7a98e6b06bb994b2228ede1",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-32-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-32.png",
+      "sha256": "1e3efbbfa5f2b9674f41328efd6d850171ce2334cc847e1a07a27ab4c7c42d30",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_table3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_32",
+      "sourceAssetName": "wall_texture_64_3_wall_color_table3",
+      "sourceSha256": "9bd80020af8123f3e73db5ed63cc7e26532e5f7821fa48bffc2ebbc58e055640",
+      "pixelSha256": "aad6e53375bb7f6a8a42d434e98d6883f7dde9223584b01189d5a05aad4d326c",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-33-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-33.png",
+      "sha256": "376f3f71a3d7c5113b898ead993c26f827fa666097cc19686b3f84f83a3a938b",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_lsd.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_33",
+      "sourceAssetName": "wall_texture_64_3_wall_color_lsd",
+      "sourceSha256": "1f48000522140c9a2089e878b05778597e9c5417073f2633e18c965522ae3ca7",
+      "pixelSha256": "b9a4d1fdcb2a9c12b1d79cf76b1b25fb5d36e05f22e6b5c46ceaebb198bd432b",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-34-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-34.png",
+      "sha256": "cbe6d19c0e28734592d2a537345a4e762544818354d8da24d8dc8b43443355b7",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_lsd2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_34",
+      "sourceAssetName": "wall_texture_64_3_wall_color_lsd2",
+      "sourceSha256": "4517c130442de3cedf89ff5aba97d65ce8f4763245adbb9267e44e5e3390e2aa",
+      "pixelSha256": "d104f92a9f77c51f58c85cdd571ae1d0060bf4d751be97ef4026223d941a2e19",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-35-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-35.png",
+      "sha256": "31612239d5707494b3aa407fb31dcd61a9b4075557b79c9abe6a83758b3e16ea",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_lsd3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_35",
+      "sourceAssetName": "wall_texture_64_3_wall_color_lsd3",
+      "sourceSha256": "a5389a3005cfbfebc9cd721ba4be24b05a8892d9b2ec53ca770b892b333fef59",
+      "pixelSha256": "e615aff0bd0c7507efd7971775a95b4231a0162b05e81d6326f7d161887b9162",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-36-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-36.png",
+      "sha256": "047f3df87abf6849f07306fe92c5447e1d4b4a758669bd559d84c1f09158832c",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_lsd4.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_36",
+      "sourceAssetName": "wall_texture_64_3_wall_color_lsd4",
+      "sourceSha256": "90f7f75421887dc06545f73efc75b4e3d61abaca50650835aeb00de2bc6467f1",
+      "pixelSha256": "00b758540b555513fc77d830a425df16a5f855902800c413257ff65fc5acd97f",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-37-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-37.png",
+      "sha256": "09944c709e8fd3bbc946f72bc7ee21e4e26ef5fde131df841471ab4142e8cc3c",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_lsd5.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_37",
+      "sourceAssetName": "wall_texture_64_3_wall_color_lsd5",
+      "sourceSha256": "95268230c8eba5c078a5fea825e9731cb9ee44e655291c00485d8e87b4259920",
+      "pixelSha256": "49f382b7acfd3ab5c645dcdf4399694738d7b0014fcc43422f45c2c898e7cec2",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-38-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-38.png",
+      "sha256": "ed0b5cbe7a483a4736a4d798c3994e08af235195c8c38427f8158b592a2e11e6",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_lsd6.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_38",
+      "sourceAssetName": "wall_texture_64_3_wall_color_lsd6",
+      "sourceSha256": "b9be155623178ecbb6f8cb13836289fd2cdbfb1b6e8868ef6c1b80e88f87d3c6",
+      "pixelSha256": "bb3c92eae22b1bba6b23d93ca703036305c1289c13a23da53b36e32ee4c98081",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-39-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-39.png",
+      "sha256": "9ac94923c316f08c5ab8d5c05fa0a89a28f3a1773796d6f914668ea9bdfe2017",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_invaders.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_39",
+      "sourceAssetName": "wall_texture_64_3_wall_color_invaders",
+      "sourceSha256": "7acad8f04651f6edda1a090be13d807b73dedd811c067ad0ce10ac6baf75d514",
+      "pixelSha256": "82063b71434d0d0f864c9b255fbd90c22c007dc5d39b1d1f16a81e923db47a67",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-40-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-40.png",
+      "sha256": "c7caa883026576e700198fac8886a6dbd49de6b7a7551f0c23afa24dad20d398",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_invaders2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_40",
+      "sourceAssetName": "wall_texture_64_3_wall_color_invaders2",
+      "sourceSha256": "4acdb1fe0db86649202f2c0eac534f2bd7cc75c4c5dedf9e847e9b348f5de451",
+      "pixelSha256": "ad25b55dd4189fefba33dda987adf7c000cb175097a7af26214c404ea80c6902",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-41-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-41.png",
+      "sha256": "912107ad651f3e58acc14bdeac2103e2717b03e9baa5c0924e2ba04eb3447fc2",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_invaders3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_41",
+      "sourceAssetName": "wall_texture_64_3_wall_color_invaders3",
+      "sourceSha256": "07776cc0eee6ceda7fd3ec4f098cb3e4854285c05416eac6f5341a39a9f7751b",
+      "pixelSha256": "56739cd785ccdff36ecf5fa6241e00bbe906d6c5dd7d6e6086160e7ba48b5694",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-42-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-42.png",
+      "sha256": "2dc5a3f58de1f1e1003929ac98a116c7dbaa3224cbb1bd2cb080607792dfb8db",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_invaders4.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_42",
+      "sourceAssetName": "wall_texture_64_3_wall_color_invaders4",
+      "sourceSha256": "f246a5f878ea0b7cd3a41855ef5ca4068979496e454080c9bb71a89a55d13027",
+      "pixelSha256": "6cf837f320a73868b203ed495c9503f7661e5e14bde638d41f0f803c923587f0",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-43-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-43.png",
+      "sha256": "d27c48fa3434ef7dc7f5af43bb28152fb39b39afd1eb436d8ebc6d90b12c896e",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_jagged.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_43",
+      "sourceAssetName": "wall_texture_64_3_wall_color_jagged",
+      "sourceSha256": "966b45b4ee5736c6dc1aa4ed25623ffb219048a40eaac26f42e71f68b086e0cb",
+      "pixelSha256": "4679446bca27c22bda0c8bfb4c017cc7610e0195d5bb8cf522cfff261170285d",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-44-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-44.png",
+      "sha256": "204c7ebed6767277bb2182e99f748e557cb202e0f709949121e2fafdd2d311c2",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_jagged2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_44",
+      "sourceAssetName": "wall_texture_64_3_wall_color_jagged2",
+      "sourceSha256": "38a54c62e4cdd29dafc5337346ac8da5a54ecd67d7b65d7ae7565e2cf07ce0cb",
+      "pixelSha256": "f2f0f244efd061f43fe48321bd58e323be208339361018ef054649c193101271",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-45-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-45.png",
+      "sha256": "d56fe1f74d52e3aa48872633c4c252a6166eaaf49605f4ca8166eac2b620c191",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_color_jagged3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_45",
+      "sourceAssetName": "wall_texture_64_3_wall_color_jagged3",
+      "sourceSha256": "9add5bdce9100648a9f6db3b829e5144bbe912f92b0d5e1e53a65949acb6ba78",
+      "pixelSha256": "9ec63b19cd4ccb782c14bda32f072de970b06f2f3adcee19576d09bb91c3dbe8",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-46-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-46.png",
+      "sha256": "f6b54d7085ef34afb5b7e0c83cd3252eb920ae4b095b1c9c85062c1b64a0b27a",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_ornament1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_46",
+      "sourceAssetName": "wall_texture_64_3_wall_ornament1",
+      "sourceSha256": "d06710bceb80f7b713494de24bebfeb047ad4ab06a42b79b4c803540671be729",
+      "pixelSha256": "8d72aa81b773d6df4a5ed9164dbec4ebbffec7dcdeeba081e7e2fc8ac86a651d",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-47-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-47.png",
+      "sha256": "f1f653cf42adaea69f54914cf3192075aa8e615cad76603f129af3d9d346ee8c",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_ornament2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_47",
+      "sourceAssetName": "wall_texture_64_3_wall_ornament2",
+      "sourceSha256": "d50acb22270adfefd7d6359096b2e09b001e2da8a19bd6c28577aa86f2da6624",
+      "pixelSha256": "6aa5d41d5d9930c97823cf33f407a5651e02a4aae994bdc4faceb48a4595b179",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-48-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-48.png",
+      "sha256": "c79faa290cdfb48fb5431b62c29b42b1e7c3334ff3027c9edbbaa0fed1ca3e75",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_ornament3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_48",
+      "sourceAssetName": "wall_texture_64_3_wall_ornament3",
+      "sourceSha256": "bc3ca6720d3e78d7d0941984376e222a673499cba88863c7868fb0056957a862",
+      "pixelSha256": "b7a0f336eb4e31330d732d3e97e1d5bb95fdfcb4efbd1828e2eac6d0704d8727",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-49-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-49.png",
+      "sha256": "f4ec3863faa81b0f5ce677d82a63c9de352ce09352548d133a2f6ea2496bcf87",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_bubbles1.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_49",
+      "sourceAssetName": "wall_texture_64_3_wall_bubbles1",
+      "sourceSha256": "541416c19c67631db872bd3f0620990908e089c520f26900916c76969c73c3de",
+      "pixelSha256": "e49b0fd0538b36c68e02bb72269b431774811a2db0fd4d539e1a080b243e3973",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-50-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-50.png",
+      "sha256": "9ccc06792bef4ee44f38c97631b344607f22a4f86a0cf7a21120ceb1bc5a8e1a",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_bubbles2.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_50",
+      "sourceAssetName": "wall_texture_64_3_wall_bubbles2",
+      "sourceSha256": "d26f5a60adc333512c2bc674a4312d251d52fb2044c95843014b1fb1d97e9b13",
+      "pixelSha256": "6b28e9b0ab9bbd31d0e3941d030a8ae9409b35ce1f6172c4e9b76956fd09b25d",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-51-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-51.png",
+      "sha256": "b87dd8361cfa8c6ca95d52643c238b7d9f4c772fc1a1f87fb16dc8b1474d554c",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_bubbles3.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_51",
+      "sourceAssetName": "wall_texture_64_3_wall_bubbles3",
+      "sourceSha256": "facb6937e2474ccb8b83b95869c217d5f35dec2f9b3e8782690066d13527cef6",
+      "pixelSha256": "cb2bbc197a594218757893cd30259b6676eba3959351ac90f811f9afe8e34d0a",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    },
+    {
+      "id": "gallaxys-room-wall-64-52-v5",
+      "surface": "wall",
+      "url": "/client/assets/materials/v5/classic/wall-64-52.png",
+      "sha256": "5aefe778c97a226f1be8fe9761f867b456a694622c666367f82ce82213e931d7",
+      "rights": "AUTHORIZED",
+      "provenance": "/var/www/gallaxys.com/Octane-Renderer/packages/assets/src/assets/room/images/room_wall_texture_64_3_wall_gothic.png",
+      "rightsEvidence": "OWNER_DECLARED_OWNED: ambos sao meu pode fazer total acesso; answer to recorded explicit question about floor/wall PNG authorship",
+      "repeatScale": 1.0,
+      "verticalRepeatScale": 0.875,
+      "sourceTextureId": "wall_64_52",
+      "sourceAssetName": "wall_texture_64_3_wall_gothic",
+      "sourceSha256": "772f463fb38615975b81375cd8e0da8c70400b7fe83efa468f3e512a293ceb23",
+      "pixelSha256": "ea6c9df67e8f50261d556728169e56c0c1b42af0be206c13a79c1627c3736c94",
+      "width": 32,
+      "height": 14,
+      "pixelsPreserved": true,
+      "sourceOffset": {
+        "x": 0,
+        "y": 0
+      },
+      "ownershipStatus": "OWNER_DECLARED_OWNED"
+    }
+  ],
+  "materials": [
+    {
+      "surface": "floor",
+      "id": "floor_64_1",
+      "textureId": "floor_64_1",
+      "columnWidth": 32
+    },
+    {
+      "surface": "floor",
+      "id": "floor_64_2",
+      "textureId": "floor_64_2",
+      "columnWidth": 32
+    },
+    {
+      "surface": "floor",
+      "id": "floor_64_3",
+      "textureId": "floor_64_3",
+      "columnWidth": 32
+    },
+    {
+      "surface": "floor",
+      "id": "floor_64_4",
+      "textureId": "floor_64_4",
+      "columnWidth": 32
+    },
+    {
+      "surface": "floor",
+      "id": "floor_64_5",
+      "textureId": "floor_64_5",
+      "columnWidth": 32
+    },
+    {
+      "surface": "floor",
+      "id": "floor_64_6",
+      "textureId": "floor_64_6",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_1",
+      "textureId": "wall_64_1",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_2",
+      "textureId": "wall_64_2",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_3",
+      "textureId": "wall_64_3",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_4",
+      "textureId": "wall_64_4",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_5",
+      "textureId": "wall_64_5",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_6",
+      "textureId": "wall_64_6",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_7",
+      "textureId": "wall_64_7",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_8",
+      "textureId": "wall_64_8",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_9",
+      "textureId": "wall_64_9",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_10",
+      "textureId": "wall_64_10",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_11",
+      "textureId": "wall_64_11",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_12",
+      "textureId": "wall_64_12",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_13",
+      "textureId": "wall_64_13",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_14",
+      "textureId": "wall_64_14",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_15",
+      "textureId": "wall_64_15",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_16",
+      "textureId": "wall_64_16",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_17",
+      "textureId": "wall_64_17",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_18",
+      "textureId": "wall_64_18",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_19",
+      "textureId": "wall_64_19",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_20",
+      "textureId": "wall_64_20",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_21",
+      "textureId": "wall_64_21",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_22",
+      "textureId": "wall_64_22",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_23",
+      "textureId": "wall_64_23",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_24",
+      "textureId": "wall_64_24",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_25",
+      "textureId": "wall_64_25",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_26",
+      "textureId": "wall_64_26",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_27",
+      "textureId": "wall_64_27",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_28",
+      "textureId": "wall_64_28",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_29",
+      "textureId": "wall_64_29",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_30",
+      "textureId": "wall_64_30",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_31",
+      "textureId": "wall_64_31",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_32",
+      "textureId": "wall_64_32",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_33",
+      "textureId": "wall_64_33",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_34",
+      "textureId": "wall_64_34",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_35",
+      "textureId": "wall_64_35",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_36",
+      "textureId": "wall_64_36",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_37",
+      "textureId": "wall_64_37",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_38",
+      "textureId": "wall_64_38",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_39",
+      "textureId": "wall_64_39",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_40",
+      "textureId": "wall_64_40",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_41",
+      "textureId": "wall_64_41",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_42",
+      "textureId": "wall_64_42",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_43",
+      "textureId": "wall_64_43",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_44",
+      "textureId": "wall_64_44",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_45",
+      "textureId": "wall_64_45",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_46",
+      "textureId": "wall_64_46",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_47",
+      "textureId": "wall_64_47",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_48",
+      "textureId": "wall_64_48",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_49",
+      "textureId": "wall_64_49",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_50",
+      "textureId": "wall_64_50",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_51",
+      "textureId": "wall_64_51",
+      "columnWidth": 32
+    },
+    {
+      "surface": "wall",
+      "id": "wall_64_52",
+      "textureId": "wall_64_52",
+      "columnWidth": 32
+    }
+  ],
+  "planes": [
+    {
+      "surface": "floor",
+      "id": "default",
+      "color": 16777215,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "101",
+      "color": 10053120,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "102",
+      "color": 10527664,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "103",
+      "color": 8561614,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "104",
+      "color": 11545943,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "105",
+      "color": 13591040,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "106",
+      "color": 14595207,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "107",
+      "color": 16771712,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "108",
+      "color": 7841582,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "109",
+      "color": 10729684,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "110",
+      "color": 14935011,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "111",
+      "color": 10066278,
+      "materialId": "floor_64_1",
+      "textureId": "floor_64_1"
+    },
+    {
+      "surface": "floor",
+      "id": "201",
+      "color": 7841582,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "202",
+      "color": 3322794,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "203",
+      "color": 4623801,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "204",
+      "color": 7896732,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "205",
+      "color": 10878976,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "206",
+      "color": 13410207,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "207",
+      "color": 11702380,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "208",
+      "color": 13403191,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "209",
+      "color": 13396480,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "210",
+      "color": 13412864,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "211",
+      "color": 13224960,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "212",
+      "color": 13158600,
+      "materialId": "floor_64_2",
+      "textureId": "floor_64_2"
+    },
+    {
+      "surface": "floor",
+      "id": "301",
+      "color": 16244380,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "302",
+      "color": 13412941,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "303",
+      "color": 11899442,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "304",
+      "color": 14470205,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "305",
+      "color": 13356241,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "306",
+      "color": 12304092,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "307",
+      "color": 15790320,
+      "materialId": "floor_64_3",
+      "textureId": "floor_64_3"
+    },
+    {
+      "surface": "floor",
+      "id": "401",
+      "color": 9868950,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "402",
+      "color": 4623801,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "403",
+      "color": 3699092,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "404",
+      "color": 7896732,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "405",
+      "color": 10682419,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "406",
+      "color": 11702380,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "407",
+      "color": 13403191,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "408",
+      "color": 9863680,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "409",
+      "color": 16766208,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "410",
+      "color": 9821754,
+      "materialId": "floor_64_4",
+      "textureId": "floor_64_4"
+    },
+    {
+      "surface": "floor",
+      "id": "501",
+      "color": 12420135,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "502",
+      "color": 9396244,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "503",
+      "color": 7841582,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "504",
+      "color": 3699092,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "505",
+      "color": 12669184,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "506",
+      "color": 13403191,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "507",
+      "color": 13158600,
+      "materialId": "floor_64_5",
+      "textureId": "floor_64_5"
+    },
+    {
+      "surface": "floor",
+      "id": "601",
+      "color": 6791581,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "602",
+      "color": 3699092,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "603",
+      "color": 12369870,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "604",
+      "color": 13729945,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "605",
+      "color": 14043425,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "606",
+      "color": 13403191,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "607",
+      "color": 13396480,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "608",
+      "color": 10256896,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "609",
+      "color": 7841582,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "floor",
+      "id": "610",
+      "color": 15790320,
+      "materialId": "floor_64_6",
+      "textureId": "floor_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "default",
+      "color": 16777215,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "101",
+      "color": 16763904,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "102",
+      "color": 13412864,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "103",
+      "color": 16514816,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "104",
+      "color": 13224960,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "105",
+      "color": 13297821,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "106",
+      "color": 9818426,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "107",
+      "color": 7841582,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "108",
+      "color": 10082773,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "109",
+      "color": 3322794,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "110",
+      "color": 2658184,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "111",
+      "color": 9211356,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "112",
+      "color": 12369870,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "113",
+      "color": 16748945,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "114",
+      "color": 14595207,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "115",
+      "color": 13403191,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    },
+    {
+      "surface": "wall",
+      "id": "201",
+      "color": 12369870,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "202",
+      "color": 7896732,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "203",
+      "color": 14600191,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "204",
+      "color": 16763080,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "205",
+      "color": 16748945,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "206",
+      "color": 15719107,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "207",
+      "color": 14595207,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "208",
+      "color": 16765602,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "209",
+      "color": 16753989,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "210",
+      "color": 16771712,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "211",
+      "color": 16766208,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "212",
+      "color": 16646016,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "213",
+      "color": 13297821,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "214",
+      "color": 10733276,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "215",
+      "color": 4623801,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "216",
+      "color": 9868950,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "217",
+      "color": 13158600,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "218",
+      "color": 16777215,
+      "materialId": "wall_64_2",
+      "textureId": "wall_64_2"
+    },
+    {
+      "surface": "wall",
+      "id": "301",
+      "color": 16769280,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "302",
+      "color": 51539,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "303",
+      "color": 4294110,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "304",
+      "color": 11796480,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "305",
+      "color": 13396480,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "306",
+      "color": 3322794,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "307",
+      "color": 16777215,
+      "materialId": "wall_64_3",
+      "textureId": "wall_64_3"
+    },
+    {
+      "surface": "wall",
+      "id": "401",
+      "color": 9819194,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "402",
+      "color": 2018986,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "403",
+      "color": 2328006,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "404",
+      "color": 13204920,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "405",
+      "color": 14427648,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "406",
+      "color": 16745728,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "407",
+      "color": 16774912,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "408",
+      "color": 13421772,
+      "materialId": "wall_64_4",
+      "textureId": "wall_64_4"
+    },
+    {
+      "surface": "wall",
+      "id": "501",
+      "color": 10733276,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "502",
+      "color": 14138588,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "503",
+      "color": 16763080,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "504",
+      "color": 14595207,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "505",
+      "color": 16761472,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "506",
+      "color": 16646016,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "507",
+      "color": 10075824,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "508",
+      "color": 16777215,
+      "materialId": "wall_64_5",
+      "textureId": "wall_64_5"
+    },
+    {
+      "surface": "wall",
+      "id": "601",
+      "color": 13403191,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "602",
+      "color": 13396480,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "603",
+      "color": 13412864,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "604",
+      "color": 13224960,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "605",
+      "color": 7841582,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "606",
+      "color": 3322794,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "607",
+      "color": 7896732,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "608",
+      "color": 13893724,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "609",
+      "color": 11141120,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "610",
+      "color": 11702380,
+      "materialId": "wall_64_6",
+      "textureId": "wall_64_6"
+    },
+    {
+      "surface": "wall",
+      "id": "701",
+      "color": 13403191,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "702",
+      "color": 13396480,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "703",
+      "color": 13412864,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "704",
+      "color": 13224960,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "705",
+      "color": 7841582,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "706",
+      "color": 3322794,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "707",
+      "color": 7896732,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "708",
+      "color": 13893724,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "709",
+      "color": 11141120,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "710",
+      "color": 11702380,
+      "materialId": "wall_64_7",
+      "textureId": "wall_64_7"
+    },
+    {
+      "surface": "wall",
+      "id": "801",
+      "color": 13403191,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "802",
+      "color": 13396480,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "803",
+      "color": 13412864,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "804",
+      "color": 13224960,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "805",
+      "color": 7841582,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "806",
+      "color": 3322794,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "807",
+      "color": 7896732,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "808",
+      "color": 13893724,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "809",
+      "color": 11141120,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "810",
+      "color": 11702380,
+      "materialId": "wall_64_8",
+      "textureId": "wall_64_8"
+    },
+    {
+      "surface": "wall",
+      "id": "901",
+      "color": 16761472,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "902",
+      "color": 16646016,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "903",
+      "color": 10075824,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "904",
+      "color": 16777215,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "905",
+      "color": 10733276,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "906",
+      "color": 14138588,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "907",
+      "color": 16763080,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "908",
+      "color": 14595207,
+      "materialId": "wall_64_9",
+      "textureId": "wall_64_9"
+    },
+    {
+      "surface": "wall",
+      "id": "1001",
+      "color": 16777215,
+      "materialId": "wall_64_10",
+      "textureId": "wall_64_10"
+    },
+    {
+      "surface": "wall",
+      "id": "1002",
+      "color": 16777215,
+      "materialId": "wall_64_11",
+      "textureId": "wall_64_11"
+    },
+    {
+      "surface": "wall",
+      "id": "1003",
+      "color": 16777215,
+      "materialId": "wall_64_12",
+      "textureId": "wall_64_12"
+    },
+    {
+      "surface": "wall",
+      "id": "1004",
+      "color": 16777215,
+      "materialId": "wall_64_13",
+      "textureId": "wall_64_13"
+    },
+    {
+      "surface": "wall",
+      "id": "1005",
+      "color": 16777215,
+      "materialId": "wall_64_14",
+      "textureId": "wall_64_14"
+    },
+    {
+      "surface": "wall",
+      "id": "1006",
+      "color": 16777215,
+      "materialId": "wall_64_15",
+      "textureId": "wall_64_15"
+    },
+    {
+      "surface": "wall",
+      "id": "1007",
+      "color": 16777215,
+      "materialId": "wall_64_16",
+      "textureId": "wall_64_16"
+    },
+    {
+      "surface": "wall",
+      "id": "1101",
+      "color": 16777215,
+      "materialId": "wall_64_17",
+      "textureId": "wall_64_17"
+    },
+    {
+      "surface": "wall",
+      "id": "1201",
+      "color": 16777215,
+      "materialId": "wall_64_18",
+      "textureId": "wall_64_18"
+    },
+    {
+      "surface": "wall",
+      "id": "1301",
+      "color": 16777215,
+      "materialId": "wall_64_19",
+      "textureId": "wall_64_19"
+    },
+    {
+      "surface": "wall",
+      "id": "1401",
+      "color": 16777215,
+      "materialId": "wall_64_20",
+      "textureId": "wall_64_20"
+    },
+    {
+      "surface": "wall",
+      "id": "1501",
+      "color": 16777215,
+      "materialId": "wall_64_21",
+      "textureId": "wall_64_21"
+    },
+    {
+      "surface": "wall",
+      "id": "1601",
+      "color": 16777215,
+      "materialId": "wall_64_22",
+      "textureId": "wall_64_22"
+    },
+    {
+      "surface": "wall",
+      "id": "1701",
+      "color": 16777215,
+      "materialId": "wall_64_23",
+      "textureId": "wall_64_23"
+    },
+    {
+      "surface": "wall",
+      "id": "1801",
+      "color": 16777215,
+      "materialId": "wall_64_24",
+      "textureId": "wall_64_24"
+    },
+    {
+      "surface": "wall",
+      "id": "1901",
+      "color": 16777215,
+      "materialId": "wall_64_25",
+      "textureId": "wall_64_25"
+    },
+    {
+      "surface": "wall",
+      "id": "1902",
+      "color": 16777215,
+      "materialId": "wall_64_26",
+      "textureId": "wall_64_26"
+    },
+    {
+      "surface": "wall",
+      "id": "2001",
+      "color": 16777215,
+      "materialId": "wall_64_27",
+      "textureId": "wall_64_27"
+    },
+    {
+      "surface": "wall",
+      "id": "2002",
+      "color": 16777215,
+      "materialId": "wall_64_28",
+      "textureId": "wall_64_28"
+    },
+    {
+      "surface": "wall",
+      "id": "2003",
+      "color": 16777215,
+      "materialId": "wall_64_29",
+      "textureId": "wall_64_29"
+    },
+    {
+      "surface": "wall",
+      "id": "2101",
+      "color": 16777215,
+      "materialId": "wall_64_30",
+      "textureId": "wall_64_30"
+    },
+    {
+      "surface": "wall",
+      "id": "2102",
+      "color": 16777215,
+      "materialId": "wall_64_31",
+      "textureId": "wall_64_31"
+    },
+    {
+      "surface": "wall",
+      "id": "2103",
+      "color": 16777215,
+      "materialId": "wall_64_32",
+      "textureId": "wall_64_32"
+    },
+    {
+      "surface": "wall",
+      "id": "2201",
+      "color": 16777215,
+      "materialId": "wall_64_33",
+      "textureId": "wall_64_33"
+    },
+    {
+      "surface": "wall",
+      "id": "2202",
+      "color": 16777215,
+      "materialId": "wall_64_34",
+      "textureId": "wall_64_34"
+    },
+    {
+      "surface": "wall",
+      "id": "2203",
+      "color": 16777215,
+      "materialId": "wall_64_35",
+      "textureId": "wall_64_35"
+    },
+    {
+      "surface": "wall",
+      "id": "2204",
+      "color": 16777215,
+      "materialId": "wall_64_36",
+      "textureId": "wall_64_36"
+    },
+    {
+      "surface": "wall",
+      "id": "2205",
+      "color": 16777215,
+      "materialId": "wall_64_37",
+      "textureId": "wall_64_37"
+    },
+    {
+      "surface": "wall",
+      "id": "2206",
+      "color": 16777215,
+      "materialId": "wall_64_38",
+      "textureId": "wall_64_38"
+    },
+    {
+      "surface": "wall",
+      "id": "2301",
+      "color": 16777215,
+      "materialId": "wall_64_39",
+      "textureId": "wall_64_39"
+    },
+    {
+      "surface": "wall",
+      "id": "2302",
+      "color": 16777215,
+      "materialId": "wall_64_40",
+      "textureId": "wall_64_40"
+    },
+    {
+      "surface": "wall",
+      "id": "2303",
+      "color": 16777215,
+      "materialId": "wall_64_41",
+      "textureId": "wall_64_41"
+    },
+    {
+      "surface": "wall",
+      "id": "2304",
+      "color": 16777215,
+      "materialId": "wall_64_42",
+      "textureId": "wall_64_42"
+    },
+    {
+      "surface": "wall",
+      "id": "2401",
+      "color": 16777215,
+      "materialId": "wall_64_43",
+      "textureId": "wall_64_43"
+    },
+    {
+      "surface": "wall",
+      "id": "2402",
+      "color": 16777215,
+      "materialId": "wall_64_44",
+      "textureId": "wall_64_44"
+    },
+    {
+      "surface": "wall",
+      "id": "2403",
+      "color": 16777215,
+      "materialId": "wall_64_45",
+      "textureId": "wall_64_45"
+    },
+    {
+      "surface": "wall",
+      "id": "2501",
+      "color": 16769280,
+      "materialId": "wall_64_46",
+      "textureId": "wall_64_46"
+    },
+    {
+      "surface": "wall",
+      "id": "2502",
+      "color": 51539,
+      "materialId": "wall_64_46",
+      "textureId": "wall_64_46"
+    },
+    {
+      "surface": "wall",
+      "id": "2503",
+      "color": 4294110,
+      "materialId": "wall_64_46",
+      "textureId": "wall_64_46"
+    },
+    {
+      "surface": "wall",
+      "id": "2504",
+      "color": 11796480,
+      "materialId": "wall_64_46",
+      "textureId": "wall_64_46"
+    },
+    {
+      "surface": "wall",
+      "id": "2601",
+      "color": 16769280,
+      "materialId": "wall_64_47",
+      "textureId": "wall_64_47"
+    },
+    {
+      "surface": "wall",
+      "id": "2602",
+      "color": 51539,
+      "materialId": "wall_64_47",
+      "textureId": "wall_64_47"
+    },
+    {
+      "surface": "wall",
+      "id": "2603",
+      "color": 4294110,
+      "materialId": "wall_64_47",
+      "textureId": "wall_64_47"
+    },
+    {
+      "surface": "wall",
+      "id": "2604",
+      "color": 11796480,
+      "materialId": "wall_64_47",
+      "textureId": "wall_64_47"
+    },
+    {
+      "surface": "wall",
+      "id": "2701",
+      "color": 16769280,
+      "materialId": "wall_64_48",
+      "textureId": "wall_64_48"
+    },
+    {
+      "surface": "wall",
+      "id": "2702",
+      "color": 51539,
+      "materialId": "wall_64_48",
+      "textureId": "wall_64_48"
+    },
+    {
+      "surface": "wall",
+      "id": "2703",
+      "color": 4294110,
+      "materialId": "wall_64_48",
+      "textureId": "wall_64_48"
+    },
+    {
+      "surface": "wall",
+      "id": "2704",
+      "color": 11796480,
+      "materialId": "wall_64_48",
+      "textureId": "wall_64_48"
+    },
+    {
+      "surface": "wall",
+      "id": "2801",
+      "color": 16769280,
+      "materialId": "wall_64_49",
+      "textureId": "wall_64_49"
+    },
+    {
+      "surface": "wall",
+      "id": "2802",
+      "color": 51539,
+      "materialId": "wall_64_49",
+      "textureId": "wall_64_49"
+    },
+    {
+      "surface": "wall",
+      "id": "2803",
+      "color": 4294110,
+      "materialId": "wall_64_49",
+      "textureId": "wall_64_49"
+    },
+    {
+      "surface": "wall",
+      "id": "2804",
+      "color": 11796480,
+      "materialId": "wall_64_49",
+      "textureId": "wall_64_49"
+    },
+    {
+      "surface": "wall",
+      "id": "2901",
+      "color": 16769280,
+      "materialId": "wall_64_50",
+      "textureId": "wall_64_50"
+    },
+    {
+      "surface": "wall",
+      "id": "2902",
+      "color": 51539,
+      "materialId": "wall_64_50",
+      "textureId": "wall_64_50"
+    },
+    {
+      "surface": "wall",
+      "id": "2903",
+      "color": 4294110,
+      "materialId": "wall_64_50",
+      "textureId": "wall_64_50"
+    },
+    {
+      "surface": "wall",
+      "id": "2904",
+      "color": 11796480,
+      "materialId": "wall_64_50",
+      "textureId": "wall_64_50"
+    },
+    {
+      "surface": "wall",
+      "id": "3001",
+      "color": 16769280,
+      "materialId": "wall_64_51",
+      "textureId": "wall_64_51"
+    },
+    {
+      "surface": "wall",
+      "id": "3002",
+      "color": 51539,
+      "materialId": "wall_64_51",
+      "textureId": "wall_64_51"
+    },
+    {
+      "surface": "wall",
+      "id": "3003",
+      "color": 4294110,
+      "materialId": "wall_64_51",
+      "textureId": "wall_64_51"
+    },
+    {
+      "surface": "wall",
+      "id": "3004",
+      "color": 11796480,
+      "materialId": "wall_64_51",
+      "textureId": "wall_64_51"
+    },
+    {
+      "surface": "wall",
+      "id": "3101",
+      "color": 16751001,
+      "materialId": "wall_64_52",
+      "textureId": "wall_64_52"
+    },
+    {
+      "surface": "wall",
+      "id": "3102",
+      "color": 16750848,
+      "materialId": "wall_64_52",
+      "textureId": "wall_64_52"
+    },
+    {
+      "surface": "wall",
+      "id": "3103",
+      "color": 14483456,
+      "materialId": "wall_64_52",
+      "textureId": "wall_64_52"
+    },
+    {
+      "surface": "wall",
+      "id": "3104",
+      "color": 5592405,
+      "materialId": "wall_64_52",
+      "textureId": "wall_64_52"
+    },
+    {
+      "surface": "wall",
+      "id": "3105",
+      "color": 6710784,
+      "materialId": "wall_64_52",
+      "textureId": "wall_64_52"
+    },
+    {
+      "surface": "wall",
+      "id": "3106",
+      "color": 3368550,
+      "materialId": "wall_64_52",
+      "textureId": "wall_64_52"
+    },
+    {
+      "surface": "wall",
+      "id": "99999",
+      "color": 13026238,
+      "materialId": "wall_64_1",
+      "textureId": "wall_64_1"
+    }
+  ]
+}

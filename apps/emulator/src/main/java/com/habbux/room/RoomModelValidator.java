@@ -10,6 +10,12 @@ public final class RoomModelValidator {
         }
     }
 
+    public static void validateLocalSpawn(RoomModelDefinition model) {
+        if (Math.abs(model.spawnX() - model.doorX()) > 1 || Math.abs(model.spawnY() - model.doorY()) > 1) {
+            throw new IllegalArgumentException("room model spawn must be adjacent to door");
+        }
+    }
+
     /** Strict import boundary for new original models; legacy research maps remain unchanged. */
     public static void validateConnected(RoomModelDefinition model) {
         if (Math.abs(model.spawnX() - model.doorX()) > 1 || Math.abs(model.spawnY() - model.doorY()) > 1) {

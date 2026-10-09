@@ -1,0 +1,7 @@
+Owner-authorized Gallaxys artwork migration V5.
+Source: ferramentas-animacao/coracoes.py and GxKissed.nitro.
+Pixels verified equal to the original procedural generator; source9x8 RGBA in native16x16 transparent power-of-two padding.
+Permission is project-owner authorization for Gallaxys to Habbux, not a blanket third-party asset license.
+Adapted from an avatar ornament for one decorative Habbux wall material.
+Habbo floor/wall atlases are not included.
+SHA-256: c8be5a5e5a7c6a83a16e3c7246392f576eb004e6bc414a943267db3e00d3b1e7

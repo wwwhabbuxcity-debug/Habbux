@@ -1,0 +1,4 @@
+Source room.asset.json from @octane/assets, whose package declares GPL-3.0.
+Full numeric metadata source, GPL text and converter supplied with converted material data.
+PNG ownership is separately OWNER_DECLARED_OWNED; no blanket graphics license inferred.
+Source metadata SHA-256: 974b57acccdddd2cc25545ac14791c897aca05613a75972321f316542add5d78

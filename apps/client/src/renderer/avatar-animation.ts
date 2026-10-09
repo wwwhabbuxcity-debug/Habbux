@@ -1,4 +1,5 @@
 import type { AvatarAction } from './avatar-manifest';
+export const WALK_FRAME_COUNT = 4;
 
 // Gallaxys/Octane updates avatar visuals every 41 ms and advances WALK every
 // two visual updates. Keep that visual clock independent from room movement.
@@ -45,13 +46,13 @@ export class AvatarAnimationController {
     }
   }
 
-  update(deltaMs: number, frameCount = this.action === 'wlk' ? 4 : 1): AvatarAnimationState {
+  update(deltaMs: number, frameCount = this.action === 'wlk' ? WALK_FRAME_COUNT : 1): AvatarAnimationState {
     this.advance(deltaMs, frameCount);
     return this.snapshot();
   }
 
   /** Allocation-free hot path; snapshot remains available to tests/diagnostics. */
-  advance(deltaMs: number, frameCount = this.action === 'wlk' ? 4 : 1): void {
+  advance(deltaMs: number, frameCount = this.action === 'wlk' ? WALK_FRAME_COUNT : 1): void {
     if (this.action === 'std' || !Number.isFinite(deltaMs) || deltaMs <= 0) return;
     const total = this.elapsedMs + deltaMs;
     const advances = Math.floor(total / this.frameDurationMs);

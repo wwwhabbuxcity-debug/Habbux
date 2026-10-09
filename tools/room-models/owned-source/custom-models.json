@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "rights": "OWNER_DECLARED_OWNED",
+  "models": [
+    {
+      "id": 9,
+      "name": "custom_9",
+      "door": {
+        "x": 3,
+        "y": 5,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxx\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxx000000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxx00000000x\nxxxxxxxxxxxxx\nxxxxxxxxxxxxx",
+      "sourceTable": "room_models_custom",
+      "provenance": {
+        "status": "OWNER_DECLARED_OWNED",
+        "author": "Proprietária dos projetos Gallaxys e Habbux",
+        "license": "LicenseRef-Habbux-Owner-Declared",
+        "source": "gallaxys_polaris.room_models_custom#9",
+        "evidence": "Confirmação da proprietária nesta sessão para custom_9/custom_10/custom_13 e PNGs de piso/parede: \"ambos sao meu pode fazer total acesso\". Autorização de migração V5; nenhum relicenciamento público foi declarado.",
+        "sourceSha256": "22d46ea718683c1f6a82ea253e25efd929e991acc61a9baeb320f03f64420f43"
+      }
+    },
+    {
+      "id": 10,
+      "name": "custom_10",
+      "door": {
+        "x": 21,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxx0\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx000000000000xxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxx0000000000xxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models_custom",
+      "provenance": {
+        "status": "OWNER_DECLARED_OWNED",
+        "author": "Proprietária dos projetos Gallaxys e Habbux",
+        "license": "LicenseRef-Habbux-Owner-Declared",
+        "source": "gallaxys_polaris.room_models_custom#10",
+        "evidence": "Confirmação da proprietária nesta sessão para custom_9/custom_10/custom_13 e PNGs de piso/parede: \"ambos sao meu pode fazer total acesso\". Autorização de migração V5; nenhum relicenciamento público foi declarado.",
+        "sourceSha256": "30fc425fb3ed8772ba6bfa7e3d18e108895da2030e6e861a3cff34b9e1a0b5b3"
+      }
+    },
+    {
+      "id": 13,
+      "name": "custom_13",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nx0000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\n00000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxx000000000000000000\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models_custom",
+      "provenance": {
+        "status": "OWNER_DECLARED_OWNED",
+        "author": "Proprietária dos projetos Gallaxys e Habbux",
+        "license": "LicenseRef-Habbux-Owner-Declared",
+        "source": "gallaxys_polaris.room_models_custom#13",
+        "evidence": "Confirmação da proprietária nesta sessão para custom_9/custom_10/custom_13 e PNGs de piso/parede: \"ambos sao meu pode fazer total acesso\". Autorização de migração V5; nenhum relicenciamento público foi declarado.",
+        "sourceSha256": "767a223a7e32c661ca65734c0969fcc37a7bad63fe5aa3e1f1b1cb710a1cead0"
+      }
+    }
+  ]
+}

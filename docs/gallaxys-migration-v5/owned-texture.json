@@ -1,0 +1,22 @@
+{
+  "id": "gallaxys-owned-heart-wall-v5",
+  "surface": "wall",
+  "url": "/client/assets/materials/v5/owned-heart.png",
+  "sha256": "c8be5a5e5a7c6a83a16e3c7246392f576eb004e6bc414a943267db3e00d3b1e7",
+  "rights": "AUTHORIZED",
+  "provenance": "/var/www/gallaxys.com/gamedata/bundled/effect/GxKissed.nitro",
+  "rightsEvidence": "Owner migration authorization V5; pixels exactly reproduce coracoes.py original procedural drawing",
+  "repeatScale": 2,
+  "overlayOpacity": 0.24,
+  "sourceBundleSha256": "dbe1a94cb7e29f78182e562bb7580452456951d9d2b4dc6d553ebf9e7bfd3340",
+  "generatorSha256": "9c7d2f21144f77baa6c58dd7995ef00c5184884cbc66f681b7248232be0ef938",
+  "width": 16,
+  "height": 16,
+  "sourceDrawing": {
+    "x": 3,
+    "y": 4,
+    "width": 9,
+    "height": 8
+  },
+  "adaptation": "Avatar ornament adapted as a decorative wall overlay; transparent power-of-two padding, no new artwork; not the Habbo room atlas"
+}

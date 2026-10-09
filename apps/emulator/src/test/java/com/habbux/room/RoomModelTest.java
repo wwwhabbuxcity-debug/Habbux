@@ -11,7 +11,11 @@ class RoomModelTest {
     @Test
     void loadsAllApprovedValidModelsAndPreservesInvalidModelExclusion() {
         RoomModelRegistry registry = RoomModelRegistry.loadDefault();
-        assertEquals(66, registry.models().size());
+        assertEquals(127, registry.models().size());
+        assertTrue(registry.find("hbx_gx_model_s_v5").isPresent());
+        assertTrue(registry.find("hbx_gx_custom_9_v5").isPresent());
+        assertTrue(registry.find("hbx_gx_custom_10_v5").isPresent());
+        assertTrue(registry.find("hbx_gx_custom_13_v5").isPresent());
         assertTrue(registry.find("hbx_terrace_v3").isPresent());
         assertTrue(registry.find("model_s").isPresent());
         assertFalse(registry.find("the_den").isPresent());

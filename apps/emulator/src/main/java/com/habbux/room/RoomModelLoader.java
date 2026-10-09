@@ -17,6 +17,12 @@ public final class RoomModelLoader {
         List<RoomModelDefinition> originals = loadResource("/room-models-v3/originals.tsv");
         originals.forEach(RoomModelValidator::validateConnected);
         models.addAll(originals);
+        List<RoomModelDefinition> migrated = loadResource("/room-models-v5/gallaxys-gpl.tsv");
+        migrated.forEach(RoomModelValidator::validateLocalSpawn);
+        models.addAll(migrated);
+        List<RoomModelDefinition> owned = loadResource("/room-models-v5/gallaxys-owned.tsv");
+        owned.forEach(RoomModelValidator::validateLocalSpawn);
+        models.addAll(owned);
         return List.copyOf(models);
     }
 

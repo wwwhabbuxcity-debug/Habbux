@@ -1,4 +1,5 @@
 import { Assets, Rectangle, Texture } from 'pixi.js';
+import { loadNativeAvatarAnimationProfile, type NativeAvatarAnimationProfile } from './avatar-animation-profile-v5.ts';
 import type {
   AvatarAction,
   AvatarGender,
@@ -20,10 +21,14 @@ export type AvatarTextureLoader = (url: string) => Promise<Texture>;
 /** Boundary between the renderer and the current PNG atlas implementation. */
 export interface AvatarAssetProvider {
   readonly manifest: AvatarManifest;
+  readonly walkFrameCount: number;
+  readonly animationSource: string;
   preload(gender: AvatarGender): Promise<void>;
   getFrame(gender: AvatarGender, part: AvatarPart, action: AvatarAction, direction: number, frame: number): AvatarResolvedFrame | undefined;
   dispose(): void;
 }
+
+const nativeProfiles = new WeakMap<AvatarManifest, NativeAvatarAnimationProfile>();
 
 export interface AvatarFrameSelection {
   readonly frame: AvatarFrameDefinition;
@@ -37,6 +42,7 @@ export function resolveAvatarFrameSelection(
   action: AvatarAction,
   direction: number,
   frame: number,
+  profile?: NativeAvatarAnimationProfile,
 ): AvatarFrameSelection | undefined {
   const partDefinition = manifest.parts[part];
   if (!partDefinition) return undefined;
@@ -48,7 +54,12 @@ export function resolveAvatarFrameSelection(
   const directionDefinition = directDirection
     ?? (renderDirection === undefined ? undefined : genderDefinition.directions[String(renderDirection)]);
   if (!directionDefinition) return undefined;
-  const frameIndex = actionDefinition.frameCount === 1 ? 0 : frame % actionDefinition.frameCount;
+  const sequence = profile?.actions[action].parts[part];
+  // Resolve licensed source sequencing once during cache preparation. Other
+  // manifests retain their own native frame counts, including static fallbacks.
+  const frameIndex = sequence?.length === actionDefinition.frameCount
+    ? sequence[frame % sequence.length]!.number
+    : actionDefinition.frameCount === 1 ? 0 : frame % actionDefinition.frameCount;
   const frameDefinition = directionDefinition.frames[String(frameIndex)];
   if (!frameDefinition) return undefined;
   return {
@@ -66,8 +77,11 @@ export async function loadAvatarManifest(url: string): Promise<AvatarManifest> {
     const response = await fetch(url, { cache: 'no-cache', signal: controller.signal });
     if (!response.ok) throw new Error(`Manifesto de avatar indisponível (${response.status}).`);
     const value: unknown = await response.json();
-    const { parseAvatarManifest } = await import('./avatar-manifest');
-    return parseAvatarManifest(value);
+    const { parseAvatarManifest } = await import('./avatar-manifest.ts');
+    const manifest = parseAvatarManifest(value);
+    const profile = await loadNativeAvatarAnimationProfile().catch(() => undefined);
+    if (profile) nativeProfiles.set(manifest, profile);
+    return manifest;
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === 'AbortError') {
       throw new Error('O manifesto de avatar excedeu o tempo limite.');
@@ -93,11 +107,17 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
   private readonly preloads = new Map<AvatarGender, Promise<void>>();
   private disposed = false;
   readonly manifest: AvatarManifest;
+  readonly walkFrameCount: number;
+  readonly animationSource: string;
+  private readonly profile: NativeAvatarAnimationProfile | undefined;
   private readonly assetBaseUrl: string;
   private readonly loader: AvatarTextureLoader;
 
   constructor(manifest: AvatarManifest, assetBaseUrl: string, loader: AvatarTextureLoader) {
     this.manifest = manifest;
+    this.profile = nativeProfiles.get(manifest);
+    this.walkFrameCount = this.profile?.actions.wlk.parts.bd?.length ?? 4;
+    this.animationSource = this.profile?.sourceSha256 ?? 'habbux-v4-original-fallback';
     this.assetBaseUrl = assetBaseUrl;
     this.loader = loader;
     for (const part of manifest.layerOrder) for (const action of ['std', 'wlk'] as const) {
@@ -144,7 +164,7 @@ class PngAvatarAssetProvider implements AvatarAssetProvider {
         const count = (this.manifest.parts[part].actions[action] ?? this.manifest.parts[part].actions.std)?.frameCount ?? 1;
         const directionFrames: (AvatarResolvedFrame | undefined)[] = new Array(count);
         for (let frame = 0; frame < count; frame++) {
-          const selection = resolveAvatarFrameSelection(this.manifest, gender, part, action, direction, frame);
+          const selection = resolveAvatarFrameSelection(this.manifest, gender, part, action, direction, frame, this.profile);
           if (!selection) continue;
           const texture = this.resolvedRegions.get(selection.frame.region);
           if (!texture) continue;

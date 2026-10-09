@@ -16,7 +16,7 @@ export function resolveRoomTileAtScreen(screenX: number, screenY: number, room: 
   for (const elevation of room.elevations) {
     if (Number.isFinite(elevation)) maxElevation = Math.max(maxElevation, elevation);
   }
-  const elevationReach = Math.ceil(maxElevation / 2) + 2;
+  const elevationReach = Math.ceil(maxElevation * config.elevationHeight / config.tileHeight) + 2;
   const minX = Math.max(0, Math.floor(projected.x) - 1);
   const minY = Math.max(0, Math.floor(projected.y) - 1);
   const maxX = Math.min(room.width - 1, Math.ceil(projected.x + elevationReach));

@@ -1,0 +1,5 @@
+Owner-declared Gallaxys floor and wall artwork.
+Question: Para resolver as pendências específicas de origem: os mapas custom_9, custom_10 e custom_13 foram criados por você? E os PNGs de pisos/paredes do Gallaxys são arte própria sua ou vieram do pacote Habbo/Octane? A autorização de acesso e migração dos seus recursos já está registrada.
+Owner answer: ambos sao meu pode fazer total acesso
+Source pixels preserved exactly; native PNG and numeric material catalog.
+Declaration is specific to these PNGs; it does not relicense unrelated third-party resources.

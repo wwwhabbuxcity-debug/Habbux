@@ -1,0 +1,37 @@
+<!doctype html><html><meta charset="utf-8"><style>body{margin:0;background:#14212b}canvas{display:block}</style><script type="module">
+import {PrepareRenderer,GetAssetManager,RoomGeometry,RoomPlane,RoomPlaneParser,PlaneMaskManager,Vector3d,OctaneContainer,OctaneSprite} from '/reference-renderer/nitro-renderer.js';
+const renderer=await PrepareRenderer({width:904,height:560,backgroundColor:0x14212b,preference:'webgl',resolution:1,antialias:false});
+document.body.append(renderer.canvas);
+const loaded=await GetAssetManager().downloadAsset('/reference-room.nitro');
+if(!loaded)throw new Error('room.nitro reference failed');
+let previous;
+window.referenceRoom=async(m,{floor='default',wall='default'}={})=>{
+ if(previous){previous.root.destroy({children:true,texture:false,textureSource:false});for(const plane of previous.planes)plane.dispose();}
+ const parser=new RoomPlaneParser();parser.initializeTileMap(m.width,m.height);
+ for(let y=0;y<m.height;y++)for(let x=0;x<m.width;x++)parser.setTileHeight(x,y,m.elevations[y*m.width+x]>=0?m.elevations[y*m.width+x]:RoomPlaneParser.TILE_BLOCKED);
+ if(!parser.initializeFromTileData())throw new Error('Reference parser failed');
+ const geometry=new RoomGeometry(64,new Vector3d(-135,30,0),new Vector3d(11,11,5),new Vector3d(-135,0.5,0)),root=new OctaneContainer();
+ const planes=[];
+ for(let i=0;i<parser.planeCount;i++){
+  const raw=parser.getPlaneType(i),type=raw===1?RoomPlane.TYPE_FLOOR:raw===2?RoomPlane.TYPE_WALL:0;if(!type)continue;
+  const plane=new RoomPlane(new Vector3d(),parser.getPlaneLocation(i),parser.getPlaneLeftSide(i),parser.getPlaneRightSide(i),type,true,parser.getPlaneSecondaryNormals(i),0);
+  plane.maskManager=new PlaneMaskManager();
+  const normal=Vector3d.crossProduct(parser.getPlaneLeftSide(i),parser.getPlaneRightSide(i));
+  plane.id=type===RoomPlane.TYPE_FLOOR?floor:wall;
+  plane.color=type===RoomPlane.TYPE_FLOOR?(normal.z!==0?0xffffff:normal.x!==0?0xbbbbbb:0xdddddd):(normal.x===0&&normal.y===0?0x999999:normal.y>0?0xffffff:normal.y===0?0xcccccc:0x999999);
+  if(type===RoomPlane.TYPE_WALL&&(plane.leftSide.length<1||plane.rightSide.length<1))plane.hasTexture=false;
+  for(let j=0;j<parser.getPlaneMaskCount(i);j++)plane.addRectangleMask(parser.getPlaneMaskLeftSideLoc(i,j),parser.getPlaneMaskRightSideLoc(i,j),parser.getPlaneMaskLeftSideLength(i,j),parser.getPlaneMaskRightSideLength(i,j));
+  plane.update(geometry,0,true);planes.push(plane);
+  if(!plane.visible||!plane.planeTexture)continue;
+  const sprite=new OctaneSprite(plane.planeTexture);sprite.position.set(-plane.offset.x,-plane.offset.y);sprite.tint=plane.color;sprite.zIndex=-(plane.relativeDepth+(type===RoomPlane.TYPE_FLOOR?2000.1:2000.5)+i/1000);root.addChild(sprite);
+ }
+ root.sortableChildren=true;root.sortChildren();
+ const bounds=root.getLocalBounds(),scale=Math.min((904-64)/bounds.width,(560-64)/bounds.height,1.2);
+ root.scale.set(scale);root.position.set(452-(bounds.x+bounds.width/2)*scale,280-(bounds.y+bounds.height/2)*scale);
+ renderer.render({container:root});
+ previous={root,planes};
+ const origin=geometry.getScreenPoint(new Vector3d());
+ const unitZ=geometry.getScreenPoint(new Vector3d(0,0,1));
+ return {planes:planes.length,visible:root.children.length,bounds:{x:bounds.x,y:bounds.y,width:bounds.width,height:bounds.height},scale,elevationPixels:origin.y-unitZ.y};
+};window.referenceReady=true;
+</script></html>

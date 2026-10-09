@@ -1,0 +1,586 @@
+{
+  "source": "Polaris-Emulator-main/Database/Default Database/CleanDB.sql",
+  "license": "GPL-3.0",
+  "models": [
+    {
+      "name": "cinema_a",
+      "door": {
+        "x": 20,
+        "y": 27,
+        "direction": 0
+      },
+      "heightmap": "xxxxxxx1xx11111111xxxxxx\nxxx1111111111111111xxxxx\nxxx111xxxx1111111111xxxx\nxxxx2xxxxxxxxxxxxxxxxxxx\nxx3x3x333311xxxxxxxxxx11\nxx3333333311111111111111\nxx3333333311111111111111\nxx3333333311111111122111\nxx3333333311x22222222111\nxx3333333311x22222222111\nxx3333333311xxxxxxxxx111\nxx3333333311111111111111\nxx3333333311111111111111\nxx3333333311111111111111\nxx3333333311111xxxx11111\nxx3333333311111xxxx11111\nxx3333333311111xxxx11111\nxx3333333311111xxxx11111\nxx3333333311111xxxx11111\nxx3333333311111xxxx11111\nxx3333333311111xxxx11111\n333333332111111xxxx11111\n333333332111111111111111\n333333332111111111111111\n333333332111111111111111\nxx3333332111111111111111\nxxxxxxxxxxxxxxxxxxx11111\nxxxxxxxxxxxxxxxxxxx11111\nxxxxxxxxxxxxxxxxxxx11111",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "dusty_lounge",
+      "door": {
+        "x": 14,
+        "y": 1,
+        "direction": 4
+      },
+      "heightmap": "xxxxxxxxxxxxxx22xxxxxxxxxxxxx\nxxxxxxxxxx222x222x2xxxxxxxxxx\nxxxxxxx33322222222223xxxxxxx3\nxxxxxxx33322222222223xxxxxxx3\nxxxxxxx33322222222223x33333x3\nxxxxxxx33322222222223x33333x3\nxx111xx33322222222223xxxxxxx3\nxx111xxx332222222222333333333\nxx111xxxx32222222222333333333\nxx111xxxxxx222222222333333333\nxx111xxxxxxx1111111x333333333\nxx111xxxxxxx1111111x222222222\nxx111xxxxxx111111111111111111\nxx111xxxxxx111111111111111111\n11111xxxxxx111111111111111111\n11111xxxxxx111111111111111111\n11x11xxxxxx111111111111111111\n11xxxxxxxxx11111111111111111x\nx11xxxxxxxxx1111111x1111111xx\nxx11xxxxxxx111111111111111xxx\nxxx11xxxxxx11111111111111xxxx\nxxxx11111111111111111111xxxxx\nxxxxx11111111111111xxxxxxxxxx\nxxxxxxxxxxx11111111xxxxxxxxxx\nxxxxxxxxxxx11111111xxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "infobus_bus",
+      "door": {
+        "x": 16,
+        "y": 11,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxx0xxxxx\nxxxxxxxxxxxxxxxxxxx\nxx00000000000000000\nxx00000000000000000\nxx00000000000000000\nxx00000000000000000\nxx00000000000000000\nxx00000000000000000\nxx00000000000000000\nxx00000000000000000\nxxxxxxxxxxxxxxxx0xx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_0",
+      "door": {
+        "x": 0,
+        "y": 4,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000\n000000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx00000000xx00000000xx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_1",
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxeeeeeeeeeeeeeeeedcba9888888888888\nxeeeeeeeeeeeeeeeexxxxxx88888888888\nxeeeeeeeeeeeeeeeexxxxxx88888888888\nxeeeeeeeeeeeeeeeexxxxxx88888888888\nxeeeeeeeeeeeeeeeexxxxxx88888888888\nxdxxxxxxxxxxxxxxxxxxxxx88888888888\nxcxxxxxxxxxxxxxxxxxxxxx88888888888\nxbxxxxxxxxxxxxxxxxxxxxx88888888888\nxaxxxxxxxxxxxxxxxxxxxxx88888888888\naaaaaaaaaaaaaaaaaxxxxxxxxxxxxxxxxx\nxaaaaaaaaaaaaaaaaxxxxxxxxxxxxxxxxx\nxaaaaaaaaaaaaaaaaxxxxxxxxxxxxxxxxx\nxaaaaaaaaaaaaaaaaxxxx6666666666666\nxaaaaaaaaaaaaaaaaxxxx6666666666666\nxaaaaaaaaaaaaaaaaxxxx6666666666666\nxaaaaaaaaaaaaaaaaxxxx6666666666666\nxaaaaaaaaaaaaaaaaxxxx6666666666666\nxaaaaaaaaaaaaaaaa98766666666666666\nxaaaaaaaaaaaaaaaaxxxxxxxxxxxx5xxxx\nxaaaaaaaaaaaaaaaaxxxxxxxxxxxx4xxxx\nxaaaaaaaaaaaaaaaaxxxxxxxxxxxx3xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxaaaaaaaaaaaaaaaaxxx3333333333xxxx\nxxxxxxxxxxxxxxxx9xxx3333333333xxxx\nxxxxxxxxxxxxxxxx8xxx3333333333xxxx\nxxxxxxxxxxxxxxxx7xxx3333333333xxxx\nxxx777777777xxxx6xxx3333333333xxxx\nxxx777777777xxxx5xxxxxxxxxxxxxxxxx\nxxx777777777xxxx4xxxxxxxxxxxxxxxxx\nxxx777777777xxxx3xxxxxxxxxxxxxxxxx\nxxx777777777xxxx2xxxxxxxxxxxxxxxxx\nxfffffffffxxxxxx1xxxxxxxxxxxxxxxxx\nxfffffffffxxxxxx111111111111111111\nxfffffffffxxxxxx111111111111111111\nxfffffffffxxxxxx111111111111111111\nxfffffffffxxxxxx111111111111111111\nxfffffffffxxxxxx111111111111111111\nxfffffffffxxxxxx111111111111111111\nxxxxxxxxxxxxxxxx111111111111111111\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_2",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxjjjjjjjjjjjjjx0000xxxxxxxxxx\nxxxxxxxxxxxxiix0000xxxxxxxxxx\nxxxxxxxxxxxxhhx0000xxxxxxxxxx\nxxxxxxxxxxxxggx0000xxxxxxxxxx\nxxxxxxxxxxxxffx0000xxxxxxxxxx\nxxxxxxxxxxxxeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\neeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxeeeeeeeeeeeeex0000xxxxxxxxxx\nxxxxxxxxxxxxddx00000000000000\nxxxxxxxxxxxxccx00000000000000\nxxxxxxxxxxxxbbx00000000000000\nxxxxxxxxxxxxaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxaaaaaaaaaaaaax00000000000000\nxxxxxxxxxxxx99x0000xxxxxxxxxx\nxxxxxxxxxxxx88x0000xxxxxxxxxx\nxxxxxxxxxxxx77x0000xxxxxxxxxx\nxxxxxxxxxxxx66x0000xxxxxxxxxx\nxxxxxxxxxxxx55x0000xxxxxxxxxx\nxxxxxxxxxxxx44x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nx4444444444444x0000xxxxxxxxxx\nxxxxxxxxxxxx33x0000xxxxxxxxxx\nxxxxxxxxxxxx22x0000xxxxxxxxxx\nxxxxxxxxxxxx11x0000xxxxxxxxxx\nxxxxxxxxxxxx00x0000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nx000000000000000000xxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_3",
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "heightmap": "XXXXXXXXXXXXXXXXX\nXXX0000000000000X\nXXX0000000000000X\nXXX0000000000000X\nXXX0000000000000X\nXXX0000000000000X\nXXX0000000000000X\nX000000000000000X\nX000000000000000X\nX000000000000000X\n0000000000000000X\nX000000000000000X\nX000000000000000X\nX000000000000000X\nXXXXXXXXXXXXXXXXX",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_4",
+      "door": {
+        "x": 0,
+        "y": 12,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxx\nxXXXXXXXX9999999999999x\nxXXXXXXXX9999999999999x\nxXXXXXXXX9999999999999x\nxXXXXXXXX9999999999999x\nx00000000XXXXXXX999999x\nx00000000XXXXXXX999999x\nx00000000XXXXXXX999999x\nx00000000XXXXXXX999999x\nx000000000000000999999x\nx000000000000000999999x\nx000000000000000999999x\n0000000000000000999999x\nx000000000000000XXXXXXx\nx000000000000000XXXXXXx\nx000000000000000XXXXXXx\nx000000000000000XXXXXXx\nx000000000000000XXXXXXx\nx000000000000000XXXXXXx\nxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_5",
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\n000000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nx00000000000000000000000000000000x\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_6",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x000000000000000000000000xxxx\nx222222222x00000000xxxxxxxx00000000xxxx\nx11xxxxxxxx00000000xxxxxxxx00000000xxxx\nx00x000000000000000xxxxxxxx00000000xxxx\nx00x000000000000000xxxxxxxx00000000xxxx\nx000000000000000000xxxxxxxx00000000xxxx\nx000000000000000000xxxxxxxx00000000xxxx\n0000000000000000000xxxxxxxx00000000xxxx\nx000000000000000000xxxxxxxx00000000xxxx\nx00x000000000000000xxxxxxxx00000000xxxx\nx00x000000000000000xxxxxxxx00000000xxxx\nx00xxxxxxxxxxxxxxxxxxxxxxxx00000000xxxx\nx00xxxxxxxxxxxxxxxxxxxxxxxx00000000xxxx\nx00x0000000000000000000000000000000xxxx\nx00x0000000000000000000000000000000xxxx\nx0000000000000000000000000000000000xxxx\nx0000000000000000000000000000000000xxxx\nx0000000000000000000000000000000000xxxx\nx0000000000000000000000000000000000xxxx\nx00x0000000000000000000000000000000xxxx\nx00x0000000000000000000000000000000xxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_7",
+      "door": {
+        "x": 0,
+        "y": 17,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxx\nx222222xx00000000xxxxxxxx\nx222222xx00000000xxxxxxxx\nx2222221000000000xxxxxxxx\nx2222221000000000xxxxxxxx\nx222222xx00000000xxxxxxxx\nx222222xx00000000xxxxxxxx\nx222222xxxxxxxxxxxxxxxxxx\nx222222xkkkkkkxxiiiiiiiix\nx222222xkkkkkkxxiiiiiiiix\nx222222xkkkkkkjiiiiiiiiix\nx222222xkkkkkkjiiiiiiiiix\nx222222xkkkkkkxxiiiiiiiix\nxxx11xxxkkkkkkxxiiiiiiiix\nxxx00xxxkkkkkkxxxxxxxxxxx\nx000000xkkkkkkxxxxxxxxxxx\nx000000xkkkkkkxxxxxxxxxxx\n0000000xkkkkkkxxxxxxxxxxx\nx000000xkkkkkkxxxxxxxxxxx\nx000000xkkkkkkxxxxxxxxxxx\nx000000xxxjjxxxxxxxxxxxxx\nx000000xxxiixxxxxxxxxxxxx\nx000000xiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx\nxxxxxxxxiiiiiixxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_8",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx5555555555555555555555555xxxxxxxxx\nx5555555555555555555555555xxxxxxxxx\nx5555555555555555555555555xxxxxxxxx\nx5555555555555555555555555xxxxxxxxx\nx5555555555555555555555555xxxxxxxxx\nx5555555555555555555555555xxxxxxxxx\nx5555555555xxxxxxxxxxxxxxxxxxxxxxxx\nx55555555554321000000000000000000xx\nx55555555554321000000000000000000xx\nx5555555555xxxxx00000000000000000xx\nx555555x44x0000000000000000000000xx\nx555555x33x0000000000000000000000xx\nx555555x22x0000000000000000000000xx\nx555555x11x0000000000000000000000xx\n5555555x00x0000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nx555555x0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxx0000000000000000000000000xx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_9",
+      "door": {
+        "x": 0,
+        "y": 17,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxx\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\n00000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nx0000000000000000000000x\nxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_a",
+      "door": {
+        "x": 3,
+        "y": 5,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxx000000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxx00000000\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_b",
+      "door": {
+        "x": 0,
+        "y": 5,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxx0000000\nxxxxx0000000\nxxxxx0000000\nxxxxx0000000\n000000000000\nx00000000000\nx00000000000\nx00000000000\nx00000000000\nx00000000000\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_b2g",
+      "door": {
+        "x": 0,
+        "y": 0,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxx\nx00000x000000x\nx000000000000x\nx00000x000000x\nx00000x000000x\nx00000x000000x\nx00000x000000x\nxxx0xxx000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx000000000000x\nx00000xx00000x\nxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_basa",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxx\nx22222222222222222222x\nx22222222222222222222x\nx22222222222222222222x\nx22222222222222222222x\nx22222222222222222222x\nx22222222222222222222x\nx22222222222222222222x\nx000x11xxxxxxxx11x000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nx00000000000000000000x\nxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_c",
+      "door": {
+        "x": 4,
+        "y": 7,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxx000000x\nxxxxx000000x\nxxxx0000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_d",
+      "door": {
+        "x": 4,
+        "y": 7,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxx0000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxx000000x\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_e",
+      "door": {
+        "x": 1,
+        "y": 5,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxx0000000000\nxx0000000000\nx00000000000\nxx0000000000\nxx0000000000\nxx0000000000\nxx0000000000\nxx0000000000\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_f",
+      "door": {
+        "x": 2,
+        "y": 5,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxxxx0000x\nxxxxxxx0000x\nxxx00000000x\nxxx00000000x\nxx000000000x\nxxx00000000x\nx0000000000x\nx0000000000x\nx0000000000x\nx0000000000x\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_g",
+      "door": {
+        "x": 1,
+        "y": 7,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxx00000\nxxxxxxx00000\nxxxxxxx00000\nxx1111000000\nxx1111000000\nx11111000000\nxx1111000000\nxx1111000000\nxxxxxxx00000\nxxxxxxx00000\nxxxxxxx00000\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_h",
+      "door": {
+        "x": 4,
+        "y": 4,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxx111111x\nxxxxx111111x\nxxxx1111111x\nxxxxx111111x\nxxxxx111111x\nxxxxx000000x\nxxxxx000000x\nxxx00000000x\nxxx00000000x\nxxx00000000x\nxxx00000000x\nxxxxxxxxxxxx\nxxxxxxxxxxxx\nxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_i",
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxx\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\n00000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nx0000000000000000\nxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_j",
+      "door": {
+        "x": 0,
+        "y": 10,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxx0000000000\nxxxxxxxxxxx0000000000\nxxxxxxxxxxx0000000000\nxxxxxxxxxxx0000000000\nxxxxxxxxxxx0000000000\nxxxxxxxxxxx0000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\n000000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx0000000000xxxxxxxxxx\nx0000000000xxxxxxxxxx\nx0000000000xxxxxxxxxx\nx0000000000xxxxxxxxxx\nx0000000000xxxxxxxxxx\nx0000000000xxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_k",
+      "door": {
+        "x": 0,
+        "y": 13,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxx00000000\nxxxxxxxxxxxxxxxxx00000000\nxxxxxxxxxxxxxxxxx00000000\nxxxxxxxxxxxxxxxxx00000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nx000000000000000000000000\nx000000000000000000000000\nx000000000000000000000000\nx000000000000000000000000\n0000000000000000000000000\nx000000000000000000000000\nx000000000000000000000000\nx000000000000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_l",
+      "door": {
+        "x": 0,
+        "y": 16,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxx\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\n000000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nx00000000xxxx00000000\nxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_m",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nx0000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\n00000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\nx0000000000000000000000000000\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxx00000000xxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_n",
+      "door": {
+        "x": 0,
+        "y": 16,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxx\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx000000xxxxxxxx000000\nx000000x000000x000000\nx000000x000000x000000\nx000000x000000x000000\nx000000x000000x000000\nx000000x000000x000000\nx000000x000000x000000\nx000000xxxxxxxx000000\nx00000000000000000000\n000000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nx00000000000000000000\nxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_o",
+      "door": {
+        "x": 0,
+        "y": 18,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx11111111xxxx\nxxxxxxxxxxxxx00000000xxxx\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nx111111100000000000000000\nx111111100000000000000000\nx111111100000000000000000\n1111111100000000000000000\nx111111100000000000000000\nx111111100000000000000000\nx111111100000000000000000\nx111111100000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxx0000000000000000\nxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_opening",
+      "door": {
+        "x": 0,
+        "y": 23,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxx\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx2222xx111111111111\nx2222xx000000000000\nx2222xx000000000000\nx2222xx000000000000\nx2222xx000000000000\nx2222xx000000000000\n22222xx000000000000\nx2222xx000000000000\nxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_oscar",
+      "door": {
+        "x": 0,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx11111111xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxx11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111x11111111x00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111x11111111x00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111x11111111x00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111111111111100000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111111111111100000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111x11111111x00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111x11111111x00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx1111111x11111111x00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxx11xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx00000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_p",
+      "door": {
+        "x": 0,
+        "y": 23,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxx\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx222222222222\nxxxxxxx22222222xxxx\nxxxxxxx11111111xxxx\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx222221111111111111\nx2222xx11111111xxxx\nx2222xx00000000xxxx\nx2222xx000000000000\nx2222xx000000000000\nx2222xx000000000000\nx2222xx000000000000\n22222xx000000000000\nx2222xx000000000000\nxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_q",
+      "door": {
+        "x": 10,
+        "y": 4,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxx22222222\nxxxxxxxxxxx22222222\nxxxxxxxxxxx22222222\nxxxxxxxxxx222222222\nxxxxxxxxxxx22222222\nxxxxxxxxxxx22222222\nx222222222222222222\nx222222222222222222\nx222222222222222222\nx222222222222222222\nx222222222222222222\nx222222222222222222\nx2222xxxxxxxxxxxxxx\nx2222xxxxxxxxxxxxxx\nx2222211111xx000000\nx222221111110000000\nx222221111110000000\nx2222211111xx000000\nxx22xxx1111xxxxxxxx\nxx11xxx1111xxxxxxxx\nx1111xx1111xx000000\nx1111xx111110000000\nx1111xx111110000000\nx1111xx1111xx000000\nxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_r",
+      "door": {
+        "x": 10,
+        "y": 4,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxx33333333333333\nxxxxxxxxxxx33333333333333\nxxxxxxxxxxx33333333333333\nxxxxxxxxxx333333333333333\nxxxxxxxxxxx33333333333333\nxxxxxxxxxxx33333333333333\nxxxxxxx333333333333333333\nxxxxxxx333333333333333333\nxxxxxxx333333333333333333\nxxxxxxx333333333333333333\nxxxxxxx333333333333333333\nxxxxxxx333333333333333333\nx4444433333xxxxxxxxxxxxxx\nx4444433333xxxxxxxxxxxxxx\nx44444333333222xx000000xx\nx44444333333222xx000000xx\nxxx44xxxxxxxx22xx000000xx\nxxx33xxxxxxxx11xx000000xx\nxxx33322222211110000000xx\nxxx33322222211110000000xx\nxxxxxxxxxxxxxxxxx000000xx\nxxxxxxxxxxxxxxxxx000000xx\nxxxxxxxxxxxxxxxxx000000xx\nxxxxxxxxxxxxxxxxx000000xx\nxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_room_15",
+      "door": {
+        "x": 3,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxx\nx11111xXXXXXXXXXXXXXXXXx\nx11111xxxxxxxxxxxxxxxxxx\nx11111xYYYYYYYYYYYYYYYYx\nx11111xYYYYYYYYYYYYYYYYx\nx11111xxxxxxxxxxxxxxxxxx\nx11111xUUUUUUUUUUUUUUUUx\nx11111xUUUUUUUUUUUUUUUUx\nx11111xxxxxxxxxxxxxxxxxx\nx11111xVVVVVVVVVVVVVVVVx\nx11111xxxxxxxxxxxxxxxxxx\nx11111xWWWWWWWWWWWWWWWWx\nx11111xxxxxxxxxxxxxxxxxx\nx1111100000000000000008x\nx1111100000000000000009x\nx111110000000000000000ax\nx111110000000000000000bx\n1111110000000000000000cx\nx111110000000000000000dx\nx111110000000000000000ex\nx111110000000000000000fx\nx111110000000000000000gx\nx111110000000000000000hx\nx111110000000000000000ix\nx111110000000000000000jx\nx111110000000000000000kx\nx111110000000000000000lx\nx111110000000000000000mx\nx111110000000000000000nx\nx111110xxxxxxxxxxxxxxxxx\nx111110xzzzzzzzzzzzzzzzx\nx111110xzzzzzzzzzzzzzzzx\nx111110xzzzzzzzzzzzzzzzx\nx111110xzzzzzzzzzzzzzzzx\nx111110xzzzzzzzzzzzzzzzx\nxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_s",
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxx\nx00000\nx00000\n000000\nx00000\nx00000\nx00000\nx00000",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_t",
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx222222222222222222222222222x\nx222222222222222222222222222x\n2222222222222222222222222222x\nx222222222222222222222222222x\nx2222xxxxxx222222xxxxxxx2222x\nx2222xxxxxx111111xxxxxxx2222x\nx2222xx111111111111111xx2222x\nx2222xx111111111111111xx2222x\nx2222xx11xxx1111xxxx11xx2222x\nx2222xx11xxx0000xxxx11xx2222x\nx22222111x00000000xx11xx2222x\nx22222111x00000000xx11xx2222x\nx22222111x00000000xx11xx2222x\nx22222111x00000000xx11xx2222x\nx22222111x00000000xx11xx2222x\nx22222111x00000000xx11xx2222x\nx2222xx11xxxxxxxxxxx11xx2222x\nx2222xx11xxxxxxxxxxx11xx2222x\nx2222xx111111111111111xx2222x\nx2222xx111111111111111xx2222x\nx2222xxxxxxxxxxxxxxxxxxx2222x\nx2222xxxxxxxxxxxxxxxxxxx2222x\nx222222222222222222222222222x\nx222222222222222222222222222x\nx222222222222222222222222222x\nx222222222222222222222222222x\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_u",
+      "door": {
+        "x": 0,
+        "y": 17,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxx\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\n11111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nx1111100000000000000000x\nxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_v",
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxx\nx222221111111111111x\nx222221111111111111x\n2222221111111111111x\nx222221111111111111x\nx222221111111111111x\nx222221111111111111x\nxxxxxxxx1111xxxxxxxx\nxxxxxxxx0000xxxxxxxx\nx000000x0000x000000x\nx000000x0000x000000x\nx00000000000x000000x\nx00000000000x000000x\nx000000000000000000x\nx000000000000000000x\nxxxxxxxx00000000000x\nx000000x00000000000x\nx000000x0000xxxxxxxx\nx00000000000x000000x\nx00000000000x000000x\nx00000000000x000000x\nx00000000000x000000x\nxxxxxxxx0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_w",
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxx\nx2222xx1111111111xx11111111\nx2222xx1111111111xx11111111\n222222111111111111111111111\nx22222111111111111111111111\nx22222111111111111111111111\nx22222111111111111111111111\nx2222xx1111111111xx11111111\nx2222xx1111111111xx11111111\nx2222xx1111111111xxxx1111xx\nx2222xx1111111111xxxx0000xx\nxxxxxxx1111111111xx00000000\nxxxxxxx1111111111xx00000000\nx22222111111111111000000000\nx22222111111111111000000000\nx22222111111111111000000000\nx22222111111111111000000000\nx2222xx1111111111xx00000000\nx2222xx1111111111xx00000000\nx2222xxxx1111xxxxxxxxxxxxxx\nx2222xxxx0000xxxxxxxxxxxxxx\nx2222x0000000000xxxxxxxxxxx\nx2222x0000000000xxxxxxxxxxx\nx2222x0000000000xxxxxxxxxxx\nx2222x0000000000xxxxxxxxxxx\nx2222x0000000000xxxxxxxxxxx\nx2222x0000000000xxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_x",
+      "door": {
+        "x": 0,
+        "y": 12,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxx\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nxxx00xxx0000xxx00xxx\nx000000x0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\n0000000x0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\nx000000x0000x000000x\nx000000xxxxxx000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nx000000000000000000x\nxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_y",
+      "door": {
+        "x": 0,
+        "y": 3,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxx\nx00000000xx0000000000xx0000x\nx00000000xx0000000000xx0000x\n000000000xx0000000000xx0000x\nx00000000xx0000000000xx0000x\nx00000000xx0000xx0000xx0000x\nx00000000xx0000xx0000xx0000x\nx00000000xx0000xx0000000000x\nx00000000xx0000xx0000000000x\nxxxxx0000xx0000xx0000000000x\nxxxxx0000xx0000xx0000000000x\nxxxxx0000xx0000xxxxxxxxxxxxx\nxxxxx0000xx0000xxxxxxxxxxxxx\nx00000000xx0000000000000000x\nx00000000xx0000000000000000x\nx00000000xx0000000000000000x\nx00000000xx0000000000000000x\nx0000xxxxxxxxxxxxxxxxxx0000x\nx0000xxxxxxxxxxxxxxxxxx0000x\nx00000000000000000000000000x\nx00000000000000000000000000x\nx00000000000000000000000000x\nx00000000000000000000000000x\nxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "model_z",
+      "door": {
+        "x": 0,
+        "y": 9,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxx00000000000000000000\nxxxxxxxxxxx00000000000000000000\nxxxxxxxxxxx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\n000000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nx00000000xx00000000000000000000\nxxxxxxxxxxx00000000000000000000\nxxxxxxxxxxx00000000000000000000\nxxxxxxxxxxx00000000000000000000\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "netcafe",
+      "door": {
+        "x": 22,
+        "y": 12,
+        "direction": 2
+      },
+      "heightmap": "xxxxx1111xxxxxxxxxxx1xxxx\nxxxxx1111111111111111xxxx\nxxxxx1111111111111111xxxx\nxxxxx1111111111111111xxxx\nxxxxxxxx0000000000000xxxx\n111111100000000000000xxxx\n111111100000000000000xxxx\n111111100000000000000xxxx\nxxxx11100000000000000xxxx\nx1xx11100000000000000xxxx\nx1xx11100000000000000xxxx\nx1xx111000000000000000000\nx1xx111000000000000000000\nxxxx111000000000000000000\nxxxx11100000000000000xxxx\nxxxx1110000000xx11111xxxx\nxxxxx111110000x111111xxxx\nxxxxxx111100001111111xxxx\nxxxxxx111100001111111xxxx\nxxxxxx111100001111111xxxx\nxxxxxx111100001111111xxxx\nxxxxxx111100001111111xxxx\nxxxxxx111100001111111xxxx\nxxxxx1111100001111111xxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "newbie_lobby",
+      "door": {
+        "x": 2,
+        "y": 11,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxx000000\nxxxxx0xxxxxxxxxx000000\nxxxxx00000000xxx000000\nxxxxx000000000xx000000\n0000000000000000000000\n0000000000000000000000\n0000000000000000000000\n0000000000000000000000\n0000000000000000000000\nxxxxx000000000000000xx\nxxxxx000000000000000xx\nx0000000000000000000xx\nx0000000000000000xxxxx\nxxxxxx00000000000xxxxx\nxxxxxxx0000000000xxxxx\nxxxxxxxx000000000xxxxx\nxxxxxxxx000000000xxxxx\nxxxxxxxx000000000xxxxx\nxxxxxxxx000000000xxxxx\nxxxxxxxx000000000xxxxx\nxxxxxxxx000000000xxxxx\nxxxxxx00000000000xxxxx\nxxxxxx00000000000xxxxx\nxxxxxx00000000000xxxxx\nxxxxxx00000000000xxxxx\nxxxxxx00000000000xxxxx\nxxxxx000000000000xxxxx\nxxxxx000000000000xxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "old_skool",
+      "door": {
+        "x": 2,
+        "y": 1,
+        "direction": 2
+      },
+      "heightmap": "xx0xxxxxxxxxxxxxx\n0000000xxx00000xx\n0000000x0000000xx\n0000000xxxxxxxxxx\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n00000000000000000\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x\n0000000000000000x",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "orient",
+      "door": {
+        "x": 35,
+        "y": 22,
+        "direction": 6
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxx00000000xxxxxxxxxxxx\nxxxxxxxxxxxxxx1000000000xxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxx1xx000x000xx111x111xxx\nxxxxxxxxxxxxxx1xx000x000xxxxxx1111xx\nxxxxxxxxxxxxxx1xx000x000x111111111xx\nxxxxxxxxxxxxxx1xx000x000x111111111xx\nxxx111111111111xx000x000x111111111xx\nxxx1xxxxxxxxxxxxx000x000x111111111xx\nxxx1x1111111111000000000x111111111xx\nxxx1x1111111111000000000xx1111111xxx\nxxx1x11xxxxxx11000000000xx1111111100\nxxx111xxxxxxx11000000000011111111100\nxxx111xxxxxxx11000000000011111111100\nxxxxx1xxxxxxx11000000000011111111100\nxxxxx11xxxxxx11000000000xx1111111100\nxxxxx1111111111000000000xx1111111xxx\nxxxxx1111111111xx000x000x111111111xx\nxxxxxxxxxxxxxxxxx000x000x111111111xx\nxxxxxxxxxxxxxxxxx000x000x111111111xx\nxxxxxxxxxxxxxxxxx000x000x111111111xx\nxxxxxxxxxxxxxxxxx000x000x111111111xx\nxxxxxxxxxxxxxxxxx000x00xx11xxxx111xx\nxxxxxxxxxxxxxxxxxxxxxxxxxx11111111xx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "park_a",
+      "door": {
+        "x": 2,
+        "y": 15,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0xxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx00xxxxxxxxxxxx\nxxxxxxxxxxxxx0x00xxxxxxxxxxx0x000xxxxxxxxxxx\nxxxxxxxxxxxx0000000000000000000000xxxxxxxxxx\nxxxxxxxxxxx000000000000000000000000xxxxxxxxx\nxxxxxxxxxxx0000000000000000000000000xxxxxxxx\nxxxxxxxxxxx00000000000000000000000000xxxxxxx\nxxxxxxxx000000000000000000000000000000xxxxxx\nxxxxxxx00000000000000000000000000000000xxxxx\nxxxxxxx000000000000000000000000000000000xxxx\nxxxxxxx0000000000000000000000000000000000xxx\nxxxxxxxxx000000000000000000000000000000000xx\n00000000000000000000xx00000000000000000000xx\n0000000000000000000xxxx00000000000xxxxxxx0xx\n0000000000000000000xxxx00000000000x00000xxxx\nxxxxx00x0000000000xxxxx0xxxxxx0000x0000000xx\nxxxxx0000000000000xxxxx0xx000x0000x000000xxx\nxxxxx0000000000000xxxxx0x000000000x00000xxxx\nxxxxx000000x0000000xxxx0x000000000xxx00xxxxx\nxxxxxxxx000x0000000xxx00xxx000000x0000xxxxxx\nxxxxxxxx000x000000xxxx0x0000000000000xxxxxxx\nxxxxxxxx000x000000011100000000000000xxxxxxxx\nxxxxxxxx000x00000001110000000000000xxxxxxxxx\nxxxxxxxxx00x0000000111x00000000x00xxxxxxxxxx\nxxxxxxxxxx0x0000000xxx0000000xxxxxxxxxxxxxxx\nxxxxxxxxxxxx000000xxxx0000000xxxxxxxxxxxxxxx\nxxxxxxxxxxxx000000xxx00xxxxx00xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxx0xxx0xx000x00xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxx0xxx0x000000xxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxx0xxxxx00000xxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxx0xxxxx00xxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxx0xxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "park_b",
+      "door": {
+        "x": 11,
+        "y": 2,
+        "direction": 6
+      },
+      "heightmap": "0000x0000000\n0000xx000000\n000000000000\n00000000000x\n000000000000\n00x0000x0000",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "picnic",
+      "door": {
+        "x": 16,
+        "y": 5,
+        "direction": 4
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxx22222xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n22xxxxxxxxxxxxx22xxxxxxxxxxxxxxxxxxxxx\n2222222222222222222x222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222xxx222222222222222222222222\n2222222222xx33x22222222222222222222222\n222222222xx3333x2222222222222222222222\n222222222x333333x222222222222222222222\n222222222x333333x222222222222222222222\n2222222222x3332x2222222222222222222222\n22222222222x33x22222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222x22222xxxx22222222222222222222\n22222222222222xxxx22222222222222222222\n22222222222222xxx222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222\n22222222222222222222222222222222222222",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "pizza",
+      "door": {
+        "x": 5,
+        "y": 27,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxx0000000\nx11111x1xx000000\n11xxxxx111x00000\n11x1111111xx0000\n11x1111111100000\nxxx1111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n1111111111100000\n11111111111xxxxx\n1111111111xxxxxx\n1111111111111111\n1111111111111111\n1111111111111111\n1111111111111111\n1111111111111111\n1111111111111111\n11xx11xx11111111\nxxxx11xxxxxxxxxx\nxxxx11xxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "pub_a",
+      "door": {
+        "x": 15,
+        "y": 25,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxx2222222211111xxx\nxxxxxxxxx2222222211111xxx\nxxxxxxxxx2222222211111xxx\nxxxxxxxxx2222222211111xxx\nxxxxxxxxx2222222222111xxx\nxxxxxxxxx2222222222111xxx\nxxxxxxxxx2222222222000xxx\nxxxxxxxxx2222222222000xxx\nxxxxxxxxx2222222222000xxx\nxxxxxxxxx2222222222000xxx\nx333333332222222222000xxx\nx333333332222222222000xxx\nx333333332222222222000xxx\nx333333332222222222000xxx\nx333333332222222222000xxx\nx333332222222222222000xxx\nx333332222222222222000xxx\nx333332222222222222000xxx\nx333332222222222222000xxx\nx333333332222222222000xxx\nxxxxx31111112222222000xxx\nxxxxx31111111000000000xxx\nxxxxx31111111000000000xxx\nxxxxx31111111000000000xxx\nxxxxx31111111000000000xxx\nxxxxxxxxxxxxxxx00xxxxxxxx\nxxxxxxxxxxxxxxx00xxxxxxxx\nxxxxxxxxxxxxxxx00xxxxxxxx\nxxxxxxxxxxxxxxx00xxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "rooftop",
+      "door": {
+        "x": 17,
+        "y": 12,
+        "direction": 2
+      },
+      "heightmap": "44xxxxxxxxxxxxxxxxxx\n444xxxxxxxxxxx444444\n4444xxxxxxxxxx444444\n44444xxxx4xxxx444444\n444444xxx44xxx444444\n44444444444444444444\n44444444444444444444\n44444444444444444444\n44444444xx44xx44xx44\n44444444xx44xx44xx44\n44444444444444444444\n44444444444444444444\n44444444444444444444\nx444444x444444xx4444\nx444444x444444xx333x\nx444444x444444xx222x\nx444444x444444xx11xx\nx444444x444444xxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "rooftop_2",
+      "door": {
+        "x": 4,
+        "y": 9,
+        "direction": 2
+      },
+      "heightmap": "x0000x000\nxxxxxx000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\n000000000\nxxx000xxx\nxxx000xxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "star_lounge",
+      "door": {
+        "x": 37,
+        "y": 36,
+        "direction": 2
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx2222x4444442222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222x444x32222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222xx4xx22222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx222222222222222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx222222222222222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx222222222222222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx222222222222222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx222222222222222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx222222222222222xxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222222222222211111xxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222222222222211111xxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222222222222211111xxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222222222222211111xxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222222222222222111xxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxx22222222222222222111xxxxxxxxx\nxxxxxxxxxxxxxxxx3333x22222222222222xxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxx3333x22222222222222xxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxx3333x22222222221111xxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxx3333xx2x22222220000xxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxx333333332222222000000xxxxxxxxxxxxx\nxxxxxxxxxxxxxxxx333333332222222x0000000xxxxxxxxxxx\nxxxxxxxxxxxxxxxxx33333332222222x0000000xxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxx222222000000xxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "tearoom",
+      "door": {
+        "x": 21,
+        "y": 19,
+        "direction": 6
+      },
+      "heightmap": "xxxxxxxxxxxxxxxxxxxxxx\nxxxxxxxx3333x33333333x\n333333xx3333x33333333x\n3333333x3333x33333333x\n3333333x3333x33333333x\n3333333xxxxxx33333333x\n333333333333333333333x\n333333333333333333333x\n333333333333333333333x\n333333333333333333333x\n33333333222x333333333x\n33333333222x333333333x\n33333333222x333333333x\n33333333222x333333333x\n33333333111x333333333x\n33333333111x333333333x\n33333333111x333333333x\nxxxxxxxx111xxxxxxxxxxx\n11111111111111111111xx\n1111111111111111111111\n1111111111111111111111\n11111111111111111111xx",
+      "sourceTable": "room_models"
+    },
+    {
+      "name": "theater",
+      "door": {
+        "x": 20,
+        "y": 27,
+        "direction": 0
+      },
+      "heightmap": "XXXXXXXXXXXXXXXXXXXXXXX\nXXXXXXXXXXXXXXXXXXXXXXX\nXXXXXXXXXXXXXXXXXXXXXXX\nXXXXXXXXXXXXXXXXXXXXXXX\nXXXXXXXXXXXXXXXXXXXXXXX\nXXXXXXXXXXXXXXXXXXXXXXX\nXXXXXXX111111111XXXXXXX\nXXXXXXX11111111100000XX\nXXXX00X11111111100000XX\nXXXX00x11111111100000XX\n4XXX00X11111111100000XX\n4440000XXXXXXXXX00000XX\n444000000000000000000XX\n4XX000000000000000000XX\n4XX0000000000000000000X\n44400000000000000000000\n44400000000000000000000\n44X00000000000000000000\n44X11111111111111111000\n44X11111111111111111000\n33X11111111111111111000\n22X11111111111111111000\n22X11111111111111111000\n22X11111111111111111000\n22X11111111111111111000\n22X11111111111111111000\n22211111111111111111000\n22211111111111111111000\nXXXXXXXXXXXXXXXXXXXX00X\nXXXXXXXXXXXXXXXXXXXX00X",
+      "sourceTable": "room_models"
+    }
+  ]
+}

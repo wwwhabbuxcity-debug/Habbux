@@ -1,6 +1,6 @@
 // Same Chromium, paced frames, explicit warm-up. Software GPU results only.
 import {createRequire} from 'node:module';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, writeFile, readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
 const {chromium}=createRequire(import.meta.url)(process.env.HABBUX_PLAYWRIGHT_PATH??'/usr/lib/node_modules/playwright');
@@ -8,6 +8,8 @@ const output=resolve(process.env.HABBUX_VISUAL_OUTPUT??'tmp/gallaxys-master-inte
 await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true,executablePath:process.env.HABBUX_CHROMIUM_PATH??'/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',args:['--no-sandbox','--disable-dev-shm-usage','--enable-unsafe-swiftshader','--renderer-process-limit=1']});
 const results=[];
+const nativeRequested=process.env.HABBUX_BENCH_SCENARIOS?.split(',').includes('native-2');
+const nativeFixture=nativeRequested?JSON.parse(await readFile('docs/gallaxys-master-integration-v3/models-original-fixtures.json','utf8')).find(m=>m.modelId==='hbx_alcove_v3'):null;
 try{
   const bases={baseline:process.env.HABBUX_BASELINE_URL,candidate:process.env.HABBUX_VISUAL_BASE_URL??'http://127.0.0.1:3124'};
   const order=(process.env.HABBUX_BENCH_ORDER??(bases.baseline?'baseline,candidate':'candidate')).split(',');
@@ -31,9 +33,12 @@ try{
     await page.goto(base+'/client/?avatar-lab=1',{waitUntil:'networkidle'});
     await page.waitForFunction(()=>window.habbuxWorldLab);
     await page.evaluate(()=>window.habbuxWorldLab.clock(true));
-    for(const [scenario,count] of [['empty',0],['floor',0],['stand',2],['hover',2],['long',2],['long',10]]){
+    for(const [scenario,count] of [['empty',0],['floor',0],['stand',2],['hover',2],['long',2],['long',10],...(nativeRequested?[['native',2]]:[])]){
       if(process.env.HABBUX_BENCH_SCENARIOS&&!process.env.HABBUX_BENCH_SCENARIOS.split(',').includes(`${scenario}-${count}`))continue;
-      await page.evaluate(({scenario,count})=>window.habbuxWorldLab.scenario(scenario==='hover'?'stand':scenario,count),{scenario,count});
+      if(scenario==='native'){
+        await page.evaluate(m=>window.habbuxWorldLab.fixture({...m,capacity:10,walkability:m.walkability.map(Boolean),spawn:{x:m.spawnX,y:m.spawnY},door:{x:m.doorX,y:m.doorY,direction:m.doorDirection},occupants:Array.from({length:2},(_,i)=>({userId:String(i+1),username:'Native fixture',x:m.spawnX,y:m.spawnY,z:m.elevations[m.spawnY*m.width+m.spawnX]}))}),nativeFixture);
+        if(release==='candidate')await page.waitForFunction(()=>window.habbuxWorldLab.state().nativeTextures.length===2);
+      }else await page.evaluate(({scenario,count})=>window.habbuxWorldLab.scenario(scenario==='hover'?'stand':scenario,count),{scenario,count});
       await page.waitForFunction(()=>window.habbuxWorldLab.state().avatars.every(a=>a.ready));
       if(scenario==='floor'){
         await page.getByRole('button',{name:'Alternar paredes'}).click();

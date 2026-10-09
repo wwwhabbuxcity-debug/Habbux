@@ -1,0 +1,2 @@
+The 58 GPL room catalogue entries derive from licensed room definitions: GPL-3.0. Habbux virtual IDs and display labels added. Corresponding source, COPYING, NOTICE and converters: /client/assets/materials/v5/gpl-model-source/
+The original heart room and custom_9/custom_10/custom_13 entries are Habbux/Gallaxys owner-declared resources. Migration is authorized by the owner; no GPL/MIT or public redistribution license is assigned to those own models.

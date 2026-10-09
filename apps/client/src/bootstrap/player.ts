@@ -1,5 +1,6 @@
 import { CoreConnection, type CoreConnectionSnapshot } from '../communication/core';
 import { RoomRenderer } from '../renderer/room-renderer';
+import { parseRoomCatalogueV5 } from './room-catalogue-v5';
 import '../styles/player.css';
 
 const MODELS = [
@@ -19,6 +20,11 @@ document.body.innerHTML = `
       <p class="player-kicker">Bem-vindo ao Habbux</p><h1>Escolha um lugar para entrar.</h1>
       <p id="player-welcome" class="player-welcome"></p>
       <div id="room-cards" class="room-cards"></div>
+      <section class="room-explore" aria-labelledby="room-explore-heading">
+        <h2 id="room-explore-heading">Explore outros lugares</h2>
+        <form id="room-explore-form"><label for="room-explore-select">Escolha um quarto</label><select id="room-explore-select" disabled><option value="">Carregando lugares…</option></select><button class="player-button" id="room-explore-enter" type="submit" disabled>Entrar</button></form>
+        <p id="room-explore-status" class="player-welcome" role="status"></p>
+      </section>
     </section>
     <section id="player-room" class="player-room" hidden>
       <div id="room-viewport" class="player-viewport"><p id="room-renderer-status" class="room-renderer-status" role="status">Carregando cenário…</p></div>
@@ -65,6 +71,10 @@ const chatLog = document.querySelector<HTMLOListElement>('#room-chat-log')!;
 const chatForm = document.querySelector<HTMLFormElement>('#room-chat-form')!;
 const chatText = document.querySelector<HTMLInputElement>('#room-chat-text')!;
 const expired = document.querySelector<HTMLElement>('#player-expired')!;
+const exploreForm = document.querySelector<HTMLFormElement>('#room-explore-form')!;
+const exploreSelect = document.querySelector<HTMLSelectElement>('#room-explore-select')!;
+const exploreEnter = document.querySelector<HTMLButtonElement>('#room-explore-enter')!;
+const exploreStatus = document.querySelector<HTMLElement>('#room-explore-status')!;
 const DEV_LOGGING = import.meta.env?.DEV === true;
 let lastStage = '';
 let ssoExpired = false;
@@ -95,6 +105,21 @@ for (const [id, name, description] of MODELS) {
 }
 
 const connection = new CoreConnection(__HABBUX_WS_URL__);
+// Bounded native data, loaded once outside room movement/rendering.
+void (async () => {
+  try {
+    const response = await fetch('/client/assets/rooms/v5/catalogue.json', {signal: AbortSignal.timeout(3_000)});
+    if (!response.ok) throw new Error('Catalogue unavailable');
+    const text = await response.text();
+    const options = parseRoomCatalogueV5(text).map(entry => new Option(entry.name, entry.roomId));
+    exploreSelect.replaceChildren(...options); exploreSelect.disabled = false; exploreEnter.disabled = false;
+  } catch { exploreStatus.textContent = 'Os outros lugares estão indisponíveis no momento.'; }
+})();
+exploreForm.addEventListener('submit', event => {
+  event.preventDefault(); if (exploreSelect.disabled || !exploreSelect.value) return;
+  try { exploreStatus.textContent = ''; connection.joinRoom(exploreSelect.value); }
+  catch (cause) { exploreStatus.textContent = cause instanceof Error ? cause.message : 'Não foi possível entrar no quarto.'; }
+});
 const ssoId = new URLSearchParams(window.location.search).get('sso');
 const ssoChannel = ssoId && /^[a-f0-9]{32}$/.test(ssoId) ? new BroadcastChannel(`habbux-sso-${ssoId}`) : null;
 let ssoActive = Boolean(ssoChannel);

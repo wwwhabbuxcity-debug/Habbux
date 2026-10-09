@@ -1,11 +1,14 @@
+import { validateNativeRoomTextureResources, validateNativeTexturePng, roomTextureMatrix, type NativeRoomTextureResource } from './room-texture-resources';
+import { nativeTexturesForModel } from './owned-room-textures-v5';
+import { countRenderResources, countSurfaceInstructions } from './renderer-diagnostics';
 // Adaptador oficial do PixiJS 8 para ambientes sem unsafe-eval no CSP.
 import 'pixi.js/unsafe-eval';
-import { Application, Container, Graphics, Rectangle, Sprite } from 'pixi.js';
+import { Application, Container, Graphics, Rectangle, Texture, Matrix } from 'pixi.js';
 import type { RoomState } from '../room/room-state';
 import { loadAvatarManifest, createAvatarAssetProvider, type AvatarAssetProvider } from './avatar-assets';
 import { AvatarView } from './avatar-view';
 import { DEFAULT_ISO_CONFIG, isoDepth, roomToScreen, tilePolygon, type IsoConfig } from './isometric';
-import { buildRoomSurfaces, DEFAULT_ROOM_STYLE, fitRoomConfig, shadeColor, resolveRoomSurfaceStyle, materialsForStyle, type RoomSurfaceStyle } from './room-surfaces';
+import { buildRoomSurfaces, DEFAULT_ROOM_STYLE, fitRoomConfig, shadeColor, resolveRoomSurfaceStyle, styleForMigratedRoom, materialsForStyle, type RoomSurfaceStyle } from './room-surfaces';
 import { resolveConvertedMaterialsForModel } from './gallaxys-material-presets';
 import { validateRoomMaterials, type RoomMaterialConfiguration } from './room-materials';
 import { reconcileEntityIds } from './renderer-model';
@@ -30,6 +33,13 @@ export class RoomRenderer {
   private readonly entityLayer = new Container();
   private readonly surfaceObjects: Graphics[] = [];
   private surfaceCount = 0;
+  private textureGeneration = 0;
+  private textureController: AbortController | null = null;
+  private textureSignature = '[]';
+  private pendingTextureSignature = '';
+  private pendingTexturePromise: Promise<void> | null = null;
+  private textureModelId: string | null = null;
+  private readonly nativeTextures = new Map<string, { resource: NativeRoomTextureResource; texture: Texture; bitmap: ImageBitmap }>();
   private surfaceBuilds = 0;
   private geometryBuildMs = 0;
   private viewportWidth = 0;
@@ -148,6 +158,9 @@ export class RoomRenderer {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.textureGeneration++;
+    this.textureController?.abort();
+    this.clearNativeTextures();
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
     this.app?.canvas.removeEventListener('pointerdown', this.onCanvasPointer);
@@ -162,6 +175,75 @@ export class RoomRenderer {
     this.app?.destroy(true, { children: true });
     this.app = null;
     this.host.classList.remove('room-viewport-ready');
+  }
+
+  async setSurfaceTextures(resources: readonly NativeRoomTextureResource[]): Promise<void> {
+    validateNativeRoomTextureResources(resources);
+    if (this.disposed) return;
+    const authorizedResources = structuredClone(resources);
+    const signature = JSON.stringify(authorizedResources);
+    if (signature === this.pendingTextureSignature && this.pendingTexturePromise) return this.pendingTexturePromise;
+    this.textureController?.abort();
+    const generation = ++this.textureGeneration;
+    if (signature === this.textureSignature) { this.pendingTextureSignature='';this.pendingTexturePromise=null;this.textureController=null;return; }
+    const controller = new AbortController();
+    this.textureController = controller;
+    this.pendingTextureSignature = signature;
+    const timeout = setTimeout(() => controller.abort(), 8_000);
+    const promise = this.loadSurfaceTextures(authorizedResources,generation,controller.signal,signature).catch(cause => {
+      if (!controller.signal.aborted || generation === this.textureGeneration) throw cause;
+    });
+    this.pendingTexturePromise = promise;
+    try { await promise; }
+    catch (cause) { if (!controller.signal.aborted || generation === this.textureGeneration) throw cause; }
+    finally {
+      clearTimeout(timeout);
+      if (generation === this.textureGeneration) { this.pendingTextureSignature='';this.pendingTexturePromise=null;this.textureController=null; }
+    }
+  }
+
+  private async loadSurfaceTextures(authorizedResources: readonly NativeRoomTextureResource[], generation: number, signal: AbortSignal, signature: string): Promise<void> {
+    const next: { resource: NativeRoomTextureResource; texture: Texture; bitmap: ImageBitmap }[] = [];
+    const reused = new Set<Texture>();
+    try {
+      for (const source of authorizedResources) {
+        const resource = structuredClone(source);
+        const existing = this.nativeTextures.get(resource.surface);
+        if (existing && existing.resource.url === resource.url && existing.resource.sha256 === resource.sha256) {
+          next.push({ ...existing, resource });
+          reused.add(existing.texture);
+          continue;
+        }
+        const response = await fetch(resource.url, { credentials: 'same-origin', signal });
+        if (!response.ok) throw new Error('Native texture unavailable');
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('Native texture body unavailable');
+        const chunks: Uint8Array[] = []; let length = 0;
+        try { while (true) { const chunk = await reader.read(); if (chunk.done) break; length += chunk.value.byteLength; if (length > 1024 * 1024) throw new Error('Native texture exceeds 1 MiB'); chunks.push(chunk.value); } }
+        finally { await reader.cancel(); }
+        const bytes = new Uint8Array(length); let offset = 0;
+        for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+        const digest = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b=>b.toString(16).padStart(2,'0')).join('');
+        if (digest !== resource.sha256) throw new Error('Native texture hash mismatch');
+        validateNativeTexturePng(bytes);
+        const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/png' }));
+        if (bitmap.width > 1024 || bitmap.height > 1024) { bitmap.close(); throw new Error('Native texture exceeds 1024px'); }
+        const texture = Texture.from(bitmap); texture.source.scaleMode = 'nearest'; texture.source.addressMode = 'repeat';
+        next.push({ resource, texture, bitmap });
+      }
+      if (this.disposed || generation !== this.textureGeneration) return;
+      signal.throwIfAborted();
+      this.clearNativeTextures(new Set(next.map(item=>item.texture)));
+      for (const item of next) this.nativeTextures.set(item.resource.surface, item);
+      this.textureSignature = signature;
+      next.length = 0;
+      if (this.currentRoom && this.app) this.resize(true);
+    } finally { for (const item of next) if (!reused.has(item.texture)) { item.texture.destroy(true); item.bitmap.close(); } }
+  }
+
+  private clearNativeTextures(keep: ReadonlySet<Texture> = new Set()): void {
+    for (const item of this.nativeTextures.values()) if (!keep.has(item.texture)) { item.texture.destroy(true); item.bitmap.close(); }
+    this.nativeTextures.clear();
   }
 
   setMaterials(materials: RoomMaterialConfiguration): void {
@@ -184,7 +266,7 @@ export class RoomRenderer {
   }
 
   diagnostics(): object {
-    return { surfaceInstructions: countSurfaceInstructions([this.floorLayer, ...this.surfaceObjects]), materials: materialsForStyle(this.style), geometryBuildMs: this.geometryBuildMs, ...countRenderResources(this.worldRoot), config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceCount, surfaceBuilds: this.surfaceBuilds, hover: this.hoveredTile,
+    return { nativeTextures: [...this.nativeTextures.values()].map(item=>structuredClone(item.resource)), surfaceInstructions: countSurfaceInstructions([this.floorLayer, ...this.surfaceObjects]), materials: materialsForStyle(this.style), geometryBuildMs: this.geometryBuildMs, ...countRenderResources(this.worldRoot), config: this.config, objects: countDisplayObjects(this.worldRoot), surfaces: this.surfaceCount, surfaceBuilds: this.surfaceBuilds, hover: this.hoveredTile,
       renderOrder: this.entityLayer.children.map(child => ({ label: child.label, depth: child.zIndex })),
       avatars: [...this.avatars.values()].map(avatar => avatar.diagnostics()) };
   }
@@ -204,8 +286,12 @@ export class RoomRenderer {
     }
     if (room.modelId !== this.materialModelId) {
       const materials = resolveConvertedMaterialsForModel(room.modelId, materialsForStyle(this.initialStyle));
-      this.style = materials ? resolveRoomSurfaceStyle({ ...this.initialStyle, materials }) : this.initialStyle;
+      this.style = styleForMigratedRoom(room.modelId, materials ? resolveRoomSurfaceStyle({ ...this.initialStyle, materials }) : this.initialStyle);
       this.materialModelId = room.modelId;
+    }
+    if (room.modelId !== this.textureModelId) {
+      this.textureModelId = room.modelId;
+      void this.setSurfaceTextures(nativeTexturesForModel(room.modelId)).catch(() => { this.status.textContent = 'Material decorativo indisponível.'; });
     }
     const signature = `${room.modelId}:${room.roomId}:${room.width}x${room.height}:${room.walkability.join('')}:${room.elevations.join(',')}`;
     if (signature !== this.floorSignature) {
@@ -256,11 +342,22 @@ export class RoomRenderer {
     this.floorLayer.clear();
     this.clearSurfaces();
     const buildStart = performance.now();
-    const materials = materialsForStyle(this.style);
-    const surfaces = buildRoomSurfaces(room, this.config, this.style);
+    const floorTexture = this.nativeTextures.get('floor');
+    const wallTexture = this.nativeTextures.get('wall');
+    const baseMaterials = materialsForStyle(this.style);
+    const floorMaterial={ ...baseMaterials.floor, mainColor: floorTexture?.resource.tint ?? baseMaterials.floor.mainColor };
+    if (floorTexture) delete floorMaterial.texture;
+    const materials = { ...baseMaterials,
+      floor: floorMaterial,
+      wall: { ...baseMaterials.wall, mainColor: wallTexture?.resource.tint ?? baseMaterials.wall.mainColor },
+    };
+    const style = { ...this.style, floorColor: materials.floor.mainColor, wallColor: materials.wall.mainColor,
+      ...(this.style.materials ? { materials } : {}) };
+    const surfaces = buildRoomSurfaces(room, this.config, style);
+    const shadowBoundaries=style.wallBoundary==='exterior'?new Set(surfaces.walls.map(w=>`${w.x},${w.y},${w.side}`)):null;
     this.surfaceBuilds++;
     this.surfaceCount = surfaces.walls.length + surfaces.floors.filter(f => f.elevation > 0).length;
-    const colorLine = this.style.materials ? materials.floor.secondaryColor : shadeColor(this.style.floorColor, 0.60);
+    const colorLine = style.materials ? materials.floor.secondaryColor : shadeColor(style.floorColor, 0.60);
     for (const floor of surfaces.floors) {
       const g = floor.elevation > 0 ? new Graphics() : this.floorLayer;
       if (g !== this.floorLayer) {
@@ -270,17 +367,17 @@ export class RoomRenderer {
         this.surfaceObjects.push(g);
       }
       for (const side of floor.sides) {
-        g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(this.style.materials ? { color: side.color, alpha: materials.floor.opacity } : side.color);
+        g.poly(side.polygon.flatMap(p => [p.x, p.y])).fill(style.materials ? { color: side.color, alpha: materials.floor.opacity } : side.color);
         if (materials.floor.finish === 'plain') continue;
         const [a,b] = side.polygon;
-        g.moveTo(a!.x,a!.y).lineTo(b!.x,b!.y).stroke({color:shadeColor(this.style.floorColor,1.12),width:this.config.scale,alpha: 0.4 * materials.floor.opacity});
+        g.moveTo(a!.x,a!.y).lineTo(b!.x,b!.y).stroke({color:shadeColor(style.floorColor,1.12),width:this.config.scale,alpha: 0.4 * materials.floor.opacity});
       }
       const top = floor.top.polygon;
-      g.poly(top.flatMap(p => [p.x, p.y])).fill(this.style.materials ? { color: floor.top.color, alpha: materials.floor.opacity } : floor.top.color);
+      g.poly(top.flatMap(p => [p.x, p.y])).fill(floorTexture ? { texture: floorTexture.texture, textureSpace: 'global', matrix: new Matrix(...roomTextureMatrix('floor','x',floor.elevation,floorTexture.resource.repeatScale,floorTexture.bitmap.width,floorTexture.bitmap.height,this.config,floorTexture.resource.verticalRepeatScale)), color: floor.top.color, alpha: materials.floor.opacity } : style.materials ? { color: floor.top.color, alpha: materials.floor.opacity } : floor.top.color);
       // World-aligned material: four-cell staggered boards, or large stone slabs.
       // No outline around each interaction tile. Geometry is built on resize only.
       const wood = materials.floor.texture?.kind === 'boards';
-      const pattern = !!materials.floor.texture;
+      const pattern = !floorTexture && !!materials.floor.texture;
       const repeat = materials.floor.repeatScale;
       const boundary = (coordinate: number, period: number): boolean => Math.floor(coordinate / period) !== Math.floor((coordinate - 1) / period);
       if (pattern && boundary(floor.y, (wood ? 1 : 2) * repeat)) g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[1]!.x, top[1]!.y)
@@ -289,7 +386,7 @@ export class RoomRenderer {
         g.moveTo(top[0]!.x, top[0]!.y).lineTo(top[3]!.x, top[3]!.y)
           .stroke({ color: colorLine, width: this.config.scale, alpha: 0.09 * materials.floor.opacity });
       }
-      if (wood && this.config.scale >= 0.5 && (floor.x + floor.y) % 4 === 0) {
+      if (!floorTexture && wood && this.config.scale >= 0.5 && (floor.x + floor.y) % 4 === 0) {
         for (const fraction of [0.28,0.72]) {
           const a = roomToScreen(floor.x-0.35,floor.y-0.5+fraction,floor.elevation,this.config);
           const b = roomToScreen(floor.x+0.35,floor.y-0.5+fraction,floor.elevation,this.config);
@@ -299,7 +396,8 @@ export class RoomRenderer {
       }
       // Contact shadows follow real wall boundaries, including recesses. All
       // strips stay inside this tile; hit geometry and floor elevation are shared.
-      if (this.style.walls) for (const side of ['x','y'] as const) {
+      if (style.walls) for (const side of ['x','y'] as const) {
+        if (shadowBoundaries && !shadowBoundaries.has(`${floor.x},${floor.y},${side}`)) continue;
         const nx = floor.x - (side === 'x' ? 1 : 0), ny = floor.y - (side === 'y' ? 1 : 0);
         if (nx >= 0 && ny >= 0 && room.elevations[ny * room.width + nx]! >= 0) continue;
         const a = top[0]!, b = top[side === 'x' ? 3 : 1]!;
@@ -319,7 +417,13 @@ export class RoomRenderer {
         g.zIndex = wall.depth;
       }
       for (const face of [wall.startEnd, wall.end, wall.front, wall.cap]) {
-        if (face) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(this.style.materials ? { color: face.color, alpha: materials.wall.opacity } : face.color);
+        if (!face) continue;
+        const textured = wallTexture && face === wall.front;
+        const overlay = textured && wallTexture.resource.overlayOpacity !== undefined;
+        if (!textured || overlay) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill(style.materials ? { color: face.color, alpha: materials.wall.opacity } : face.color);
+        if (textured) g.poly(face.polygon.flatMap(p => [p.x, p.y])).fill({ texture: wallTexture.texture, textureSpace: 'global',
+          matrix: new Matrix(...roomTextureMatrix('wall',wall.side,0,wallTexture.resource.repeatScale,wallTexture.bitmap.width,wallTexture.bitmap.height,{...this.config,origin:roomToScreen(wall.side==='x'?wall.x-0.5:0,wall.side==='y'?wall.y-0.5:0,Math.max(0,...room.elevations)+style.wallHeight,this.config)},wallTexture.resource.verticalRepeatScale === undefined ? undefined : wallTexture.resource.verticalRepeatScale * 16 / this.config.elevationHeight)),
+          color: overlay ? 0xffffff : face.color, alpha: (wallTexture.resource.overlayOpacity ?? 1) * materials.wall.opacity });
       }
       const [a, b] = wall.base;
       const [, , topB, topA] = wall.front.polygon;
@@ -329,19 +433,19 @@ export class RoomRenderer {
       g.poly([a!.x,a!.y,b!.x,b!.y,lowerB.x,lowerB.y,lowerA.x,lowerA.y])
         .fill({color:shadeColor(wall.front.color,0.65),alpha: 0.09 * materials.wall.opacity});
       if (materials.wall.finish === 'trimmed') {
-        const trimHeight = this.style.floorThickness * this.config.elevationHeight * this.config.scale;
+        const trimHeight = style.floorThickness * this.config.elevationHeight * this.config.scale;
         g.poly([a!.x, a!.y, b!.x, b!.y, b!.x, b!.y - trimHeight, a!.x, a!.y - trimHeight])
-          .fill(this.style.materials ? { color: shadeColor(this.style.wallColor, materials.wall.lighting.edge), alpha: materials.wall.opacity } : shadeColor(this.style.wallColor, 0.66));
+          .fill(style.materials ? { color: shadeColor(style.wallColor, materials.wall.lighting.edge), alpha: materials.wall.opacity } : shadeColor(style.wallColor, 0.66));
         g.moveTo(a!.x, a!.y - trimHeight).lineTo(b!.x, b!.y - trimHeight)
-          .stroke({ color: shadeColor(this.style.wallColor, 1.15), width: Math.max(0.5, this.config.scale), alpha: 0.65 * materials.wall.opacity });
+          .stroke({ color: shadeColor(style.wallColor, 1.15), width: Math.max(0.5, this.config.scale), alpha: 0.65 * materials.wall.opacity });
         // Continuous cornice and restrained plaster grain from original vector
-        // geometry; no Gallaxys textures or runtime dependency.
+        // geometry. Native bitmaps share the same retained surfaces.
         g.poly([topA!.x,topA!.y,topB!.x,topB!.y,topB!.x,topB!.y+trimHeight/2,topA!.x,topA!.y+trimHeight/2])
           .fill({color:shadeColor(wall.front.color,0.72),alpha: 0.18 * materials.wall.opacity});
         g.moveTo(topA!.x,topA!.y).lineTo(topB!.x,topB!.y)
           .stroke({color:shadeColor(wall.front.color,1.2),width:this.config.scale,alpha: 0.5 * materials.wall.opacity});
       }
-      if (materials.wall.texture?.kind === 'grain' && this.config.scale >= 0.5) {
+      if (!wallTexture && materials.wall.texture?.kind === 'grain' && this.config.scale >= 0.5) {
         const seed = wall.x * 31 + wall.y * 17 + (wall.side === 'x' ? 11 : 0);
         for (let i=0;i<3;i++) {
           const along = 0.12+((seed+i*13)%29)/38;
@@ -350,12 +454,12 @@ export class RoomRenderer {
           const y = a!.y+(b!.y-a!.y)*along+(topA!.y-a!.y)*height;
           g.moveTo(x,y).lineTo(x+2*this.config.scale,y);
         }
-        g.stroke({color:this.style.materials ? materials.wall.secondaryColor : shadeColor(wall.front.color,0.7),width:this.config.scale,alpha: 0.06 * materials.wall.opacity});
+        g.stroke({color:style.materials ? materials.wall.secondaryColor : shadeColor(wall.front.color,0.7),width:this.config.scale,alpha: 0.06 * materials.wall.opacity});
       }
-      if (materials.wall.texture?.kind === 'panels' && Math.floor((wall.side === 'x' ? wall.y : wall.x) / materials.wall.repeatScale) !== Math.floor(((wall.side === 'x' ? wall.y : wall.x) - 1) / materials.wall.repeatScale)) {
+      if (!wallTexture && materials.wall.texture?.kind === 'panels' && Math.floor((wall.side === 'x' ? wall.y : wall.x) / materials.wall.repeatScale) !== Math.floor(((wall.side === 'x' ? wall.y : wall.x) - 1) / materials.wall.repeatScale)) {
         const p = wall.front.polygon;
         g.moveTo(p[0]!.x, p[0]!.y).lineTo(p[3]!.x, p[3]!.y)
-          .stroke({ color: this.style.materials ? materials.wall.secondaryColor : shadeColor(this.style.wallColor, 0.7), width: this.config.scale, alpha: 0.25 * materials.wall.opacity });
+          .stroke({ color: style.materials ? materials.wall.secondaryColor : shadeColor(style.wallColor, 0.7), width: this.config.scale, alpha: 0.25 * materials.wall.opacity });
       }
       if (!exterior) {
         this.entityLayer.addChild(g);
@@ -365,7 +469,7 @@ export class RoomRenderer {
     // Pixi retains this geometry on the GPU. Bitmap caching is an explicit
     // diagnostic option: A/B tests found its larger transparent quad slower.
     // Raised floors, recessed walls, avatars and hover keep individual depth.
-    if (this.style.cacheBackground !== false && (surfaces.floors.some(floor => floor.elevation === 0) || surfaces.walls.some(wall => wall.side === 'x' ? wall.x === 0 : wall.y === 0))) {
+    if (style.cacheBackground !== false && (surfaces.floors.some(floor => floor.elevation === 0) || surfaces.walls.some(wall => wall.side === 'x' ? wall.x === 0 : wall.y === 0))) {
       this.floorLayer.cacheAsTexture({resolution: Math.min(window.devicePixelRatio || 1, MAX_DPR), antialias: false});
     }
     this.entityLayer.sortChildren();
@@ -478,32 +582,9 @@ export class RoomRenderer {
 }
 
 function sameIsoConfig(left: IsoConfig, right: IsoConfig): boolean {
-  return left.scale === right.scale && left.origin.x === right.origin.x && left.origin.y === right.origin.y;
+  return left.elevationHeight === right.elevationHeight && left.scale === right.scale && left.origin.x === right.origin.x && left.origin.y === right.origin.y;
 }
 
 function countDisplayObjects(container: Container): number {
   return 1 + container.children.reduce((sum, child) => sum + countDisplayObjects(child), 0);
-}
-
-function countRenderResources(root: Container): { spriteCount: number; textureSourceCount: number } {
-  let spriteCount = 0;
-  const sources = new Set<object>();
-  const visit = (node: Container): void => {
-    if (node instanceof Sprite) { spriteCount++; sources.add(node.texture.source); }
-    for (const child of node.children) visit(child);
-  };
-  visit(root);
-  return { spriteCount, textureSourceCount: sources.size };
-}
-
-function countSurfaceInstructions(surfaces: readonly Graphics[]): { fills: number; strokes: number; textures: number; pathInstructions: number } {
-  const result = { fills: 0, strokes: 0, textures: 0, pathInstructions: 0 };
-  for (const surface of surfaces) for (const instruction of surface.context.instructions) {
-    if (instruction.action === 'texture') result.textures++;
-    else {
-      if (instruction.action === 'fill') result.fills++; else result.strokes++;
-      result.pathInstructions += instruction.data.path.instructions.length;
-    }
-  }
-  return result;
 }

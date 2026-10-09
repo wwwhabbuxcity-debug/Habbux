@@ -5,6 +5,10 @@
 body { min-height: 100svh; margin: 0; background: radial-gradient(circle at 80% 5%, #452178 0, transparent 36rem), linear-gradient(145deg, #100b25, #19103a 58%, #281150); }
 button, input { font: inherit; }
 button { cursor: pointer; }
+.room-explore { margin-top: 36px; max-width: 600px; }
+.room-explore h2 { color: #ff94d5; }
+.room-explore form { display: grid; gap: 12px; }
+.room-explore select { width: 100%; min-width: 0; min-height: 46px; padding: 10px; border: 1px solid #ffffff33; border-radius: 10px; color: #fff; background: #211638; font: inherit; }
 .player-shell { width: min(1120px, 100%); margin: auto; padding: 0 24px 48px; }
 .player-header { display: flex; justify-content: space-between; align-items: center; min-height: 78px; border-bottom: 1px solid #ffffff1f; }
 .player-brand { color: #fff; font-size: 1.25rem; font-weight: 800; text-decoration: none; }.player-brand span { color: #c1acd9; font-weight: 400; }

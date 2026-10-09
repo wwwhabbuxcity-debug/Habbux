@@ -5,8 +5,13 @@ registra limites e direções aprovadas; Furniture Engine e economia ainda não 
 
 ## Objetivo e restrições
 
-Habbux é uma plataforma multiplayer independente. Código, protocolo, persistência
-e assets de projetos anteriores não fazem parte desta fundação. A ordem de
+Habbux é uma plataforma multiplayer independente com código de runtime, protocolo
+e persistência próprios. A migração seletiva V5 incorpora dados de modelos e
+animação sob GPL-3.0 por conversores offline próprios, além de três modelos custom
+declarados próprios e um ornamento de autoria Gallaxys, conforme
+[ADR 0024](../adr/0024-selective-gallaxys-resource-migration.md).
+A licença desses dados não é atribuída aos PNGs legados ou à arte de terceiros;
+origens e pendências estão em [THIRD_PARTY](../../THIRD_PARTY.md). A ordem de
 prioridade é estabilidade, desempenho, otimização, baixa latência, concorrência,
 uso responsável de CPU/RAM, manutenção, testes, observabilidade e escalabilidade.
 Uma dependência ou abstração precisa resolver uma necessidade identificada.
@@ -21,7 +26,7 @@ Uma dependência ou abstração precisa resolver uma necessidade identificada.
 | `packages/protocol` | Fonte única do Habbux Protocol | Contrato Core v1 e vetores binários compartilhados |
 | Contratos HTTP futuros | Necessidades públicas da Web | Sem serviço ou pacote até haver contratos e consumidores reais |
 | Código compartilhado futuro | Utilidades puras com mais de um consumidor | Sem pacote vazio |
-| `asset-engine` | Importação offline e produção de HBX | Pipeline conceitual documentado; sem conversores implementados |
+| `asset-engine` | Importação offline e produção de HBX | Pipeline completo conceitual; conversores seletivos V5 em `tools` produzem TSV/JSON/PNG nativos |
 | `database` | Evolução versionada da persistência PostgreSQL | Auth/User e metadados estáticos de quarto |
 | `infrastructure` | Desenvolvimento, publicação e operação | Configuração isolada do projeto |
 
